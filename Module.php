@@ -93,7 +93,7 @@ class Module extends AbstractModule
         // Trimming.
         foreach ($data as $term => &$values) {
             // Process properties only.
-            if (strpos($term, ':') === false || !is_array($values) || empty($values)) {
+            if (mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
                 continue;
             }
             $first = reset($values);
@@ -103,19 +103,19 @@ class Module extends AbstractModule
             foreach ($values as &$value) {
                 if (isset($value['@value'])) {
                     $v = $trimUnicode($value['@value']);
-                    $value['@value'] = strlen($v) ? $v : null;
+                    $value['@value'] = mb_strlen($v) ? $v : null;
                 }
                 if (isset($value['@id'])) {
                     $v = $trimUnicode($value['@id']);
-                    $value['@id'] = strlen($v) ? $v : null;
+                    $value['@id'] = mb_strlen($v) ? $v : null;
                 }
                 if (isset($value['@language'])) {
                     $v = $trimUnicode($value['@language']);
-                    $value['@language'] = strlen($v) ? $v : null;
+                    $value['@language'] = mb_strlen($v) ? $v : null;
                 }
                 if (isset($value['o:label'])) {
                     $v = $trimUnicode($value['o:label']);
-                    $value['o:label'] = strlen($v) ? $v : null;
+                    $value['o:label'] = mb_strlen($v) ? $v : null;
                 }
             }
             unset($value);
@@ -125,7 +125,7 @@ class Module extends AbstractModule
         // Deduplicating.
         foreach ($data as $term => &$values) {
             // Process properties only.
-            if (strpos($term, ':') === false || !is_array($values) || empty($values)) {
+            if (mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
                 continue;
             }
             $first = reset($values);
@@ -185,7 +185,7 @@ class Module extends AbstractModule
             $to = $propertiesValues['to'];
             $prepend = ltrim($propertiesValues['prepend']);
             $append = rtrim($propertiesValues['append']);
-            if (strlen($from) || strlen($to) || strlen($prepend) || strlen($append)) {
+            if (mb_strlen($from) || mb_strlen($to) || mb_strlen($prepend) || mb_strlen($append)) {
                 $adapter = $event->getTarget();
                 $ids = (array) $request->getIds();
                 $this->updateValuesForResources($adapter, $ids, $propertiesValues['properties'], [
@@ -523,7 +523,7 @@ class Module extends AbstractModule
 
         // Check the validity of the regex.
         // TODO Add the check of the validity of the regex in the form.
-        if ($replaceMode === 'regex' && strlen($from)) {
+        if ($replaceMode === 'regex' && mb_strlen($from)) {
             $isValidRegex = @preg_match($from, null) !== false;
             if (!$isValidRegex) {
                 $from = '';
@@ -550,7 +550,7 @@ class Module extends AbstractModule
 
             $toUpdate = false;
 
-            if (strlen($from)) {
+            if (mb_strlen($from)) {
                 foreach ($properties as $property => $propertyValues) {
                     foreach ($propertyValues as $key => $value) {
                         if ($value['type'] !== 'literal') {

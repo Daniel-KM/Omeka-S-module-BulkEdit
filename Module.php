@@ -177,6 +177,22 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         $plugins = $services->get('ControllerPluginManager');
 
+        //  TODO Factorize to avoid multiple update of resources.
+
+        $propertiesValues = $request->getValue('properties_values', []);
+        if (!empty($propertiesValues['properties'])) {
+            $prepend = ltrim($propertiesValues['prepend']);
+            $append = rtrim($propertiesValues['append']);
+            if (strlen($prepend) || strlen($append)) {
+                $adapter = $event->getTarget();
+                $ids = (array) $request->getIds();
+                $this->updateValuesForResources($adapter, $ids, $propertiesValues['properties'], [
+                    'prepend' => $prepend,
+                    'append' => $append,
+                ]);
+            }
+        }
+
         $propertiesLanguage = $request->getValue('properties_language', []);
         if (!empty($propertiesLanguage['properties'])) {
             if (!empty($propertiesLanguage['clear'])) {
@@ -227,6 +243,56 @@ class Module extends AbstractModule
     public function formAddElementsResourceBatchUpdateForm(Event $event)
     {
         $form = $event->getTarget();
+
+        $form->add([
+            'name' => 'properties_values',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Values', // @translate
+            ],
+            'attributes' => [
+                'id' => 'properties_values',
+                'class' => 'field-container',
+            ],
+        ]);
+        $fieldset = $form->get('properties_values');
+        $fieldset->add([
+            'name' => 'prepend',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'String to prepend…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'propval_prepend',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'append',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'String to append…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'propval_append',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'properties',
+            'type' => PropertySelect::class,
+            'options' => [
+                'label' => '… for properties', // @translate
+                'term_as_value' => true,
+                'prepend_value_options' => [
+                    'all' => '[All properties]', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'propval_properties',
+                'class' => 'chosen-select',
+                'multiple' => true,
+                'data-placeholder' => 'Select properties', // @translate
+            ],
+        ]);
 
         $form->add([
             'name' => 'properties_language',
@@ -372,6 +438,10 @@ class Module extends AbstractModule
     public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
     {
         $inputFilter = $event->getParam('inputFilter');
+        $inputFilter->get('properties_values')->add([
+            'name' => 'properties',
+            'required' => false,
+        ]);
         $inputFilter->get('properties_language')->add([
             'name' => 'properties',
             'required' => false,
@@ -384,6 +454,63 @@ class Module extends AbstractModule
             'name' => 'properties',
             'required' => false,
         ]);
+    }
+
+    /**
+     * Update values for resources.
+     *
+     * @param AbstractResourceEntityAdapter $adapter
+     * @param array $resourceIds
+     * @param array $properties
+     * @param array $params
+     */
+    protected function updateValuesForResources(
+        AbstractResourceEntityAdapter$adapter,
+        array $resourceIds,
+        array $properties,
+        array $params
+    ) {
+        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $resourceType = $adapter->getResourceName();
+
+        foreach ($resourceIds as $resourceId) {
+            $resource = $adapter->findEntity(['id' => $resourceId]);
+            if (!$resource) {
+                continue;
+            }
+
+            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
+            $resource = $adapter->getRepresentation($resource);
+
+            $data = json_decode(json_encode($resource), true);
+            if (in_array('all', $properties)) {
+                $properties = array_keys($resource->values());
+            }
+            $properties = array_intersect_key($data, array_flip($properties));
+            if (empty($properties)) {
+                continue;
+            }
+
+            $toUpdate = false;
+            foreach ($properties as $property => $propertyValues) {
+                foreach ($propertyValues as $key => $value) {
+                    if ($value['type'] !== 'literal') {
+                        continue;
+                    }
+                    $newValue = $params['prepend'] . $value['@value'] . $params['append'];
+                    if ($value['@value'] === $newValue) {
+                        continue;
+                    }
+                    $toUpdate = true;
+                    $data[$property][$key]['@value'] = $newValue;
+                }
+            }
+            if (!$toUpdate) {
+                continue;
+            }
+
+            $api->update($resourceType, $resourceId, $data);
+        }
     }
 
     /**

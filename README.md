@@ -5,6 +5,7 @@ Bulk Edit (module for Omeka S)
 order to modify or to clean them.
 
 Current processes are:
+- Prepend or append a string to a value of a property
 - Set or remove language of a property
 - Set visibility of a property public or private
 - Remove all trailing white spaces
@@ -31,7 +32,11 @@ and Admin > Media. Simply select specific resources or all, then click Go, then
 select and config the process to do.
 
 The job is launched directly when specific resources are selected, and in the
-background for all resources.
+background when all resources are selected.
+
+### Prepend or append a string
+
+Fill fields "Prepend" and/or "Append" and select the properties to update.
 
 ### Set or remove language of a property
 

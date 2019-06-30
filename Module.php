@@ -181,12 +181,16 @@ class Module extends AbstractModule
 
         $propertiesValues = $request->getValue('properties_values', []);
         if (!empty($propertiesValues['properties'])) {
+            $from = $propertiesValues['from'];
+            $to = $propertiesValues['to'];
             $prepend = ltrim($propertiesValues['prepend']);
             $append = rtrim($propertiesValues['append']);
-            if (strlen($prepend) || strlen($append)) {
+            if (strlen($from) || strlen($to) || strlen($prepend) || strlen($append)) {
                 $adapter = $event->getTarget();
                 $ids = (array) $request->getIds();
                 $this->updateValuesForResources($adapter, $ids, $propertiesValues['properties'], [
+                    'from' => $from,
+                    'to' => $to,
                     'prepend' => $prepend,
                     'append' => $append,
                 ]);
@@ -256,6 +260,26 @@ class Module extends AbstractModule
             ],
         ]);
         $fieldset = $form->get('properties_values');
+        $fieldset->add([
+            'name' => 'from',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'String to replace…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'propval_from',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'to',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => '… by…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'propval_to',
+            ],
+        ]);
         $fieldset->add([
             'name' => 'prepend',
             'type' => Element\Text::class,
@@ -492,12 +516,29 @@ class Module extends AbstractModule
             }
 
             $toUpdate = false;
+
+            if (strlen($params['from'])) {
+                foreach ($properties as $property => $propertyValues) {
+                    foreach ($propertyValues as $key => $value) {
+                        if ($value['type'] !== 'literal') {
+                            continue;
+                        }
+                        $newValue = str_replace($params['from'], $params['to'], $data[$property][$key]['@value']);
+                        if ($value['@value'] === $newValue) {
+                            continue;
+                        }
+                        $toUpdate = true;
+                        $data[$property][$key]['@value'] = $newValue;
+                    }
+                }
+            }
+
             foreach ($properties as $property => $propertyValues) {
                 foreach ($propertyValues as $key => $value) {
                     if ($value['type'] !== 'literal') {
                         continue;
                     }
-                    $newValue = $params['prepend'] . $value['@value'] . $params['append'];
+                    $newValue = $params['prepend'] . $data[$property][$key]['@value'] . $params['append'];
                     if ($value['@value'] === $newValue) {
                         continue;
                     }
@@ -505,6 +546,7 @@ class Module extends AbstractModule
                     $data[$property][$key]['@value'] = $newValue;
                 }
             }
+
             if (!$toUpdate) {
                 continue;
             }

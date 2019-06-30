@@ -197,16 +197,15 @@ class Module extends AbstractModule
             return;
         }
 
-        $trimValues = $request->getValue('trim_values');
-        if ($trimValues) {
+        $cleaning = $request->getValue('cleaning', []);
+        if (!empty($cleaning['trim_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
             $trimValues = $plugins->get('trimValues');
             $ids = (array) $request->getIds();
             $trimValues($ids);
         }
 
-        $deduplicateValues = $request->getValue('deduplicate_values');
-        if ($deduplicateValues) {
+        if (!empty($cleaning['deduplicate_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
             $deduplicateValues = $plugins->get('deduplicateValues');
             $ids = (array) $request->getIds();
@@ -271,6 +270,17 @@ class Module extends AbstractModule
         }
 
         $form->add([
+            'name' => 'cleaning',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Cleaning', // @translate
+            ],
+            'attributes' => [
+                'class' => 'field-container',
+            ],
+        ]);
+        $fieldset = $form->get('cleaning');
+        $fieldset->add([
             'name' => 'trim_values',
             'type' => Element\Checkbox::class,
             'options' => [
@@ -278,13 +288,13 @@ class Module extends AbstractModule
                 'info' => 'Remove initial and trailing whitespace of all values of all properties', // @translate
             ],
             'attributes' => [
-                'id' => 'trim_values',
+                'id' => 'cleaning_trim',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
         ]);
 
-        $form->add([
+        $fieldset->add([
             'name' => 'deduplicate_values',
             'type' => Element\Checkbox::class,
             'options' => [
@@ -292,7 +302,7 @@ class Module extends AbstractModule
                 'info' => 'Deduplicate values of all properties, case INsensitively. Trimming values before is recommended, because values are checked strictly.', // @translate
             ],
             'attributes' => [
-                'id' => 'deduplicate_values',
+                'id' => 'cleaning_deduplicate',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],

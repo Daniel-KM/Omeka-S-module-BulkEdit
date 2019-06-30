@@ -1,10 +1,16 @@
 $(document).ready(function() {
 
 // @todo To be removed when $this->form() witll be used instead of $this->formCollection().
+
 $('#langprop_language, #langprop_clear, #langprop_properties').parent().parent()
     .wrapAll('<fieldset id="language_properties" class="field-container">');
 $('#language_properties')
     .prepend('<legend>' + Omeka.jsTranslate('Language') + '</legend>');
+
+$('#cleaning_trim, #cleaning_deduplicate').closest('.field')
+    .wrapAll('<fieldset id="cleaning" class="field-container">');
+$('#cleaning')
+    .prepend('<legend>' + Omeka.jsTranslate('Cleaning') + '</legend>');
 
 // From resource-form.js.
 $('input.value-language').on('keyup', function(e) {

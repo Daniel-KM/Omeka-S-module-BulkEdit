@@ -282,6 +282,8 @@ class Module extends AbstractModule
             'attributes' => [
                 'id' => 'properties_values',
                 'class' => 'field-container',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset = $form->get('properties_values');
@@ -293,6 +295,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_from',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -303,6 +307,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_to',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -318,6 +324,8 @@ class Module extends AbstractModule
             'attributes' => [
                 'id' => 'propval_replace_mode',
                 'value' => 'raw',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -328,6 +336,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_remove',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -338,6 +348,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_prepend',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -348,6 +360,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_append',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -359,6 +373,8 @@ class Module extends AbstractModule
             'attributes' => [
                 'id' => 'propval_language',
                 'class' => 'value-language active',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -369,6 +385,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_language_clear',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -386,6 +404,8 @@ class Module extends AbstractModule
                 'class' => 'chosen-select',
                 'multiple' => true,
                 'data-placeholder' => 'Select properties', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
 
@@ -398,6 +418,8 @@ class Module extends AbstractModule
             'attributes' => [
                 'id' => 'properties_visibility',
                 'class' => 'field-container',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset = $form->get('properties_visibility');
@@ -415,6 +437,8 @@ class Module extends AbstractModule
             'attributes' => [
                 'id' => 'propvis_visibility',
                 'value' => '',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -432,6 +456,8 @@ class Module extends AbstractModule
                 'class' => 'chosen-select',
                 'multiple' => true,
                 'data-placeholder' => 'Select properties', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
 
@@ -444,6 +470,8 @@ class Module extends AbstractModule
             'attributes' => [
                 'id' => 'media_html',
                 'class' => 'field-container',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset = $form->get('media_html');
@@ -455,6 +483,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'mediahtml_from',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -465,6 +495,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'mediahtml_to',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -480,6 +512,8 @@ class Module extends AbstractModule
             'attributes' => [
                 'id' => 'mediahtml_replace_mode',
                 'value' => 'raw',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -490,6 +524,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'mediahtml_remove',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -500,6 +536,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'mediahtml_prepend',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
@@ -510,6 +548,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'mediahtml_append',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
 
@@ -525,6 +565,8 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'class' => 'field-container',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset = $form->get('cleaning');

@@ -586,6 +586,19 @@ class Module extends AbstractModule
                 continue;
             }
 
+            // Force trimming values and check if a value is empty to remove it.
+            foreach ($properties as $property => $propertyValues) {
+                foreach ($propertyValues as $key => $value) {
+                    if ($value['type'] !== 'literal') {
+                        continue;
+                    }
+                    $data[$property][$key]['@value'] = trim($data[$property][$key]['@value']);
+                    if (!mb_strlen($data[$property][$key]['@value'])) {
+                        unset($data[$property][$key]);
+                    }
+                }
+            }
+
             $api->update($resourceType, $resourceId, $data);
         }
     }

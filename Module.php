@@ -78,6 +78,10 @@ class Module extends AbstractModule
      */
     public function handleResourceProcessPre(Event $event)
     {
+        if ($this->checkModuleNext()) {
+            return;
+        }
+
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $request->getContent();
@@ -189,6 +193,10 @@ class Module extends AbstractModule
             }
         }
 
+        if ($this->checkModuleNext()) {
+            return;
+        }
+
         $trimValues = $request->getValue('trim_values');
         if ($trimValues) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
@@ -257,6 +265,10 @@ class Module extends AbstractModule
                 'data-placeholder' => 'Select properties', // @translate
             ],
         ]);
+
+        if ($this->checkModuleNext()) {
+            return;
+        }
 
         $form->add([
             'name' => 'trim_values',
@@ -350,5 +362,18 @@ class Module extends AbstractModule
 
             $api->update($resourceType, $resourceId, $data);
         }
+    }
+
+    protected function checkModuleNext()
+    {
+        $services = $this->getServiceLocator();
+        /** @var \Omeka\Module\Manager $moduleManager */
+        $moduleManager = $services->get('Omeka\ModuleManager');
+        $module = $moduleManager->getModule('Next');
+        if (!$module || $module->getState() !== \Omeka\Module\Manager::STATE_ACTIVE) {
+            return false;
+        }
+        $version = $module->getIni('version');
+        return version_compare($version, '3.1.2.9', '<');
     }
 }

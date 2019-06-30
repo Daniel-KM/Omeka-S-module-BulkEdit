@@ -5,7 +5,7 @@ Bulk Edit (module for Omeka S)
 order to modify or to clean them.
 
 Current processes are:
-- Replace value of a property
+- Replace value of a property (directly or via regex)
 - Prepend or append a string to a value of a property
 - Set or remove language of a property
 - Set visibility of a property public or private
@@ -35,9 +35,10 @@ select and config the process to do.
 The job is launched directly when specific resources are selected, and in the
 background when all resources are selected.
 
-### Replace value of a property
+### Replace value of a property directly or via regex
 
-Fill fields "Replace" and "By" and select the properties to update.
+Fill fields "Replace" and "By", specify the type of replacement (raw or regex), 
+then select the properties to update.
 
 ### Prepend or append a string
 

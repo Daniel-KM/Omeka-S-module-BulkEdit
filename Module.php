@@ -191,6 +191,7 @@ class Module extends AbstractModule
                 $this->updateValuesForResources($adapter, $ids, $propertiesValues['properties'], [
                     'from' => $from,
                     'to' => $to,
+                    'replace_mode' => $propertiesValues['replace_mode'],
                     'prepend' => $prepend,
                     'append' => $append,
                 ]);
@@ -278,6 +279,21 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_to',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'replace_mode',
+            'type' => Element\Radio::class,
+            'options' => [
+                'label' => '… using replacement mode', // @translate
+                'value_options' => [
+                    'raw' => 'Simple', // @translate
+                    'regex' => 'Regex (with delimiters)', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'propval_replace_mode',
+                'value' => 'raw',
             ],
         ]);
         $fieldset->add([
@@ -463,6 +479,10 @@ class Module extends AbstractModule
     {
         $inputFilter = $event->getParam('inputFilter');
         $inputFilter->get('properties_values')->add([
+            'name' => 'replace_mode',
+            'required' => false,
+        ]);
+        $inputFilter->get('properties_values')->add([
             'name' => 'properties',
             'required' => false,
         ]);
@@ -497,6 +517,19 @@ class Module extends AbstractModule
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
         $resourceType = $adapter->getResourceName();
 
+        $from = $params['from'];
+        $to = $params['to'];
+        $replaceMode = $params['replace_mode'] === 'regex' ? 'regex' : 'raw';
+
+        // Check the validity of the regex.
+        // TODO Add the check of the validity of the regex in the form.
+        if ($replaceMode === 'regex' && strlen($from)) {
+            $isValidRegex = @preg_match($from, null) !== false;
+            if (!$isValidRegex) {
+                $from = '';
+            }
+        }
+
         foreach ($resourceIds as $resourceId) {
             $resource = $adapter->findEntity(['id' => $resourceId]);
             if (!$resource) {
@@ -517,13 +550,15 @@ class Module extends AbstractModule
 
             $toUpdate = false;
 
-            if (strlen($params['from'])) {
+            if (strlen($from)) {
                 foreach ($properties as $property => $propertyValues) {
                     foreach ($propertyValues as $key => $value) {
                         if ($value['type'] !== 'literal') {
                             continue;
                         }
-                        $newValue = str_replace($params['from'], $params['to'], $data[$property][$key]['@value']);
+                        $newValue = $replaceMode === 'regex'
+                            ? preg_replace($from, $to, $data[$property][$key]['@value'])
+                            : str_replace($from, $to, $data[$property][$key]['@value']);
                         if ($value['@value'] === $newValue) {
                             continue;
                         }

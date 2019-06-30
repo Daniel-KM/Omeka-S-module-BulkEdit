@@ -1,0 +1,28 @@
+{
+    "name": "daniel-km/omeka-s-module-bulk-edit",
+    "description": "Bulk edit (module for Omeka S)",
+    "type": "library",
+    "license": "CECILL-2.1",
+    "authors": [
+        {
+            "name": "Daniel Berthereau",
+            "email": "Daniel.packagist@Berthereau.net"
+        }
+    ],
+    "homepage": "https://github.com/Daniel-KM/Omeka-S-module-BulkEdit",
+    "support": {
+        "issues": "https://github.com/Daniel-KM/Omeka-S-module-BulkEdit/issues",
+        "forum": "https://forum.omeka.org/"
+    },
+    "keywords": [
+        "Omeka S",
+        "module",
+        "admin",
+        "curation"
+    ],
+    "autoload": {
+        "psr-4": {
+            "BulkEdit\\": "src/"
+        }
+    }
+}

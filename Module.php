@@ -256,6 +256,9 @@ class Module extends AbstractModule
             'options' => [
                 'label' => '… for properties', // @translate
                 'term_as_value' => true,
+                'prepend_value_options' => [
+                    'all' => '[All properties]', // @translate
+                ],
             ],
             'attributes' => [
                 'id' => 'langprop_properties',
@@ -347,6 +350,9 @@ class Module extends AbstractModule
             $resource = $adapter->getRepresentation($resource);
 
             $data = json_decode(json_encode($resource), true);
+            if (in_array('all', $properties)) {
+                $properties = array_keys($resource->values());
+            }
             $properties = array_intersect_key($data, array_flip($properties));
             if (empty($properties)) {
                 continue;

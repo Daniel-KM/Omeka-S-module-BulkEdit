@@ -1,0 +1,4 @@
+.inputs input[type="text"].value-language.active {
+    background-color: #fff;
+    padding: 6px;
+}

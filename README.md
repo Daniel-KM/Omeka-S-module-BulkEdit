@@ -7,6 +7,7 @@ order to modify or to clean them.
 Current processes are:
 - Remove all trailing white spaces
 - Remove duplicate values
+- Set or remove language of a property
 
 Furthermore, values are automatically trimmed and deduplicated when a resource
 is saved.
@@ -43,6 +44,12 @@ Remove exact duplicated values on any new or updated resource preventively.
 Note: preventive deduplication is case sensitive, but curative deduplication is
 case insensitive (it uses a direct query and the Omeka database is case
 insensitive by default).
+
+### Set or remove language of a property
+
+Select the properties to set or remove language.
+Note: all values of the selected properties are updated, so be aware of existing
+languages when they are multiple.
 
 
 Warning

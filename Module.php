@@ -6,9 +6,12 @@ require_once file_exists(dirname(__DIR__) . '/Generic/AbstractModule.php')
     : __DIR__ . '/Generic/AbstractModule.php';
 
 use Generic\AbstractModule;
+use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
+use Omeka\Form\Element\PropertySelect;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
 use Zend\Form\Element;
+use Zend\Form\Fieldset;
 
 /**
  * BulkEdit
@@ -49,9 +52,19 @@ class Module extends AbstractModule
         }
 
         $sharedEventManager->attach(
+            '*',
+            'view.batch_edit.before',
+            [$this, 'viewBatchEditBefore']
+        );
+        $sharedEventManager->attach(
             \Omeka\Form\ResourceBatchUpdateForm::class,
             'form.add_elements',
             [$this, 'formAddElementsResourceBatchUpdateForm']
+        );
+        $sharedEventManager->attach(
+            \Omeka\Form\ResourceBatchUpdateForm::class,
+            'form.add_input_filters',
+            [$this, 'formAddInputFiltersResourceBatchUpdateForm']
         );
     }
 
@@ -134,6 +147,15 @@ class Module extends AbstractModule
         $request->setContent($data);
     }
 
+    public function viewBatchEditBefore(Event $event)
+    {
+        $view = $event->getTarget();
+        $view->headLink()
+            ->appendStylesheet($view->assetUrl('css/bulk-edit.css', __NAMESPACE__));
+        $view->headScript()
+            ->appendFile($view->assetUrl('js/bulk-edit.js', __NAMESPACE__));
+    }
+
     /**
      * Process action on batch update (all or partial).
      *
@@ -148,15 +170,26 @@ class Module extends AbstractModule
     {
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
-        $trimValues = $request->getValue('trim_values');
-        $deduplicateValues = $request->getValue('deduplicate_values');
-        if (!$trimValues && !$deduplicateValues) {
-            return;
-        }
-
         $services = $this->getServiceLocator();
         $plugins = $services->get('ControllerPluginManager');
 
+        $languageProperties = $request->getValue('language_properties', []);
+        if (!empty($languageProperties['properties'])) {
+            if (!empty($languageProperties['clear'])) {
+                $language = '';
+            } elseif (!empty($languageProperties['language'])) {
+                $language = $languageProperties['language'];
+            } else {
+                $language = null;
+            }
+            if (!is_null($language)) {
+                $adapter = $event->getTarget();
+                $ids = (array) $request->getIds();
+                $this->applyLanguageForResourcesValues($adapter, $ids, $languageProperties['properties'], $language);
+            }
+        }
+
+        $trimValues = $request->getValue('trim_values');
         if ($trimValues) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
             $trimValues = $plugins->get('trimValues');
@@ -164,6 +197,7 @@ class Module extends AbstractModule
             $trimValues($ids);
         }
 
+        $deduplicateValues = $request->getValue('deduplicate_values');
         if ($deduplicateValues) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
             $deduplicateValues = $plugins->get('deduplicateValues');
@@ -175,6 +209,54 @@ class Module extends AbstractModule
     public function formAddElementsResourceBatchUpdateForm(Event $event)
     {
         $form = $event->getTarget();
+
+        $form->add([
+            'name' => 'language_properties',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Language', // @translate
+            ],
+            'attributes' => [
+                'id' => 'properties_language',
+                'class' => 'field-container',
+            ],
+        ]);
+        $fieldset = $form->get('language_properties');
+        $fieldset->add([
+            'name' => 'language',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'Set a language…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'langprop_language',
+                'class' => 'value-language active',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'clear',
+            'type' => Element\Checkbox::class,
+            'options' => [
+                'label' => '… or remove it…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'langprop_clear',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'properties',
+            'type' => PropertySelect::class,
+            'options' => [
+                'label' => '… for properties', // @translate
+                'term_as_value' => true,
+            ],
+            'attributes' => [
+                'id' => 'langprop_properties',
+                'class' => 'chosen-select',
+                'multiple' => true,
+                'data-placeholder' => 'Select properties', // @translate
+            ],
+        ]);
 
         $form->add([
             'name' => 'trim_values',
@@ -203,5 +285,70 @@ class Module extends AbstractModule
                 'data-collection-action' => 'replace',
             ],
         ]);
+    }
+
+    public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
+    {
+        $inputFilter = $event->getParam('inputFilter');
+
+        $inputFilter->get('language_properties')->add([
+            'name' => 'properties',
+            'required' => false,
+        ]);
+    }
+
+    /**
+     * Set a language to the specified properties of the specified resources.
+     *
+     * @param AbstractResourceEntityAdapter $adapter
+     * @param array $resourceIds
+     * @param array $properties
+     * @param string $language
+     */
+    protected function applyLanguageForResourcesValues(
+        AbstractResourceEntityAdapter$adapter,
+        array $resourceIds,
+        array $properties,
+        $language
+    ) {
+        $language = trim($language);
+        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $resourceType = $adapter->getResourceName();
+
+        foreach ($resourceIds as $resourceId) {
+            $resource = $adapter->findEntity(['id' => $resourceId]);
+            if (!$resource) {
+                continue;
+            }
+
+            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
+            $resource = $adapter->getRepresentation($resource);
+
+            $data = json_decode(json_encode($resource), true);
+            $properties = array_intersect_key($data, array_flip($properties));
+            if (empty($properties)) {
+                continue;
+            }
+
+            $toUpdate = false;
+            foreach ($properties as $property => $propertyValues) {
+                foreach ($propertyValues as $key => $value) {
+                    if ($value['type'] !== 'literal') {
+                        continue;
+                    }
+                    $currentLanguage = isset($value['@language']) ? $value['@language'] : '';
+                    if ($currentLanguage === $language) {
+                        continue;
+                    }
+                    $toUpdate = true;
+                    $data[$property][$key]['@language'] = $language;
+                }
+            }
+            if (!$toUpdate) {
+                continue;
+            }
+
+            $api->update($resourceType, $resourceId, $data);
+        }
     }
 }

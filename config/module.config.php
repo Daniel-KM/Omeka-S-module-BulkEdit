@@ -22,6 +22,9 @@ return [
             ],
         ],
     ],
+    'js_translate_strings' => [
+        'Language', // @translate
+    ],
     'bulkedit' => [
     ],
 ];

@@ -34,6 +34,9 @@ The tool is available via the standard bulk process in Admin > Items, Admin > It
 and Admin > Media. Simply select specific resources or all, then click Go, then
 select and config the process to do.
 
+To improve search of resources, you can use module [Advanced Search Plus], that
+allows to search by creation date, modification date, or by visibility.
+
 The job is launched directly when specific resources are selected, and in the
 background when all resources are selected.
 
@@ -136,6 +139,7 @@ First developed for the [Archives Henri Poincaré] of [Université de Lorraine].
 [Bulk Edit]: https://github.com/Daniel-KM/Omeka-S-module-BulkEdit
 [Omeka S]: https://omeka.org/s
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
+[Advanced Search Plus]: https://github.com/Daniel-KM/Omeka-S-module-AdvancedSearchPlus
 [module issues]: https://github.com/Daniel-KM/Omeka-S-module-BulkEdit/issues
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html

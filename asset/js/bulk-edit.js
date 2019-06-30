@@ -2,7 +2,7 @@ $(document).ready(function() {
 
 // @todo To be removed when $this->form() witll be used instead of $this->formCollection().
 
-$('#propval_from, #propval_to, #propval_replace_mode, #propval_prepend, #propval_append, #propval_properties').closest('.field')
+$('#propval_from, #propval_to, #propval_replace_mode, #propval_prepend, #propval_append, #propval_remove, #propval_properties').closest('.field')
     .wrapAll('<fieldset id="properties_values" class="field-container">');
 $('#properties_values')
     .prepend('<legend>' + Omeka.jsTranslate('Values') + '</legend>');

@@ -194,6 +194,7 @@ class Module extends AbstractModule
                     'replace_mode' => $propertiesValues['replace_mode'],
                     'prepend' => $prepend,
                     'append' => $append,
+                    'remove' => (bool) $propertiesValues['remove'],
                 ]);
             }
         }
@@ -314,6 +315,16 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_append',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'remove',
+            'type' => Element\Checkbox::class,
+            'options' => [
+                'label' => 'Remove string…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'propval_remove',
             ],
         ]);
         $fieldset->add([
@@ -520,6 +531,7 @@ class Module extends AbstractModule
         $from = $params['from'];
         $to = $params['to'];
         $replaceMode = $params['replace_mode'] === 'regex' ? 'regex' : 'raw';
+        $remove = $params['remove'];
 
         // Check the validity of the regex.
         // TODO Add the check of the validity of the regex in the form.
@@ -582,6 +594,15 @@ class Module extends AbstractModule
                 }
             }
 
+            if ($remove) {
+                foreach ($properties as $property => $propertyValues) {
+                    foreach ($propertyValues as $key => $value) {
+                        unset($data[$property][$key]);
+                        $toUpdate = true;
+                    }
+                }
+            }
+
             if (!$toUpdate) {
                 continue;
             }
@@ -590,6 +611,9 @@ class Module extends AbstractModule
             foreach ($properties as $property => $propertyValues) {
                 foreach ($propertyValues as $key => $value) {
                     if ($value['type'] !== 'literal') {
+                        continue;
+                    }
+                    if (!isset($data[$property][$key])) {
                         continue;
                     }
                     $data[$property][$key]['@value'] = trim($data[$property][$key]['@value']);

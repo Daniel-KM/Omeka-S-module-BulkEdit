@@ -6,6 +6,7 @@ order to modify or to clean them.
 
 Current processes are:
 - Replace value of a property (directly or via regex)
+- Remove the literal value of a property
 - Prepend or append a string to a value of a property
 - Set or remove language of a property
 - Set visibility of a property public or private
@@ -39,6 +40,12 @@ background when all resources are selected.
 
 Fill fields "Replace" and "By", specify the type of replacement (raw or regex), 
 then select the properties to update.
+
+### Remove the literal value of a property
+
+Simply check the box "Remove string", then select the properties to update.
+The string will be removed, but it can be prepended or appended with another
+string. In that case, the value is kept, else it is removed.
 
 ### Prepend or append a string
 

@@ -1,0 +1,113 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-01 00:00+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/Generic/AbstractModule.php:452
+#, php-format
+msgid "This module requires the module \"%s\"."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:472
+#, php-format
+msgid "This module requires modules \"%s\"."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:540
+#, php-format
+msgid ""
+"The module \"%s\" was automatically deactivated because the dependencies are "
+"unavailable."
+msgstr ""
+
+#: Module.php:292 Module.php:454
+msgid "String to replace…"
+msgstr ""
+
+#: Module.php:302 Module.php:464
+msgid "… by…"
+msgstr ""
+
+#: Module.php:312 Module.php:474
+msgid "… using replacement mode"
+msgstr ""
+
+#: Module.php:314 Module.php:476
+msgid "Simple"
+msgstr ""
+
+#: Module.php:315 Module.php:477
+msgid "Regex (with delimiters)"
+msgstr ""
+
+#: Module.php:327 Module.php:489
+msgid "Remove string"
+msgstr ""
+
+#: Module.php:337 Module.php:499
+msgid "String to prepend"
+msgstr ""
+
+#: Module.php:347 Module.php:509
+msgid "String to append"
+msgstr ""
+
+#: Module.php:357
+msgid "Set a language…"
+msgstr ""
+
+#: Module.php:368
+msgid "… or remove it…"
+msgstr ""
+
+#: Module.php:378 Module.php:424
+msgid "… for properties"
+msgstr ""
+
+#: Module.php:381 Module.php:427
+msgid "[All properties]"
+msgstr ""
+
+#: Module.php:408
+msgid "Set visibility…"
+msgstr ""
+
+#: Module.php:442
+msgid "Media HTML"
+msgstr ""
+
+#: Module.php:524 config/module.config.php:26
+msgid "Cleaning"
+msgstr ""
+
+#: Module.php:535
+msgid "Trim property values"
+msgstr ""
+
+#: Module.php:536
+msgid "Remove initial and trailing whitespace of all values of all properties"
+msgstr ""
+
+#: Module.php:549
+msgid "Deduplicate property values case insensitively"
+msgstr ""
+
+#: Module.php:550
+msgid ""
+"Deduplicate values of all properties, case INsensitively. Trimming values "
+"before is recommended, because values are checked strictly."
+msgstr ""

@@ -25,6 +25,7 @@ return [
     'js_translate_strings' => [
         'Cleaning', // @translate
         'Language', // @translate
+        'Visibility', // @translate
     ],
     'bulkedit' => [
     ],

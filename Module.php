@@ -193,6 +193,17 @@ class Module extends AbstractModule
             }
         }
 
+        $propertiesVisibility = $request->getValue('properties_visibility', []);
+        if (isset($propertiesVisibility['visibility'])
+            && $propertiesVisibility['visibility'] !== ''
+            && !empty($propertiesVisibility['properties'])
+        ) {
+            $visibility = (int) (bool) $propertiesVisibility['visibility'];
+            $adapter = $event->getTarget();
+            $ids = (array) $request->getIds();
+            $this->applyVisibilityForResourcesValues($adapter, $ids, $propertiesVisibility['properties'], $visibility);
+        }
+
         if ($this->checkModuleNext()) {
             return;
         }
@@ -268,6 +279,52 @@ class Module extends AbstractModule
             ],
         ]);
 
+        $form->add([
+            'name' => 'properties_visibility',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Visibility', // @translate
+            ],
+            'attributes' => [
+                'id' => 'properties_visibility',
+                'class' => 'field-container',
+            ],
+        ]);
+        $fieldset = $form->get('properties_visibility');
+        $fieldset->add([
+            'name' => 'visibility',
+            'type' => Element\Radio::class,
+            'options' => [
+                'label' => 'Set visibility…', // @translate
+                'value_options' => [
+                    '1' => 'Public', // @translate
+                    '0' => 'Not public', // @translate
+                    '' => '[No change]', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'propvis_visibility',
+                'value' => '',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'properties',
+            'type' => PropertySelect::class,
+            'options' => [
+                'label' => '… for properties', // @translate
+                'term_as_value' => true,
+                'prepend_value_options' => [
+                    'all' => '[All properties]', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'propvis_properties',
+                'class' => 'chosen-select',
+                'multiple' => true,
+                'data-placeholder' => 'Select properties', // @translate
+            ],
+        ]);
+
         if ($this->checkModuleNext()) {
             return;
         }
@@ -316,6 +373,14 @@ class Module extends AbstractModule
     {
         $inputFilter = $event->getParam('inputFilter');
         $inputFilter->get('properties_language')->add([
+            'name' => 'properties',
+            'required' => false,
+        ]);
+        $inputFilter->get('properties_visibility')->add([
+            'name' => 'visibility',
+            'required' => false,
+        ]);
+        $inputFilter->get('properties_visibility')->add([
             'name' => 'properties',
             'required' => false,
         ]);
@@ -369,6 +434,61 @@ class Module extends AbstractModule
                     }
                     $toUpdate = true;
                     $data[$property][$key]['@language'] = $language;
+                }
+            }
+            if (!$toUpdate) {
+                continue;
+            }
+
+            $api->update($resourceType, $resourceId, $data);
+        }
+    }
+
+    /**
+     * Set visibility to the specified properties of the specified resources.
+     *
+     * @param AbstractResourceEntityAdapter $adapter
+     * @param array $resourceIds
+     * @param array $properties
+     * @param int $visibility
+     */
+    protected function applyVisibilityForResourcesValues(
+        AbstractResourceEntityAdapter$adapter,
+        array $resourceIds,
+        array $properties,
+        $visibility
+    ) {
+        $visibility = (int) (bool) $visibility;
+        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $resourceType = $adapter->getResourceName();
+
+        foreach ($resourceIds as $resourceId) {
+            $resource = $adapter->findEntity(['id' => $resourceId]);
+            if (!$resource) {
+                continue;
+            }
+
+            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
+            $resource = $adapter->getRepresentation($resource);
+
+            $data = json_decode(json_encode($resource), true);
+            if (in_array('all', $properties)) {
+                $properties = array_keys($resource->values());
+            }
+            $properties = array_intersect_key($data, array_flip($properties));
+            if (empty($properties)) {
+                continue;
+            }
+
+            $toUpdate = false;
+            foreach ($properties as $property => $propertyValues) {
+                foreach ($propertyValues as $key => $value) {
+                    $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
+                    if ($currentVisibility === $visibility) {
+                        continue;
+                    }
+                    $toUpdate = true;
+                    $data[$property][$key]['is_public'] = $visibility;
                 }
             }
             if (!$toUpdate) {

@@ -5,9 +5,10 @@ Bulk Edit (module for Omeka S)
 order to modify or to clean them.
 
 Current processes are:
+- Set or remove language of a property
+- Set visibility of a property public or private
 - Remove all trailing white spaces
 - Remove duplicate values
-- Set or remove language of a property
 
 Furthermore, values are automatically trimmed and deduplicated when a resource
 is saved.
@@ -32,6 +33,16 @@ select and config the process to do.
 The job is launched directly when specific resources are selected, and in the
 background for all resources.
 
+### Set or remove language of a property
+
+Select the properties to set or remove language.
+Note: all values of the selected properties are updated, so be aware of existing
+languages when they are multiple.
+
+### Set or unset visibility of a property
+
+Select the properties to set or unset visibility.
+
 ### Trim property values
 
 Remove leading and trailing whitespaces preventively on any resource creation or
@@ -44,12 +55,6 @@ Remove exact duplicated values on any new or updated resource preventively.
 Note: preventive deduplication is case sensitive, but curative deduplication is
 case insensitive (it uses a direct query and the Omeka database is case
 insensitive by default).
-
-### Set or remove language of a property
-
-Select the properties to set or remove language.
-Note: all values of the selected properties are updated, so be aware of existing
-languages when they are multiple.
 
 
 Warning

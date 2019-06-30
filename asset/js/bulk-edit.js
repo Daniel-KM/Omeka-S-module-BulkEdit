@@ -7,6 +7,11 @@ $('#proplang_language, #proplang_clear, #proplang_properties').closest('.field')
 $('#properties_language')
     .prepend('<legend>' + Omeka.jsTranslate('Language') + '</legend>');
 
+$('#propvis_visibility, #propvis_properties').closest('.field')
+    .wrapAll('<fieldset id="properties_visibility" class="field-container">');
+$('#properties_visibility')
+    .prepend('<legend>' + Omeka.jsTranslate('Visibility') + '</legend>');
+
 $('#cleaning_trim, #cleaning_deduplicate').closest('.field')
     .wrapAll('<fieldset id="cleaning" class="field-container">');
 $('#cleaning')

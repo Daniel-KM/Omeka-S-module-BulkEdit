@@ -7,6 +7,7 @@ require_once file_exists(dirname(__DIR__) . '/Generic/AbstractModule.php')
 
 use Generic\AbstractModule;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
+use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Form\Element\PropertySelect;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
@@ -222,6 +223,30 @@ class Module extends AbstractModule
             $this->applyVisibilityForResourcesValues($adapter, $ids, $propertiesVisibility['properties'], $visibility);
         }
 
+        $mediaHtml = $request->getValue('media_html', []);
+        $from = $mediaHtml['from'];
+        $to = $mediaHtml['to'];
+        $remove = (bool) $mediaHtml['remove'];
+        $prepend = ltrim($mediaHtml['prepend']);
+        $append = rtrim($mediaHtml['append']);
+        if (mb_strlen($from)
+            || mb_strlen($to)
+            || $remove
+            || mb_strlen($prepend)
+            || mb_strlen($append)
+        ) {
+            $adapter = $event->getTarget();
+            $ids = (array) $request->getIds();
+            $this->updateMediaHtmlForResources($adapter, $ids, [
+                'from' => $from,
+                'to' => $to,
+                'replace_mode' => $propertiesValues['replace_mode'],
+                'remove' => $remove,
+                'prepend' => $prepend,
+                'append' => $append,
+            ]);
+        }
+
         if ($this->checkModuleNext()) {
             return;
         }
@@ -405,6 +430,84 @@ class Module extends AbstractModule
                 'class' => 'chosen-select',
                 'multiple' => true,
                 'data-placeholder' => 'Select properties', // @translate
+            ],
+        ]);
+
+        $form->add([
+            'name' => 'media_html',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Media HTML', // @translate
+            ],
+            'attributes' => [
+                'id' => 'media_html',
+                'class' => 'field-container',
+            ],
+        ]);
+        $fieldset = $form->get('media_html');
+        $fieldset->add([
+            'name' => 'from',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'String to replace…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'mediahtml_from',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'to',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => '… by…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'mediahtml_to',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'replace_mode',
+            'type' => Element\Radio::class,
+            'options' => [
+                'label' => '… using replacement mode', // @translate
+                'value_options' => [
+                    'raw' => 'Simple', // @translate
+                    'regex' => 'Regex (with delimiters)', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'mediahtml_replace_mode',
+                'value' => 'raw',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'remove',
+            'type' => Element\Checkbox::class,
+            'options' => [
+                'label' => 'Remove string', // @translate
+            ],
+            'attributes' => [
+                'id' => 'mediahtml_remove',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'prepend',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'String to prepend', // @translate
+            ],
+            'attributes' => [
+                'id' => 'mediahtml_prepend',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'append',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'String to append', // @translate
+            ],
+            'attributes' => [
+                'id' => 'mediahtml_append',
             ],
         ]);
 
@@ -609,6 +712,83 @@ class Module extends AbstractModule
             }
 
             $api->update($resourceType, $resourceId, $data);
+        }
+    }
+
+    /**
+     * Update the html of a media of type html from items.
+     *
+     * @param ItemAdapter $adapter
+     * @param array $resourceIds
+     * @param array $params
+     */
+    protected function updateMediaHtmlForResources(
+        ItemAdapter$adapter,
+        array $resourceIds,
+        array $params
+    ) {
+        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+
+        $from = $params['from'];
+        $to = $params['to'];
+        $replaceMode = $params['replace_mode'] === 'regex' ? 'regex' : 'raw';
+        $remove = $params['remove'];
+        $prepend = $params['prepend'];
+        $append = $params['append'];
+
+        // Check the validity of the regex.
+        // TODO Add the check of the validity of the regex in the form.
+        if ($replaceMode === 'regex' && mb_strlen($from)) {
+            $isValidRegex = @preg_match($from, null) !== false;
+            if (!$isValidRegex) {
+                $from = '';
+            }
+        }
+
+        foreach ($resourceIds as $resourceId) {
+            $resource = $adapter->findEntity(['id' => $resourceId]);
+            if (!$resource) {
+                continue;
+            }
+
+            /** @var \Omeka\Api\Representation\ItemRepresentation $resource */
+            $resource = $adapter->getRepresentation($resource);
+
+            /** @var \Omeka\Api\Representation\MediaRepresentation[] $medias */
+            $medias = $resource->media();
+            foreach ($medias as $media) {
+                if ($media->renderer() !== 'html') {
+                    continue;
+                }
+
+                $html = $media->mediaData()['html'];
+                $currentHtml = $html;
+
+                if ($remove) {
+                    $html = '';
+                } elseif (mb_strlen($from)) {
+                    $html = $replaceMode === 'regex'
+                        ? preg_replace($from, $to, $html)
+                        : str_replace($from, $to, $html);
+                }
+
+                $html = $prepend . $html . $append;
+
+                // Force trimming values and check if a value is empty to remove it.
+                // Html is automatically purified.
+                $html = trim($html);
+
+                if ($currentHtml === $html) {
+                    continue;
+                }
+
+                // TODO Clean the update of the html value of the media.
+                $data = json_decode(json_encode($media), true);
+                // $data['data']['html'] = $html;
+                // $data['o-cnt:chars'] = $html;
+                $data['o:media']['__index__']['html'] = $html;
+                $api->update('media', $media->id(), $data);
+            }
         }
     }
 

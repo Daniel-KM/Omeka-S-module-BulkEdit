@@ -12,6 +12,11 @@ $('#propvis_visibility, #propvis_properties').closest('.field')
 $('#properties_visibility')
     .prepend('<legend>' + Omeka.jsTranslate('Visibility') + '</legend>');
 
+$('#mediahtml_from, #mediahtml_to, #mediahtml_replace_mode, #mediahtml_remove, #mediahtml_prepend, #mediahtml_append').closest('.field')
+    .wrapAll('<fieldset id="media_html" class="field-container">');
+$('#media_html')
+    .prepend('<legend>' + Omeka.jsTranslate('Media HTML') + '</legend>');
+
 $('#cleaning_trim, #cleaning_deduplicate').closest('.field')
     .wrapAll('<fieldset id="cleaning" class="field-container">');
 $('#cleaning')

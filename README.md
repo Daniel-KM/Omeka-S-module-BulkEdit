@@ -10,6 +10,7 @@ Current processes are:
 - Prepend or append a string to a value of a property
 - Set or remove language of a property
 - Set visibility of a property public or private
+- Update the media html of an item
 - Remove all trailing white spaces
 - Remove duplicate values
 
@@ -60,6 +61,10 @@ languages when they are multiple.
 ### Set or unset visibility of a property
 
 Select the properties to set or unset visibility.
+
+### Update media html from item
+
+Select the items and update media html, then update it like an item value.
 
 ### Trim property values
 

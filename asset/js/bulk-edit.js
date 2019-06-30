@@ -2,15 +2,10 @@ $(document).ready(function() {
 
 // @todo To be removed when $this->form() witll be used instead of $this->formCollection().
 
-$('#propval_from, #propval_to, #propval_replace_mode, #propval_prepend, #propval_append, #propval_remove, #propval_properties').closest('.field')
+$('#propval_from, #propval_to, #propval_replace_mode, #propval_remove, #propval_prepend, #propval_append, #propval_language, #propval_language_clear, #propval_properties').closest('.field')
     .wrapAll('<fieldset id="properties_values" class="field-container">');
 $('#properties_values')
-    .prepend('<legend>' + Omeka.jsTranslate('Values') + '</legend>');
-
-$('#proplang_language, #proplang_clear, #proplang_properties').closest('.field')
-    .wrapAll('<fieldset id="properties_language" class="field-container">');
-$('#properties_language')
-    .prepend('<legend>' + Omeka.jsTranslate('Language') + '</legend>');
+    .prepend('<legend>' + Omeka.jsTranslate('Literal values') + '</legend>');
 
 $('#propvis_visibility, #propvis_properties').closest('.field')
     .wrapAll('<fieldset id="properties_visibility" class="field-container">');

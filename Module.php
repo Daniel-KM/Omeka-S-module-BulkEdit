@@ -183,35 +183,31 @@ class Module extends AbstractModule
         if (!empty($propertiesValues['properties'])) {
             $from = $propertiesValues['from'];
             $to = $propertiesValues['to'];
+            $remove = (bool) $propertiesValues['remove'];
             $prepend = ltrim($propertiesValues['prepend']);
             $append = rtrim($propertiesValues['append']);
-            if (mb_strlen($from) || mb_strlen($to) || mb_strlen($prepend) || mb_strlen($append)) {
+            $language = trim($propertiesValues['language']);
+            $languageClear = (bool) ($propertiesValues['language_clear']);
+            if (mb_strlen($from)
+                || mb_strlen($to)
+                || $remove
+                || mb_strlen($prepend)
+                || mb_strlen($append)
+                || mb_strlen($language)
+                || $languageClear
+            ) {
                 $adapter = $event->getTarget();
                 $ids = (array) $request->getIds();
                 $this->updateValuesForResources($adapter, $ids, $propertiesValues['properties'], [
                     'from' => $from,
                     'to' => $to,
                     'replace_mode' => $propertiesValues['replace_mode'],
+                    'remove' => $remove,
                     'prepend' => $prepend,
                     'append' => $append,
-                    'remove' => (bool) $propertiesValues['remove'],
+                    'language' => $language,
+                    'language_clear' => $languageClear,
                 ]);
-            }
-        }
-
-        $propertiesLanguage = $request->getValue('properties_language', []);
-        if (!empty($propertiesLanguage['properties'])) {
-            if (!empty($propertiesLanguage['clear'])) {
-                $language = '';
-            } elseif (!empty($propertiesLanguage['language'])) {
-                $language = $propertiesLanguage['language'];
-            } else {
-                $language = null;
-            }
-            if (!is_null($language)) {
-                $adapter = $event->getTarget();
-                $ids = (array) $request->getIds();
-                $this->applyLanguageForResourcesValues($adapter, $ids, $propertiesLanguage['properties'], $language);
             }
         }
 
@@ -298,10 +294,20 @@ class Module extends AbstractModule
             ],
         ]);
         $fieldset->add([
+            'name' => 'remove',
+            'type' => Element\Checkbox::class,
+            'options' => [
+                'label' => 'Remove string', // @translate
+            ],
+            'attributes' => [
+                'id' => 'propval_remove',
+            ],
+        ]);
+        $fieldset->add([
             'name' => 'prepend',
             'type' => Element\Text::class,
             'options' => [
-                'label' => 'String to prepend…', // @translate
+                'label' => 'String to prepend', // @translate
             ],
             'attributes' => [
                 'id' => 'propval_prepend',
@@ -311,20 +317,31 @@ class Module extends AbstractModule
             'name' => 'append',
             'type' => Element\Text::class,
             'options' => [
-                'label' => 'String to append…', // @translate
+                'label' => 'String to append', // @translate
             ],
             'attributes' => [
                 'id' => 'propval_append',
             ],
         ]);
         $fieldset->add([
-            'name' => 'remove',
-            'type' => Element\Checkbox::class,
+            'name' => 'language',
+            'type' => Element\Text::class,
             'options' => [
-                'label' => 'Remove string…', // @translate
+                'label' => 'Set a language…', // @translate
             ],
             'attributes' => [
-                'id' => 'propval_remove',
+                'id' => 'propval_language',
+                'class' => 'value-language active',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'language_clear',
+            'type' => Element\Checkbox::class,
+            'options' => [
+                'label' => '… or remove it…', // @translate
+            ],
+            'attributes' => [
+                'id' => 'propval_language_clear',
             ],
         ]);
         $fieldset->add([
@@ -339,57 +356,6 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'propval_properties',
-                'class' => 'chosen-select',
-                'multiple' => true,
-                'data-placeholder' => 'Select properties', // @translate
-            ],
-        ]);
-
-        $form->add([
-            'name' => 'properties_language',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Language', // @translate
-            ],
-            'attributes' => [
-                'id' => 'properties_language',
-                'class' => 'field-container',
-            ],
-        ]);
-        $fieldset = $form->get('properties_language');
-        $fieldset->add([
-            'name' => 'language',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'Set a language…', // @translate
-            ],
-            'attributes' => [
-                'id' => 'proplang_language',
-                'class' => 'value-language active',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'clear',
-            'type' => Element\Checkbox::class,
-            'options' => [
-                'label' => '… or remove it…', // @translate
-            ],
-            'attributes' => [
-                'id' => 'proplang_clear',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'properties',
-            'type' => PropertySelect::class,
-            'options' => [
-                'label' => '… for properties', // @translate
-                'term_as_value' => true,
-                'prepend_value_options' => [
-                    'all' => '[All properties]', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'proplang_properties',
                 'class' => 'chosen-select',
                 'multiple' => true,
                 'data-placeholder' => 'Select properties', // @translate
@@ -497,10 +463,6 @@ class Module extends AbstractModule
             'name' => 'properties',
             'required' => false,
         ]);
-        $inputFilter->get('properties_language')->add([
-            'name' => 'properties',
-            'required' => false,
-        ]);
         $inputFilter->get('properties_visibility')->add([
             'name' => 'visibility',
             'required' => false,
@@ -532,6 +494,10 @@ class Module extends AbstractModule
         $to = $params['to'];
         $replaceMode = $params['replace_mode'] === 'regex' ? 'regex' : 'raw';
         $remove = $params['remove'];
+        $prepend = $params['prepend'];
+        $append = $params['append'];
+        $languageClear = $params['language_clear'];
+        $language = $languageClear ? '' : $params['language'];
 
         // Check the validity of the regex.
         // TODO Add the check of the validity of the regex in the form.
@@ -562,7 +528,17 @@ class Module extends AbstractModule
 
             $toUpdate = false;
 
-            if (mb_strlen($from)) {
+            if ($remove) {
+                foreach ($properties as $property => $propertyValues) {
+                    foreach ($propertyValues as $key => $value) {
+                        if ($value['type'] !== 'literal') {
+                            continue;
+                        }
+                        $toUpdate = true;
+                        $data[$property][$key]['@value'] = '';
+                    }
+                }
+            } elseif (mb_strlen($from)) {
                 foreach ($properties as $property => $propertyValues) {
                     foreach ($propertyValues as $key => $value) {
                         if ($value['type'] !== 'literal') {
@@ -580,25 +556,34 @@ class Module extends AbstractModule
                 }
             }
 
-            foreach ($properties as $property => $propertyValues) {
-                foreach ($propertyValues as $key => $value) {
-                    if ($value['type'] !== 'literal') {
-                        continue;
+            if (mb_strlen($prepend) || mb_strlen($append)) {
+                foreach ($properties as $property => $propertyValues) {
+                    foreach ($propertyValues as $key => $value) {
+                        if ($value['type'] !== 'literal') {
+                            continue;
+                        }
+                        $newValue = $prepend . $data[$property][$key]['@value'] . $append;
+                        if ($value['@value'] === $newValue) {
+                            continue;
+                        }
+                        $toUpdate = true;
+                        $data[$property][$key]['@value'] = $newValue;
                     }
-                    $newValue = $params['prepend'] . $data[$property][$key]['@value'] . $params['append'];
-                    if ($value['@value'] === $newValue) {
-                        continue;
-                    }
-                    $toUpdate = true;
-                    $data[$property][$key]['@value'] = $newValue;
                 }
             }
 
-            if ($remove) {
+            if ($languageClear || mb_strlen($language)) {
                 foreach ($properties as $property => $propertyValues) {
                     foreach ($propertyValues as $key => $value) {
-                        unset($data[$property][$key]);
+                        if ($value['type'] !== 'literal') {
+                            continue;
+                        }
+                        $currentLanguage = isset($value['@language']) ? $value['@language'] : '';
+                        if ($currentLanguage === $language) {
+                            continue;
+                        }
                         $toUpdate = true;
+                        $data[$property][$key]['@language'] = $language;
                     }
                 }
             }
@@ -621,64 +606,6 @@ class Module extends AbstractModule
                         unset($data[$property][$key]);
                     }
                 }
-            }
-
-            $api->update($resourceType, $resourceId, $data);
-        }
-    }
-
-    /**
-     * Set a language to the specified properties of the specified resources.
-     *
-     * @param AbstractResourceEntityAdapter $adapter
-     * @param array $resourceIds
-     * @param array $properties
-     * @param string $language
-     */
-    protected function applyLanguageForResourcesValues(
-        AbstractResourceEntityAdapter$adapter,
-        array $resourceIds,
-        array $properties,
-        $language
-    ) {
-        $language = trim($language);
-        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
-        $resourceType = $adapter->getResourceName();
-
-        foreach ($resourceIds as $resourceId) {
-            $resource = $adapter->findEntity(['id' => $resourceId]);
-            if (!$resource) {
-                continue;
-            }
-
-            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
-            $resource = $adapter->getRepresentation($resource);
-
-            $data = json_decode(json_encode($resource), true);
-            if (in_array('all', $properties)) {
-                $properties = array_keys($resource->values());
-            }
-            $properties = array_intersect_key($data, array_flip($properties));
-            if (empty($properties)) {
-                continue;
-            }
-
-            $toUpdate = false;
-            foreach ($properties as $property => $propertyValues) {
-                foreach ($propertyValues as $key => $value) {
-                    if ($value['type'] !== 'literal') {
-                        continue;
-                    }
-                    $currentLanguage = isset($value['@language']) ? $value['@language'] : '';
-                    if ($currentLanguage === $language) {
-                        continue;
-                    }
-                    $toUpdate = true;
-                    $data[$property][$key]['@language'] = $language;
-                }
-            }
-            if (!$toUpdate) {
-                continue;
             }
 
             $api->update($resourceType, $resourceId, $data);

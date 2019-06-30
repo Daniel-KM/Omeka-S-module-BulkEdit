@@ -177,19 +177,19 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         $plugins = $services->get('ControllerPluginManager');
 
-        $languageProperties = $request->getValue('language_properties', []);
-        if (!empty($languageProperties['properties'])) {
-            if (!empty($languageProperties['clear'])) {
+        $propertiesLanguage = $request->getValue('properties_language', []);
+        if (!empty($propertiesLanguage['properties'])) {
+            if (!empty($propertiesLanguage['clear'])) {
                 $language = '';
-            } elseif (!empty($languageProperties['language'])) {
-                $language = $languageProperties['language'];
+            } elseif (!empty($propertiesLanguage['language'])) {
+                $language = $propertiesLanguage['language'];
             } else {
                 $language = null;
             }
             if (!is_null($language)) {
                 $adapter = $event->getTarget();
                 $ids = (array) $request->getIds();
-                $this->applyLanguageForResourcesValues($adapter, $ids, $languageProperties['properties'], $language);
+                $this->applyLanguageForResourcesValues($adapter, $ids, $propertiesLanguage['properties'], $language);
             }
         }
 
@@ -218,7 +218,7 @@ class Module extends AbstractModule
         $form = $event->getTarget();
 
         $form->add([
-            'name' => 'language_properties',
+            'name' => 'properties_language',
             'type' => Fieldset::class,
             'options' => [
                 'label' => 'Language', // @translate
@@ -228,7 +228,7 @@ class Module extends AbstractModule
                 'class' => 'field-container',
             ],
         ]);
-        $fieldset = $form->get('language_properties');
+        $fieldset = $form->get('properties_language');
         $fieldset->add([
             'name' => 'language',
             'type' => Element\Text::class,
@@ -236,7 +236,7 @@ class Module extends AbstractModule
                 'label' => 'Set a language…', // @translate
             ],
             'attributes' => [
-                'id' => 'langprop_language',
+                'id' => 'proplang_language',
                 'class' => 'value-language active',
             ],
         ]);
@@ -247,7 +247,7 @@ class Module extends AbstractModule
                 'label' => '… or remove it…', // @translate
             ],
             'attributes' => [
-                'id' => 'langprop_clear',
+                'id' => 'proplang_clear',
             ],
         ]);
         $fieldset->add([
@@ -261,7 +261,7 @@ class Module extends AbstractModule
                 ],
             ],
             'attributes' => [
-                'id' => 'langprop_properties',
+                'id' => 'proplang_properties',
                 'class' => 'chosen-select',
                 'multiple' => true,
                 'data-placeholder' => 'Select properties', // @translate
@@ -315,8 +315,7 @@ class Module extends AbstractModule
     public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
     {
         $inputFilter = $event->getParam('inputFilter');
-
-        $inputFilter->get('language_properties')->add([
+        $inputFilter->get('properties_language')->add([
             'name' => 'properties',
             'required' => false,
         ]);

@@ -2,9 +2,9 @@ $(document).ready(function() {
 
 // @todo To be removed when $this->form() witll be used instead of $this->formCollection().
 
-$('#langprop_language, #langprop_clear, #langprop_properties').parent().parent()
-    .wrapAll('<fieldset id="language_properties" class="field-container">');
-$('#language_properties')
+$('#proplang_language, #proplang_clear, #proplang_properties').closest('.field')
+    .wrapAll('<fieldset id="properties_language" class="field-container">');
+$('#properties_language')
     .prepend('<legend>' + Omeka.jsTranslate('Language') + '</legend>');
 
 $('#cleaning_trim, #cleaning_deduplicate').closest('.field')

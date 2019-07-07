@@ -5,6 +5,7 @@ Bulk Edit (module for Omeka S)
 order to modify or to clean them.
 
 Current processes are:
+
 - Replace value of a property (directly or via regex)
 - Remove the literal value of a property
 - Prepend or append a string to a value of a property
@@ -73,7 +74,10 @@ Select the items and update media html, then update it like an item value.
 
 Remove leading and trailing whitespaces preventively on any resource creation or
 update, or curatively via the batch edit, so values will be easier to find and
-to compare exactly (fix [#1258]).
+to compare exactly (fix [#1258]). Note that the curative trimming uses a regex
+when possible (with mysql ≥ 8.0.4 or mariadb ≥ 10.0.5). There is no difference
+in most of the cases, except when there are multiple whitespace mixed (space,
+tabulation, new line, end of line, etc.).
 
 ### Deduplicate property values
 

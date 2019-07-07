@@ -54,15 +54,32 @@ class TrimValues extends AbstractPlugin
         $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);
 
         // Sql "trim" is for space " " only, not end of line, new line or tab.
-        // So use regexp, allowed at least in mysql 5.5.3 (minimum Omeka).
-        // The pattern is a full unicode one.
-        $query = <<<'SQL'
+        // So use regexp_replace, but it's available only with mysql ≥ 8.0.4 and
+        // mariadb ≥ 10.0.5 and Omeka requires only 5.5.3.
+        $db = $this->databaseVersion();
+
+        if (($db['db'] === 'mariadb' && version_compare($db['version'], '10.0.5', '>='))
+            || ($db['db'] === 'mysql' && version_compare($db['version'], '8.0.4', '>='))
+        ) {
+            // The pattern is a full unicode one.
+            $query = <<<'SQL'
 UPDATE value v
 SET
 v.value = NULLIF(REGEXP_REPLACE(v.value, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
 v.lang = NULLIF(REGEXP_REPLACE(v.lang, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
 v.uri = NULLIF(REGEXP_REPLACE(v.uri, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), "")
 SQL;
+        } else {
+            // The pattern uses a simple trim.
+            $query = <<<'SQL'
+UPDATE value v
+SET
+v.value = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM v.value))))), ""),
+v.lang = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM v.lang))))), ""),
+v.uri = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM v.uri))))), "")
+SQL;
+        }
+
         if ($idsString) {
             $query .= "\n" . <<<SQL
 WHERE v.resource_id IN ($idsString)
@@ -88,5 +105,53 @@ SQL;
         $logger->info(sprintf('Removed %d empty string values after trimming.', $deleted));
 
         return $trimmed;
+    }
+
+    /**
+     * Get  the version of the database.
+     *
+     * @return array with keys "db" and "version".
+     */
+    protected function databaseVersion()
+    {
+        $result = [
+            'db' => '',
+            'version' => '',
+        ];
+
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $this->entityManager->getConnection();
+
+        $sql = 'SHOW VARIABLES LIKE "version";';
+        $stmt = $connection->query($sql);
+        $version = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
+        $version = reset($version);
+
+        $isMySql = stripos($version, 'mysql') !== false;
+        if ($isMySql) {
+            $result['db'] = 'mysql';
+            $result['version'] = $version;
+            return $result;
+        }
+
+        $isMariaDb = stripos($version, 'mariadb') !== false;
+        if ($isMariaDb) {
+            $result['db'] = 'mariadb';
+            $result['version'] = $version;
+            return $result;
+        }
+
+        $sql = 'SHOW VARIABLES LIKE "innodb_version";';
+        $stmt = $connection->query($sql);
+        $version = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
+        $version = reset($version);
+        $isInnoDb = !empty($version);
+        if ($isInnoDb) {
+            $result['db'] = 'innodb';
+            $result['version'] = $version;
+            return $result;
+        }
+
+        return $result;
     }
 }

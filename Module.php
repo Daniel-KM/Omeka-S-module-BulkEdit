@@ -318,6 +318,7 @@ class Module extends AbstractModule
                 'label' => '… using replacement mode', // @translate
                 'value_options' => [
                     'raw' => 'Simple', // @translate
+                    'html' => 'Simple and html entities', // @translate
                     'regex' => 'Regex (with delimiters)', // @translate
                 ],
             ],
@@ -506,6 +507,7 @@ class Module extends AbstractModule
                 'label' => '… using replacement mode', // @translate
                 'value_options' => [
                     'raw' => 'Simple', // @translate
+                    'html' => 'Simple and html entities', // @translate
                     'regex' => 'Regex (with delimiters)', // @translate
                 ],
             ],
@@ -642,19 +644,35 @@ class Module extends AbstractModule
 
         $from = $params['from'];
         $to = $params['to'];
-        $replaceMode = $params['replace_mode'] === 'regex' ? 'regex' : 'raw';
+        $replaceMode = $params['replace_mode'];
         $remove = $params['remove'];
         $prepend = $params['prepend'];
         $append = $params['append'];
         $languageClear = $params['language_clear'];
         $language = $languageClear ? '' : $params['language'];
 
-        // Check the validity of the regex.
-        // TODO Add the check of the validity of the regex in the form.
-        if ($replaceMode === 'regex' && mb_strlen($from)) {
-            $isValidRegex = @preg_match($from, null) !== false;
-            if (!$isValidRegex) {
-                $from = '';
+        $checkFrom = mb_strlen($from);
+
+        if ($checkFrom) {
+            switch ($replaceMode) {
+                case 'regex':
+                    // Check the validity of the regex.
+                    // TODO Add the check of the validity of the regex in the form.
+                    $isValidRegex = @preg_match($from, null) !== false;
+                    if (!$isValidRegex) {
+                        $from = '';
+                    }
+                    break;
+                case 'html':
+                    $from = [
+                        $from,
+                        htmlentities($from, ENT_NOQUOTES | ENT_HTML5 | ENT_SUBSTITUTE),
+                    ];
+                    $to = [
+                        $to,
+                        $to,
+                    ];
+                    break;
             }
         }
 
@@ -690,7 +708,7 @@ class Module extends AbstractModule
                         $data[$property][$key]['@value'] = '';
                     }
                 }
-            } elseif (mb_strlen($from)) {
+            } elseif ($checkFrom) {
                 foreach ($properties as $property) {
                     foreach ($data[$property] as $key => $value) {
                         if ($value['type'] !== 'literal') {
@@ -780,17 +798,33 @@ class Module extends AbstractModule
 
         $from = $params['from'];
         $to = $params['to'];
-        $replaceMode = $params['replace_mode'] === 'regex' ? 'regex' : 'raw';
+        $replaceMode = $params['replace_mode'];
         $remove = $params['remove'];
         $prepend = $params['prepend'];
         $append = $params['append'];
 
-        // Check the validity of the regex.
-        // TODO Add the check of the validity of the regex in the form.
-        if ($replaceMode === 'regex' && mb_strlen($from)) {
-            $isValidRegex = @preg_match($from, null) !== false;
-            if (!$isValidRegex) {
-                $from = '';
+        $checkFrom = mb_strlen($from);
+
+        if ($checkFrom) {
+            switch ($replaceMode) {
+                case 'regex':
+                    // Check the validity of the regex.
+                    // TODO Add the check of the validity of the regex in the form.
+                    $isValidRegex = @preg_match($from, null) !== false;
+                    if (!$isValidRegex) {
+                        $from = '';
+                    }
+                    break;
+                case 'html':
+                    $from = [
+                        $from,
+                        htmlentities($from, ENT_NOQUOTES | ENT_HTML5 | ENT_SUBSTITUTE),
+                    ];
+                    $to = [
+                        $to,
+                        $to,
+                    ];
+                    break;
             }
         }
 
@@ -815,7 +849,7 @@ class Module extends AbstractModule
 
                 if ($remove) {
                     $html = '';
-                } elseif (mb_strlen($from)) {
+                } elseif ($checkFrom) {
                     $html = $replaceMode === 'regex'
                         ? preg_replace($from, $to, $html)
                         : str_replace($from, $to, $html);

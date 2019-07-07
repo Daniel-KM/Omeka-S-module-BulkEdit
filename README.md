@@ -43,8 +43,14 @@ background when all resources are selected.
 
 ### Replace value of a property directly or via regex
 
-Fill fields "Replace" and "By", specify the type of replacement (raw or regex), 
-then select the properties to update.
+Fill fields "Replace" and "By", specify the type of replacement (simple, html or
+regex), then select the properties to update.
+
+The mode "html" means that the original string will be checked as raw string and
+as html encoded string too. For example, string `café` will be checked with
+`café` and `caf&eacute;`). Be careful when simple characters are mixed with
+entities, it may be difficult to replace all strings. The replacement string is
+used unchanged, so it is recommended to use entities for it too.
 
 ### Remove the literal value of a property
 

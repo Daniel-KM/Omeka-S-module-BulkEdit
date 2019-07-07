@@ -227,6 +227,7 @@ class Module extends AbstractModule
                     'datatypes' => $displace['datatypes'],
                     'languages' => $this->stringToList($displace['languages']),
                     'visibility' => $displace['visibility'],
+                    'contains' => $displace['contains'],
                 ]);
             }
         }
@@ -523,6 +524,18 @@ class Module extends AbstractModule
             'attributes' => [
                 'id' => 'displace_visibility',
                 'value' => '',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'contains',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'Only containing', // @translate
+            ],
+            'attributes' => [
+                'id' => 'displace_contains',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
@@ -945,6 +958,7 @@ class Module extends AbstractModule
         $datatypes = $params['datatypes'];
         $languages = $params['languages'];
         $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
+        $contains = $params['contains'];
 
         $to = array_search($toProperty, $fromProperties);
         if ($to !== false) {
@@ -959,6 +973,7 @@ class Module extends AbstractModule
         $checkDatatype = !empty($datatypes) && !in_array('all', $datatypes);
         $checkLanguage = !empty($languages);
         $checkVisibility = !is_null($visibility);
+        $checkContains = (bool) mb_strlen($contains);
 
         $toId = $api->searchOne('properties', ['term' => $toProperty], ['returnScalar' => 'id'])->getContent();
 
@@ -991,7 +1006,7 @@ class Module extends AbstractModule
                     continue;
                 }
                 foreach ($data[$property] as $key => $value) {
-                    $value += ['@language' => null, 'is_public' => 1];
+                    $value += ['@language' => null, 'is_public' => 1, '@value' => null];
                     if ($checkDatatype && !in_array($value['type'], $datatypes)) {
                         continue;
                     }
@@ -999,6 +1014,9 @@ class Module extends AbstractModule
                         continue;
                     }
                     if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
+                        continue;
+                    }
+                    if ($checkContains && strpos($value['@value'], $contains) === false) {
                         continue;
                     }
                     $value['property_id'] = $toId;

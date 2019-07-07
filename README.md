@@ -72,6 +72,8 @@ languages when they are multiple.
 # Displace values from a property to another one
 
 Select the source properties and the destination property, then process edit.
+Some filters (datatype, language, string, visibility) allows to move only
+selected values.
 
 ### Set or unset visibility of a property
 

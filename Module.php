@@ -224,6 +224,9 @@ class Module extends AbstractModule
                 $this->displaceValuesForResources($adapter, $ids, [
                     'from' => $displace['from'],
                     'to' => $to,
+                    'datatypes' => $displace['datatypes'],
+                    'languages' => $this->stringToList($displace['languages']),
+                    'visibility' => $displace['visibility'],
                 ]);
             }
         }
@@ -475,6 +478,55 @@ class Module extends AbstractModule
                 'data-collection-action' => 'replace',
             ],
         ]);
+        $datatypes = $this->listDataTypesForSelect();
+        $datatypes = ['all' => '[All datatypes]'] + $datatypes; // @translate
+        $fieldset->add([
+            'name' => 'datatypes',
+            'type' => Element\Select::class,
+            'options' => [
+                'label' => 'Only datatypes', // @translate
+                'value_options' => $datatypes,
+            ],
+            'attributes' => [
+                'id' => 'displace_datatypes',
+                'class' => 'chosen-select',
+                'multiple' => true,
+                'data-placeholder' => 'Select datatypes', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'languages',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'Only languages', // @translate
+            ],
+            'attributes' => [
+                'id' => 'displace_languages',
+                // 'class' => 'value-language active',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'visibility',
+            'type' => Element\Radio::class,
+            'options' => [
+                'label' => 'Only visibility', // @translate
+                'value_options' => [
+                    '1' => 'Public', // @translate
+                    '0' => 'Not public', // @translate
+                    '' => 'Any', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'displace_visibility',
+                'value' => '',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
 
         $form->add([
             'name' => 'properties_visibility',
@@ -689,6 +741,14 @@ class Module extends AbstractModule
             ->add([
                 'name' => 'to',
                 'required' => false,
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'visibility',
+                'required' => false,
             ]);
         $inputFilter->get('properties_visibility')
             ->add([
@@ -882,7 +942,23 @@ class Module extends AbstractModule
 
         $fromProperties = $params['from'];
         $toProperty = $params['to'];
+        $datatypes = $params['datatypes'];
+        $languages = $params['languages'];
+        $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
+
+        $to = array_search($toProperty, $fromProperties);
+        if ($to !== false) {
+            unset($fromProperties[$to]);
+        }
+
+        if (empty($fromProperties) || empty($toProperty)) {
+            return;
+        }
+
         $processAllProperties = in_array('all', $fromProperties);
+        $checkDatatype = !empty($datatypes) && !in_array('all', $datatypes);
+        $checkLanguage = !empty($languages);
+        $checkVisibility = !is_null($visibility);
 
         $toId = $api->searchOne('properties', ['term' => $toProperty], ['returnScalar' => 'id'])->getContent();
 
@@ -895,9 +971,15 @@ class Module extends AbstractModule
             /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
             $resource = $adapter->getRepresentation($resource);
 
-            $properties = $processAllProperties
-                ? array_keys($resource->values())
-                : array_intersect($fromProperties, array_keys($resource->values()));
+            if ($processAllProperties) {
+                $properties = array_keys($resource->values());
+                $to = array_search($toProperty, $properties);
+                if ($to !== false) {
+                    unset($properties[$to]);
+                }
+            } else {
+                $properties = array_intersect($fromProperties, array_keys($resource->values()));
+            }
             if (empty($properties)) {
                 continue;
             }
@@ -909,12 +991,21 @@ class Module extends AbstractModule
                     continue;
                 }
                 foreach ($data[$property] as $key => $value) {
+                    $value += ['@language' => null, 'is_public' => 1];
+                    if ($checkDatatype && !in_array($value['type'], $datatypes)) {
+                        continue;
+                    }
+                    if ($checkLanguage && !in_array($value['@language'], $languages)) {
+                        continue;
+                    }
+                    if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
+                        continue;
+                    }
                     $value['property_id'] = $toId;
                     unset($value['property_label']);
                     $data[$toProperty][] = $value;
                     unset($data[$property][$key]);
                 }
-                unset($data[$property]);
             }
 
             $api->update($resourceType, $resourceId, $data);
@@ -1078,6 +1169,49 @@ class Module extends AbstractModule
 
             $api->update($resourceType, $resourceId, $data);
         }
+    }
+
+    /**
+     * List datatypes for options.
+     *
+     * @see \Omeka\View\Helper\DataType::getSelect()
+     *
+     * @return array
+     */
+    protected function listDataTypesForSelect()
+    {
+        $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
+        $dataTypes = $dataTypeManager->getRegisteredNames();
+
+        $options = [];
+        $optgroupOptions = [];
+        foreach ($dataTypes as $dataTypeName) {
+            $dataType = $dataTypeManager->get($dataTypeName);
+            $label = $dataType->getLabel();
+            if ($optgroupLabel = $dataType->getOptgroupLabel()) {
+                // Hash the optgroup key to avoid collisions when merging with
+                // data types without an optgroup.
+                $optgroupKey = md5($optgroupLabel);
+                // Put resource data types before ones added by modules.
+                $optionsVal = in_array($dataTypeName, ['resource', 'resource:item', 'resource:itemset', 'resource:media'])
+                    ? 'options'
+                    : 'optgroupOptions';
+                if (!isset(${$optionsVal}[$optgroupKey])) {
+                    ${$optionsVal}[$optgroupKey] = [
+                        'label' => $optgroupLabel,
+                        'options' => [],
+                    ];
+                }
+                ${$optionsVal}[$optgroupKey]['options'][$dataTypeName] = $label;
+            } else {
+                $options[$dataTypeName] = $label;
+            }
+        }
+        // Always put data types not organized in option groups before data
+        // types organized within option groups.
+        $options = array_merge($options, $optgroupOptions);
+
+        return $options;
     }
 
     /**

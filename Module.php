@@ -201,7 +201,7 @@ class Module extends AbstractModule
             ) {
                 $adapter = $event->getTarget();
                 $ids = (array) $request->getIds();
-                $this->updateValuesForResources($adapter, $ids, $propertiesValues['properties'], [
+                $this->updateValuesForResources($adapter, $ids, [
                     'from' => $from,
                     'to' => $to,
                     'replace_mode' => $propertiesValues['replace_mode'],
@@ -210,6 +210,7 @@ class Module extends AbstractModule
                     'append' => $append,
                     'language' => $language,
                     'language_clear' => $languageClear,
+                    'properties' => $propertiesValues['properties'],
                 ]);
             }
         }
@@ -222,7 +223,10 @@ class Module extends AbstractModule
             $visibility = (int) (bool) $propertiesVisibility['visibility'];
             $adapter = $event->getTarget();
             $ids = (array) $request->getIds();
-            $this->applyVisibilityForResourcesValues($adapter, $ids, $propertiesVisibility['properties'], $visibility);
+            $this->applyVisibilityForResourcesValues($adapter, $ids, [
+                'visibility' => $visibility,
+                'properties' => $propertiesVisibility['properties'],
+            ]);
         }
 
         $mediaHtml = $request->getValue('media_html', []);
@@ -627,20 +631,15 @@ class Module extends AbstractModule
      *
      * @param AbstractResourceEntityAdapter $adapter
      * @param array $resourceIds
-     * @param array $properties
      * @param array $params
      */
     protected function updateValuesForResources(
         AbstractResourceEntityAdapter$adapter,
         array $resourceIds,
-        array $properties,
         array $params
     ) {
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
         $resourceType = $adapter->getResourceName();
-
-        // Simplify properties when all is selected.
-        in_array('all', $properties) && $properties = ['all'];
 
         $from = $params['from'];
         $to = $params['to'];
@@ -650,7 +649,9 @@ class Module extends AbstractModule
         $append = $params['append'];
         $languageClear = $params['language_clear'];
         $language = $languageClear ? '' : $params['language'];
+        $fromProperties = $params['properties'];
 
+        $processAllProperties = in_array('all', $fromProperties);
         $checkFrom = mb_strlen($from);
 
         if ($checkFrom) {
@@ -685,16 +686,14 @@ class Module extends AbstractModule
             /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
             $resource = $adapter->getRepresentation($resource);
 
-            $data = json_decode(json_encode($resource), true);
-            if (in_array('all', $properties)) {
-                $properties = array_keys($resource->values());
-            }
-
-            $properties = array_intersect(array_keys($data), $properties);
+            $properties = $processAllProperties
+                ? array_keys($resource->values())
+                : array_intersect($fromProperties, array_keys($resource->values()));
             if (empty($properties)) {
                 continue;
             }
 
+            $data = json_decode(json_encode($resource), true);
             $toUpdate = false;
 
             if ($remove) {
@@ -880,18 +879,20 @@ class Module extends AbstractModule
      *
      * @param AbstractResourceEntityAdapter $adapter
      * @param array $resourceIds
-     * @param array $properties
-     * @param int $visibility
+     * @param array $params
      */
     protected function applyVisibilityForResourcesValues(
         AbstractResourceEntityAdapter$adapter,
         array $resourceIds,
-        array $properties,
-        $visibility
+        array $params
     ) {
-        $visibility = (int) (bool) $visibility;
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
         $resourceType = $adapter->getResourceName();
+
+        $visibility = (int) (bool) $params['visibility'];
+        $fromProperties = $params['properties'];
+
+        $processAllProperties = in_array('all', $fromProperties);
 
         foreach ($resourceIds as $resourceId) {
             $resource = $adapter->findEntity(['id' => $resourceId]);
@@ -902,16 +903,16 @@ class Module extends AbstractModule
             /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
             $resource = $adapter->getRepresentation($resource);
 
-            $data = json_decode(json_encode($resource), true);
-            if (in_array('all', $properties)) {
-                $properties = array_keys($resource->values());
-            }
-            $properties = array_intersect(array_keys($data), $properties);
+            $properties = $processAllProperties
+                ? array_keys($resource->values())
+                : array_intersect($fromProperties, array_keys($resource->values()));
             if (empty($properties)) {
                 continue;
             }
 
+            $data = json_decode(json_encode($resource), true);
             $toUpdate = false;
+
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
                     $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;

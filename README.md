@@ -10,6 +10,7 @@ Current processes are:
 - Remove the literal value of a property
 - Prepend or append a string to a value of a property
 - Set or remove language of a property
+- Displace values from a property to another one
 - Set visibility of a property public or private
 - Update the media html of an item
 - Remove all trailing white spaces
@@ -67,6 +68,10 @@ Fill fields "Prepend" and/or "Append" and select the properties to update.
 Select the properties to set or remove language.
 Note: all values of the selected properties are updated, so be aware of existing
 languages when they are multiple.
+
+# Displace values from a property to another one
+
+Select the source properties and the destination property, then process edit.
 
 ### Set or unset visibility of a property
 

@@ -7,6 +7,11 @@ $('#propval_from, #propval_to, #propval_replace_mode, #propval_remove, #propval_
 $('#properties_values')
     .prepend('<legend>' + Omeka.jsTranslate('Literal values') + '</legend>');
 
+$('#displace_from, #displace_to').closest('.field')
+    .wrapAll('<fieldset id="displace" class="field-container">');
+$('#displace')
+    .prepend('<legend>' + Omeka.jsTranslate('Displace values') + '</legend>');
+
 $('#propvis_visibility, #propvis_properties').closest('.field')
     .wrapAll('<fieldset id="properties_visibility" class="field-container">');
 $('#properties_visibility')

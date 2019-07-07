@@ -215,6 +215,19 @@ class Module extends AbstractModule
             }
         }
 
+        $displace = $request->getValue('displace', []);
+        if (!empty($displace['from'])) {
+            $to = $displace['to'];
+            if (mb_strlen($to)) {
+                $adapter = $event->getTarget();
+                $ids = (array) $request->getIds();
+                $this->displaceValuesForResources($adapter, $ids, [
+                    'from' => $displace['from'],
+                    'to' => $to,
+                ]);
+            }
+        }
+
         $propertiesVisibility = $request->getValue('properties_visibility', []);
         if (isset($propertiesVisibility['visibility'])
             && $propertiesVisibility['visibility'] !== ''
@@ -416,6 +429,54 @@ class Module extends AbstractModule
         ]);
 
         $form->add([
+            'name' => 'displace',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Displace values', // @translate
+            ],
+            'attributes' => [
+                'id' => 'displace',
+                'class' => 'field-container',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset = $form->get('displace');
+        $fieldset->add([
+            'name' => 'from',
+            'type' => PropertySelect::class,
+            'options' => [
+                'label' => 'From properties', // @translate
+                'term_as_value' => true,
+            ],
+            'attributes' => [
+                'id' => 'displace_from',
+                'class' => 'chosen-select',
+                'multiple' => true,
+                'data-placeholder' => 'Select properties', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'to',
+            'type' => PropertySelect::class,
+            'options' => [
+                'label' => 'To property', // @translate
+                'empty_option' => '', // @translate
+                'term_as_value' => true,
+            ],
+            'attributes' => [
+                'id' => 'displace_to',
+                'class' => 'chosen-select',
+                'multiple' => false,
+                'data-placeholder' => 'Select property', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+
+        $form->add([
             'name' => 'properties_visibility',
             'type' => Fieldset::class,
             'options' => [
@@ -609,23 +670,35 @@ class Module extends AbstractModule
 
     public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
     {
+        /** @var \Zend\InputFilter\InputFilterInterface $inputFilter */
         $inputFilter = $event->getParam('inputFilter');
-        $inputFilter->get('properties_values')->add([
-            'name' => 'replace_mode',
-            'required' => false,
-        ]);
-        $inputFilter->get('properties_values')->add([
-            'name' => 'properties',
-            'required' => false,
-        ]);
-        $inputFilter->get('properties_visibility')->add([
-            'name' => 'visibility',
-            'required' => false,
-        ]);
-        $inputFilter->get('properties_visibility')->add([
-            'name' => 'properties',
-            'required' => false,
-        ]);
+        $inputFilter->get('properties_values')
+            ->add([
+                'name' => 'replace_mode',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
+        $inputFilter->get('displace')
+            ->add([
+                'name' => 'from',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'to',
+                'required' => false,
+            ]);
+        $inputFilter->get('properties_visibility')
+            ->add([
+                'name' => 'visibility',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
     }
 
     /**
@@ -786,6 +859,62 @@ class Module extends AbstractModule
                         unset($data[$property][$key]);
                     }
                 }
+            }
+
+            $api->update($resourceType, $resourceId, $data);
+        }
+    }
+
+    /**
+     * Displace values from a list of properties to another one.
+     *
+     * @param AbstractResourceEntityAdapter $adapter
+     * @param array $resourceIds
+     * @param array $params
+     */
+    protected function displaceValuesForResources(
+        AbstractResourceEntityAdapter$adapter,
+        array $resourceIds,
+        array $params
+    ) {
+        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $resourceType = $adapter->getResourceName();
+
+        $fromProperties = $params['from'];
+        $toProperty = $params['to'];
+        $processAllProperties = in_array('all', $fromProperties);
+
+        $toId = $api->searchOne('properties', ['term' => $toProperty], ['returnScalar' => 'id'])->getContent();
+
+        foreach ($resourceIds as $resourceId) {
+            $resource = $adapter->findEntity(['id' => $resourceId]);
+            if (!$resource) {
+                continue;
+            }
+
+            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
+            $resource = $adapter->getRepresentation($resource);
+
+            $properties = $processAllProperties
+                ? array_keys($resource->values())
+                : array_intersect($fromProperties, array_keys($resource->values()));
+            if (empty($properties)) {
+                continue;
+            }
+
+            $data = json_decode(json_encode($resource), true);
+
+            foreach ($properties as $property) {
+                if ($property === $toProperty) {
+                    continue;
+                }
+                foreach ($data[$property] as $key => $value) {
+                    $value['property_id'] = $toId;
+                    unset($value['property_label']);
+                    $data[$toProperty][] = $value;
+                    unset($data[$property][$key]);
+                }
+                unset($data[$property]);
             }
 
             $api->update($resourceType, $resourceId, $data);

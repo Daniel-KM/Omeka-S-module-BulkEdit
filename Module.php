@@ -322,8 +322,9 @@ class Module extends AbstractModule
                 'label' => '… using replacement mode', // @translate
                 'value_options' => [
                     'raw' => 'Simple', // @translate
+                    'raw_i' => 'Simple (case insensitive)', // @translate
                     'html' => 'Simple and html entities', // @translate
-                    'regex' => 'Regex (with delimiters)', // @translate
+                    'regex' => 'Regex (full pattern)', // @translate
                 ],
             ],
             'attributes' => [
@@ -511,8 +512,9 @@ class Module extends AbstractModule
                 'label' => '… using replacement mode', // @translate
                 'value_options' => [
                     'raw' => 'Simple', // @translate
+                    'raw_i' => 'Simple (case insensitive)', // @translate
                     'html' => 'Simple and html entities', // @translate
-                    'regex' => 'Regex (with delimiters)', // @translate
+                    'regex' => 'Regex (full pattern)', // @translate
                 ],
             ],
             'attributes' => [
@@ -713,9 +715,18 @@ class Module extends AbstractModule
                         if ($value['type'] !== 'literal') {
                             continue;
                         }
-                        $newValue = $replaceMode === 'regex'
-                            ? preg_replace($from, $to, $data[$property][$key]['@value'])
-                            : str_replace($from, $to, $data[$property][$key]['@value']);
+                        switch ($replaceMode) {
+                            case 'regex':
+                                $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
+                                break;
+                            case 'raw_i':
+                                $newValue = str_ireplace($from, $to, $data[$property][$key]['@value']);
+                                break;
+                            case 'raw':
+                            default:
+                                $newValue = str_replace($from, $to, $data[$property][$key]['@value']);
+                                break;
+                        }
                         if ($value['@value'] === $newValue) {
                             continue;
                         }
@@ -849,9 +860,18 @@ class Module extends AbstractModule
                 if ($remove) {
                     $html = '';
                 } elseif ($checkFrom) {
-                    $html = $replaceMode === 'regex'
-                        ? preg_replace($from, $to, $html)
-                        : str_replace($from, $to, $html);
+                    switch ($replaceMode) {
+                        case 'regex':
+                            $html = preg_replace($from, $to, $html);
+                            break;
+                        case 'raw_i':
+                            $html = str_ireplace($from, $to, $html);
+                            break;
+                        case 'raw':
+                        default:
+                            $html = str_replace($from, $to, $html);
+                            break;
+                    }
                 }
 
                 $html = $prepend . $html . $append;

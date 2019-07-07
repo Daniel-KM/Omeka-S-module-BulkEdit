@@ -2,7 +2,7 @@
 namespace BulkEdit;
 
 if (!class_exists(\Generic\AbstractModule::class)) {
-    require_once file_exists(dirname(__DIR__) . '/Generic/AbstractModule.php')
+    require file_exists(dirname(__DIR__) . '/Generic/AbstractModule.php')
         ? dirname(__DIR__) . '/Generic/AbstractModule.php'
         : __DIR__ . '/src/Generic/AbstractModule.php';
 }
@@ -637,6 +637,9 @@ class Module extends AbstractModule
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
         $resourceType = $adapter->getResourceName();
 
+        // Simplify properties when all is selected.
+        in_array('all', $properties) && $properties = ['all'];
+
         $from = $params['from'];
         $to = $params['to'];
         $replaceMode = $params['replace_mode'] === 'regex' ? 'regex' : 'raw';
@@ -668,7 +671,8 @@ class Module extends AbstractModule
             if (in_array('all', $properties)) {
                 $properties = array_keys($resource->values());
             }
-            $properties = array_intersect_key($data, array_flip($properties));
+
+            $properties = array_intersect(array_keys($data), $properties);
             if (empty($properties)) {
                 continue;
             }
@@ -676,18 +680,19 @@ class Module extends AbstractModule
             $toUpdate = false;
 
             if ($remove) {
-                foreach ($properties as $property => $propertyValues) {
-                    foreach ($propertyValues as $key => $value) {
+                foreach ($properties as $property) {
+                    foreach ($data[$property] as $key => $value) {
                         if ($value['type'] !== 'literal') {
                             continue;
                         }
                         $toUpdate = true;
+                        // Unsetting is done in last step.
                         $data[$property][$key]['@value'] = '';
                     }
                 }
             } elseif (mb_strlen($from)) {
-                foreach ($properties as $property => $propertyValues) {
-                    foreach ($propertyValues as $key => $value) {
+                foreach ($properties as $property) {
+                    foreach ($data[$property] as $key => $value) {
                         if ($value['type'] !== 'literal') {
                             continue;
                         }
@@ -704,8 +709,8 @@ class Module extends AbstractModule
             }
 
             if (mb_strlen($prepend) || mb_strlen($append)) {
-                foreach ($properties as $property => $propertyValues) {
-                    foreach ($propertyValues as $key => $value) {
+                foreach ($properties as $property) {
+                    foreach ($data[$property] as $key => $value) {
                         if ($value['type'] !== 'literal') {
                             continue;
                         }
@@ -720,8 +725,8 @@ class Module extends AbstractModule
             }
 
             if ($languageClear || mb_strlen($language)) {
-                foreach ($properties as $property => $propertyValues) {
-                    foreach ($propertyValues as $key => $value) {
+                foreach ($properties as $property) {
+                    foreach ($data[$property] as $key => $value) {
                         if ($value['type'] !== 'literal') {
                             continue;
                         }
@@ -740,8 +745,8 @@ class Module extends AbstractModule
             }
 
             // Force trimming values and check if a value is empty to remove it.
-            foreach ($properties as $property => $propertyValues) {
-                foreach ($propertyValues as $key => $value) {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
                     if ($value['type'] !== 'literal') {
                         continue;
                     }
@@ -867,14 +872,14 @@ class Module extends AbstractModule
             if (in_array('all', $properties)) {
                 $properties = array_keys($resource->values());
             }
-            $properties = array_intersect_key($data, array_flip($properties));
+            $properties = array_intersect(array_keys($data), $properties);
             if (empty($properties)) {
                 continue;
             }
 
             $toUpdate = false;
-            foreach ($properties as $property => $propertyValues) {
-                foreach ($propertyValues as $key => $value) {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
                     $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
                     if ($currentVisibility === $visibility) {
                         continue;
@@ -891,6 +896,11 @@ class Module extends AbstractModule
         }
     }
 
+    /**
+     * Check if the module Next is enabled and greater than 3.1.2.9.
+     *
+     * @return bool
+     */
     protected function checkModuleNext()
     {
         $services = $this->getServiceLocator();

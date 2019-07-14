@@ -7,6 +7,11 @@ $('#replace_from, #replace_to, #replace_mode, #replace_remove, #replace_prepend,
 $('#replace')
     .prepend('<legend>' + Omeka.jsTranslate('Replace literal values') + '</legend>');
 
+$('#order_languages, #order_properties').closest('.field')
+    .wrapAll('<fieldset id="order_values" class="field-container">');
+$('#order_values')
+    .prepend('<legend>' + Omeka.jsTranslate('Order values') + '</legend>');
+
 $('#displace_from, #displace_to, #displace_datatypes, #displace_languages, #displace_visibility, #displace_contains').closest('.field')
     .wrapAll('<fieldset id="displace" class="field-container">');
 $('#displace')

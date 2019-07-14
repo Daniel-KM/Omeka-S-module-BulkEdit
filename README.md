@@ -10,6 +10,7 @@ Current processes are:
 - Remove the literal value of a property
 - Prepend or append a string to a value of a property
 - Set or remove language of a property
+- Order values by language (in particular for the title)
 - Displace values from a property to another one
 - Set visibility of a property public or private
 - Update the media html of an item
@@ -68,6 +69,16 @@ Fill fields "Prepend" and/or "Append" and select the properties to update.
 Select the properties to set or remove language.
 Note: all values of the selected properties are updated, so be aware of existing
 languages when they are multiple.
+
+# Order values by language
+
+Sometime, we need that the title and the description to be displayed to be in
+one language, but the value in this language is not always the first in the
+metadata. This is important for the title and the description, that are
+displayed in many places.
+
+So just write the language in the order you want for the properties you want.
+Values with other languages or without language will be kept after.
 
 # Displace values from a property to another one
 

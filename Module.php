@@ -215,6 +215,21 @@ class Module extends AbstractModule
             }
         }
 
+        $params = $request->getValue('order_values', []);
+        if (!empty($params['languages'])) {
+            $languages = preg_replace('/[^a-zA-Z-]/', "\n", $params['languages']);
+            $languages = array_filter(explode("\n", $languages));
+            $properties = $params['properties'];
+            if ($languages && $properties) {
+                $adapter = $event->getTarget();
+                $ids = (array) $request->getIds();
+                $this->orderValuesForResources($adapter, $ids, [
+                    'languages' => $languages,
+                    'properties' => $properties,
+                ]);
+            }
+        }
+
         $params = $request->getValue('displace', []);
         if (!empty($params['from'])) {
             $to = $params['to'];
@@ -424,6 +439,53 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'replace_properties',
+                'class' => 'chosen-select',
+                'multiple' => true,
+                'data-placeholder' => 'Select properties', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+
+        $form->add([
+            'name' => 'order_values',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Values order', // @translate
+            ],
+            'attributes' => [
+                'id' => 'order_values',
+                'class' => 'field-container',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset = $form->get('order_values');
+        $fieldset->add([
+            'name' => 'languages',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'Order by language', // @translate
+                'info' => 'List the language you want to order before other values.' // @translate
+            ],
+            'attributes' => [
+                'id' => 'order_languages',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'properties',
+            'type' => PropertySelect::class,
+            'options' => [
+                'label' => 'Properties to order', // @translate
+                'term_as_value' => true,
+                'prepend_value_options' => [
+                    'all' => '[All properties]', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'order_properties',
                 'class' => 'chosen-select',
                 'multiple' => true,
                 'data-placeholder' => 'Select properties', // @translate
@@ -746,6 +808,11 @@ class Module extends AbstractModule
                 'name' => 'properties',
                 'required' => false,
             ]);
+        $inputFilter->get('order_values')
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
         $inputFilter->get('displace')
             ->add([
                 'name' => 'from',
@@ -937,6 +1004,72 @@ class Module extends AbstractModule
                         unset($data[$property][$key]);
                     }
                 }
+            }
+
+            $api->update($resourceType, $resourceId, $data);
+        }
+    }
+
+    /**
+     * Order values in a list of properties.
+     *
+     * This feature is generally used for title, description and subjects.
+     *
+     * @param AbstractResourceEntityAdapter $adapter
+     * @param array $resourceIds
+     * @param array $params
+     */
+    protected function orderValuesForResources(
+        AbstractResourceEntityAdapter$adapter,
+        array $resourceIds,
+        array $params
+    ) {
+        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $resourceType = $adapter->getResourceName();
+
+        $languages = $params['languages'];
+        $forProperties = $params['properties'];
+        if (empty($languages) || empty($forProperties)) {
+            return;
+        }
+
+        $languages = array_fill_keys($languages, []);
+        $processAllProperties = in_array('all', $forProperties);
+        foreach ($resourceIds as $resourceId) {
+            $resource = $adapter->findEntity(['id' => $resourceId]);
+            if (!$resource) {
+                continue;
+            }
+
+            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
+            $resource = $adapter->getRepresentation($resource);
+
+            if ($processAllProperties) {
+                $properties = array_keys($resource->values());
+            } else {
+                $properties = array_intersect($forProperties, array_keys($resource->values()));
+            }
+            if (empty($properties)) {
+                continue;
+            }
+
+            $data = json_decode(json_encode($resource), true);
+
+            foreach ($properties as $property) {
+                // This two loops process is quicker with many languages.
+                $values = $languages;
+                foreach ($data[$property] as $value) {
+                    if ($value['type'] !== 'literal' || empty($value['@language'])) {
+                        $values[''][] = $value;
+                        continue;
+                    }
+                    $values[$value['@language']][] = $value;
+                }
+                $vals = [];
+                foreach ($values as $vs) {
+                    $vals = array_merge($vals, $vs);
+                }
+                $data[$property] = $vals;
             }
 
             $api->update($resourceType, $resourceId, $data);

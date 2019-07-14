@@ -189,8 +189,8 @@ class Module extends AbstractModule
         $processes = [
             'replace' => false,
             'order_values' => false,
-            'displace' => false,
             'properties_visibility' => false,
+            'displace' => false,
         ];
 
         $params = $request->getValue('replace', []);
@@ -237,6 +237,18 @@ class Module extends AbstractModule
             }
         }
 
+        $params = $request->getValue('properties_visibility', []);
+        if (isset($params['visibility'])
+            && $params['visibility'] !== ''
+            && !empty($params['properties'])
+        ) {
+            $visibility = (int) (bool) $params['visibility'];
+            $processes['properties_visibility'] = [
+                'visibility' => $visibility,
+                'properties' => $params['properties'],
+            ];
+        }
+
         $params = $request->getValue('displace', []);
         if (!empty($params['from'])) {
             $to = $params['to'];
@@ -250,18 +262,6 @@ class Module extends AbstractModule
                     'contains' => $params['contains'],
                 ];
             }
-        }
-
-        $params = $request->getValue('properties_visibility', []);
-        if (isset($params['visibility'])
-            && $params['visibility'] !== ''
-            && !empty($params['properties'])
-        ) {
-            $visibility = (int) (bool) $params['visibility'];
-            $processes['properties_visibility'] = [
-                'visibility' => $visibility,
-                'properties' => $params['properties'],
-            ];
         }
 
         $this->updateValues($adapter, $ids, $processes);
@@ -500,6 +500,58 @@ class Module extends AbstractModule
         ]);
 
         $form->add([
+            'name' => 'properties_visibility',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Visibility', // @translate
+            ],
+            'attributes' => [
+                'id' => 'properties_visibility',
+                'class' => 'field-container',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset = $form->get('properties_visibility');
+        $fieldset->add([
+            'name' => 'visibility',
+            'type' => Element\Radio::class,
+            'options' => [
+                'label' => 'Set visibility…', // @translate
+                'value_options' => [
+                    '1' => 'Public', // @translate
+                    '0' => 'Not public', // @translate
+                    '' => '[No change]', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'propvis_visibility',
+                'value' => '',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'properties',
+            'type' => PropertySelect::class,
+            'options' => [
+                'label' => '… for properties', // @translate
+                'term_as_value' => true,
+                'prepend_value_options' => [
+                    'all' => '[All properties]', // @translate
+                ],
+            ],
+            'attributes' => [
+                'id' => 'propvis_properties',
+                'class' => 'chosen-select',
+                'multiple' => true,
+                'data-placeholder' => 'Select properties', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+
+        $form->add([
             'name' => 'displace',
             'type' => Fieldset::class,
             'options' => [
@@ -603,58 +655,6 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'displace_contains',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-
-        $form->add([
-            'name' => 'properties_visibility',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Visibility', // @translate
-            ],
-            'attributes' => [
-                'id' => 'properties_visibility',
-                'class' => 'field-container',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset = $form->get('properties_visibility');
-        $fieldset->add([
-            'name' => 'visibility',
-            'type' => Element\Radio::class,
-            'options' => [
-                'label' => 'Set visibility…', // @translate
-                'value_options' => [
-                    '1' => 'Public', // @translate
-                    '0' => 'Not public', // @translate
-                    '' => '[No change]', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'propvis_visibility',
-                'value' => '',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'properties',
-            'type' => PropertySelect::class,
-            'options' => [
-                'label' => '… for properties', // @translate
-                'term_as_value' => true,
-                'prepend_value_options' => [
-                    'all' => '[All properties]', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'propvis_properties',
-                'class' => 'chosen-select',
-                'multiple' => true,
-                'data-placeholder' => 'Select properties', // @translate
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
@@ -818,6 +818,15 @@ class Module extends AbstractModule
                 'name' => 'properties',
                 'required' => false,
             ]);
+        $inputFilter->get('properties_visibility')
+            ->add([
+                'name' => 'visibility',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
         $inputFilter->get('displace')
             ->add([
                 'name' => 'from',
@@ -833,15 +842,6 @@ class Module extends AbstractModule
             ])
             ->add([
                 'name' => 'visibility',
-                'required' => false,
-            ]);
-        $inputFilter->get('properties_visibility')
-            ->add([
-                'name' => 'visibility',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'properties',
                 'required' => false,
             ]);
         $inputFilter->get('media_html')
@@ -883,11 +883,11 @@ class Module extends AbstractModule
                     case 'order_values':
                         $this->orderValuesForResource($resource, $data, $toUpdate, $params);
                         break;
-                    case 'displace':
-                        $this->displaceValuesForResource($resource, $data, $toUpdate, $params);
-                        break;
                     case 'properties_visibility':
                         $this->applyVisibilityForResourceValues($resource, $data, $toUpdate, $params);
+                        break;
+                    case 'displace':
+                        $this->displaceValuesForResource($resource, $data, $toUpdate, $params);
                         break;
                 }
             }
@@ -1214,6 +1214,45 @@ class Module extends AbstractModule
     }
 
     /**
+     * Set visibility to the specified properties of the specified resources.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
+     * @param array $params
+     */
+    protected function applyVisibilityForResourceValues(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
+        array $params
+    ) {
+        $visibility = (int) (bool) $params['visibility'];
+        $fromProperties = $params['properties'];
+
+        $processAllProperties = in_array('all', $fromProperties);
+
+        // Note: this is the original values.
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($fromProperties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
+                if ($currentVisibility === $visibility) {
+                    continue;
+                }
+                $toUpdate = true;
+                $data[$property][$key]['is_public'] = $visibility;
+            }
+        }
+    }
+
+    /**
      * Update the html of a media of type html from items.
      *
      * @param ItemAdapter $adapter
@@ -1312,45 +1351,6 @@ class Module extends AbstractModule
                 // $data['o-cnt:chars'] = $html;
                 $data['o:media']['__index__']['html'] = $html;
                 $api->update('media', $media->id(), $data, [], $apiOptions);
-            }
-        }
-    }
-
-    /**
-     * Set visibility to the specified properties of the specified resources.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
-     */
-    protected function applyVisibilityForResourceValues(
-        AbstractResourceEntityRepresentation $resource,
-        array &$data,
-        &$toUpdate,
-        array $params
-    ) {
-        $visibility = (int) (bool) $params['visibility'];
-        $fromProperties = $params['properties'];
-
-        $processAllProperties = in_array('all', $fromProperties);
-
-        // Note: this is the original values.
-        $properties = $processAllProperties
-        ? array_keys($resource->values())
-        : array_intersect($fromProperties, array_keys($resource->values()));
-        if (empty($properties)) {
-            return;
-        }
-
-        foreach ($properties as $property) {
-            foreach ($data[$property] as $key => $value) {
-                $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
-                if ($currentVisibility === $visibility) {
-                    continue;
-                }
-                $toUpdate = true;
-                $data[$property][$key]['is_public'] = $visibility;
             }
         }
     }

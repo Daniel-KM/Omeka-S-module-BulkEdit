@@ -12,15 +12,15 @@ $('#order_languages, #order_properties').closest('.field')
 $('#order_values')
     .prepend('<legend>' + Omeka.jsTranslate('Order values') + '</legend>');
 
+$('#propvis_visibility, #propvis_properties').closest('.field')
+    .wrapAll('<fieldset id="properties_visibility" class="field-container">');
+$('#properties_visibility')
+    .prepend('<legend>' + Omeka.jsTranslate('Visibility of values') + '</legend>');
+
 $('#displace_from, #displace_to, #displace_datatypes, #displace_languages, #displace_visibility, #displace_contains').closest('.field')
     .wrapAll('<fieldset id="displace" class="field-container">');
 $('#displace')
     .prepend('<legend>' + Omeka.jsTranslate('Displace values') + '</legend>');
-
-$('#propvis_visibility, #propvis_properties').closest('.field')
-    .wrapAll('<fieldset id="properties_visibility" class="field-container">');
-$('#properties_visibility')
-    .prepend('<legend>' + Omeka.jsTranslate('Visibility') + '</legend>');
 
 $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_remove, #mediahtml_prepend, #mediahtml_append').closest('.field')
     .wrapAll('<fieldset id="media_html" class="field-container">');

@@ -182,15 +182,15 @@ class Module extends AbstractModule
 
         //  TODO Factorize to avoid multiple update of resources.
 
-        $propertiesValues = $request->getValue('properties_values', []);
-        if (!empty($propertiesValues['properties'])) {
-            $from = $propertiesValues['from'];
-            $to = $propertiesValues['to'];
-            $remove = (bool) $propertiesValues['remove'];
-            $prepend = ltrim($propertiesValues['prepend']);
-            $append = rtrim($propertiesValues['append']);
-            $language = trim($propertiesValues['language']);
-            $languageClear = (bool) ($propertiesValues['language_clear']);
+        $params = $request->getValue('replace', []);
+        if (!empty($params['properties'])) {
+            $from = $params['from'];
+            $to = $params['to'];
+            $remove = (bool) $params['remove'];
+            $prepend = ltrim($params['prepend']);
+            $append = rtrim($params['append']);
+            $language = trim($params['language']);
+            $languageClear = (bool) ($params['language_clear']);
             if (mb_strlen($from)
                 || mb_strlen($to)
                 || $remove
@@ -204,54 +204,54 @@ class Module extends AbstractModule
                 $this->updateValuesForResources($adapter, $ids, [
                     'from' => $from,
                     'to' => $to,
-                    'replace_mode' => $propertiesValues['replace_mode'],
+                    'mode' => $params['mode'],
                     'remove' => $remove,
                     'prepend' => $prepend,
                     'append' => $append,
                     'language' => $language,
                     'language_clear' => $languageClear,
-                    'properties' => $propertiesValues['properties'],
+                    'properties' => $params['properties'],
                 ]);
             }
         }
 
-        $displace = $request->getValue('displace', []);
-        if (!empty($displace['from'])) {
-            $to = $displace['to'];
+        $params = $request->getValue('displace', []);
+        if (!empty($params['from'])) {
+            $to = $params['to'];
             if (mb_strlen($to)) {
                 $adapter = $event->getTarget();
                 $ids = (array) $request->getIds();
                 $this->displaceValuesForResources($adapter, $ids, [
-                    'from' => $displace['from'],
+                    'from' => $params['from'],
                     'to' => $to,
-                    'datatypes' => $displace['datatypes'],
-                    'languages' => $this->stringToList($displace['languages']),
-                    'visibility' => $displace['visibility'],
-                    'contains' => $displace['contains'],
+                    'datatypes' => $params['datatypes'],
+                    'languages' => $this->stringToList($params['languages']),
+                    'visibility' => $params['visibility'],
+                    'contains' => $params['contains'],
                 ]);
             }
         }
 
-        $propertiesVisibility = $request->getValue('properties_visibility', []);
-        if (isset($propertiesVisibility['visibility'])
-            && $propertiesVisibility['visibility'] !== ''
-            && !empty($propertiesVisibility['properties'])
+        $params = $request->getValue('properties_visibility', []);
+        if (isset($params['visibility'])
+            && $params['visibility'] !== ''
+            && !empty($params['properties'])
         ) {
-            $visibility = (int) (bool) $propertiesVisibility['visibility'];
+            $visibility = (int) (bool) $params['visibility'];
             $adapter = $event->getTarget();
             $ids = (array) $request->getIds();
             $this->applyVisibilityForResourcesValues($adapter, $ids, [
                 'visibility' => $visibility,
-                'properties' => $propertiesVisibility['properties'],
+                'properties' => $params['properties'],
             ]);
         }
 
-        $mediaHtml = $request->getValue('media_html', []);
-        $from = $mediaHtml['from'];
-        $to = $mediaHtml['to'];
-        $remove = (bool) $mediaHtml['remove'];
-        $prepend = ltrim($mediaHtml['prepend']);
-        $append = rtrim($mediaHtml['append']);
+        $params = $request->getValue('media_html', []);
+        $from = $params['from'];
+        $to = $params['to'];
+        $remove = (bool) $params['remove'];
+        $prepend = ltrim($params['prepend']);
+        $append = rtrim($params['append']);
         if (mb_strlen($from)
             || mb_strlen($to)
             || $remove
@@ -263,7 +263,7 @@ class Module extends AbstractModule
             $this->updateMediaHtmlForResources($adapter, $ids, [
                 'from' => $from,
                 'to' => $to,
-                'replace_mode' => $propertiesValues['replace_mode'],
+                'mode' => $params['mode'],
                 'remove' => $remove,
                 'prepend' => $prepend,
                 'append' => $append,
@@ -274,15 +274,15 @@ class Module extends AbstractModule
             return;
         }
 
-        $cleaning = $request->getValue('cleaning', []);
-        if (!empty($cleaning['trim_values'])) {
+        $params = $request->getValue('cleaning', []);
+        if (!empty($params['trim_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
             $trimValues = $plugins->get('trimValues');
             $ids = (array) $request->getIds();
             $trimValues($ids);
         }
 
-        if (!empty($cleaning['deduplicate_values'])) {
+        if (!empty($params['deduplicate_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
             $deduplicateValues = $plugins->get('deduplicateValues');
             $ids = (array) $request->getIds();
@@ -295,19 +295,19 @@ class Module extends AbstractModule
         $form = $event->getTarget();
 
         $form->add([
-            'name' => 'properties_values',
+            'name' => 'replace',
             'type' => Fieldset::class,
             'options' => [
-                'label' => 'Values', // @translate
+                'label' => 'Replace literal values', // @translate
             ],
             'attributes' => [
-                'id' => 'properties_values',
+                'id' => 'replace',
                 'class' => 'field-container',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
         ]);
-        $fieldset = $form->get('properties_values');
+        $fieldset = $form->get('replace');
         $fieldset->add([
             'name' => 'from',
             'type' => Element\Text::class,
@@ -315,7 +315,7 @@ class Module extends AbstractModule
                 'label' => 'String to replace…', // @translate
             ],
             'attributes' => [
-                'id' => 'propval_from',
+                'id' => 'replace_from',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
@@ -327,13 +327,13 @@ class Module extends AbstractModule
                 'label' => '… by…', // @translate
             ],
             'attributes' => [
-                'id' => 'propval_to',
+                'id' => 'replace_to',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
         ]);
         $fieldset->add([
-            'name' => 'replace_mode',
+            'name' => 'mode',
             'type' => Element\Radio::class,
             'options' => [
                 'label' => '… using replacement mode', // @translate
@@ -345,7 +345,7 @@ class Module extends AbstractModule
                 ],
             ],
             'attributes' => [
-                'id' => 'propval_replace_mode',
+                'id' => 'replace_mode',
                 'value' => 'raw',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
@@ -358,7 +358,7 @@ class Module extends AbstractModule
                 'label' => 'Remove string', // @translate
             ],
             'attributes' => [
-                'id' => 'propval_remove',
+                'id' => 'replace_remove',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
@@ -370,7 +370,7 @@ class Module extends AbstractModule
                 'label' => 'String to prepend', // @translate
             ],
             'attributes' => [
-                'id' => 'propval_prepend',
+                'id' => 'replace_prepend',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
@@ -382,7 +382,7 @@ class Module extends AbstractModule
                 'label' => 'String to append', // @translate
             ],
             'attributes' => [
-                'id' => 'propval_append',
+                'id' => 'replace_append',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
@@ -394,7 +394,7 @@ class Module extends AbstractModule
                 'label' => 'Set a language…', // @translate
             ],
             'attributes' => [
-                'id' => 'propval_language',
+                'id' => 'replace_language',
                 'class' => 'value-language active',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
@@ -407,7 +407,7 @@ class Module extends AbstractModule
                 'label' => '… or remove it…', // @translate
             ],
             'attributes' => [
-                'id' => 'propval_language_clear',
+                'id' => 'replace_language_clear',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
@@ -423,7 +423,7 @@ class Module extends AbstractModule
                 ],
             ],
             'attributes' => [
-                'id' => 'propval_properties',
+                'id' => 'replace_properties',
                 'class' => 'chosen-select',
                 'multiple' => true,
                 'data-placeholder' => 'Select properties', // @translate
@@ -632,7 +632,7 @@ class Module extends AbstractModule
             ],
         ]);
         $fieldset->add([
-            'name' => 'replace_mode',
+            'name' => 'mode',
             'type' => Element\Radio::class,
             'options' => [
                 'label' => '… using replacement mode', // @translate
@@ -644,7 +644,7 @@ class Module extends AbstractModule
                 ],
             ],
             'attributes' => [
-                'id' => 'mediahtml_replace_mode',
+                'id' => 'mediahtml_mode',
                 'value' => 'raw',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
@@ -737,9 +737,9 @@ class Module extends AbstractModule
     {
         /** @var \Zend\InputFilter\InputFilterInterface $inputFilter */
         $inputFilter = $event->getParam('inputFilter');
-        $inputFilter->get('properties_values')
+        $inputFilter->get('replace')
             ->add([
-                'name' => 'replace_mode',
+                'name' => 'mode',
                 'required' => false,
             ])
             ->add([
@@ -772,6 +772,11 @@ class Module extends AbstractModule
                 'name' => 'properties',
                 'required' => false,
             ]);
+        $inputFilter->get('media_html')
+            ->add([
+                'name' => 'mode',
+                'required' => false,
+            ]);
     }
 
     /**
@@ -791,7 +796,7 @@ class Module extends AbstractModule
 
         $from = $params['from'];
         $to = $params['to'];
-        $replaceMode = $params['replace_mode'];
+        $mode = $params['mode'];
         $remove = $params['remove'];
         $prepend = $params['prepend'];
         $append = $params['append'];
@@ -803,7 +808,7 @@ class Module extends AbstractModule
         $checkFrom = mb_strlen($from);
 
         if ($checkFrom) {
-            switch ($replaceMode) {
+            switch ($mode) {
                 case 'regex':
                     // Check the validity of the regex.
                     // TODO Add the check of the validity of the regex in the form.
@@ -861,7 +866,7 @@ class Module extends AbstractModule
                         if ($value['type'] !== 'literal') {
                             continue;
                         }
-                        switch ($replaceMode) {
+                        switch ($mode) {
                             case 'regex':
                                 $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
                                 break;
@@ -1046,7 +1051,7 @@ class Module extends AbstractModule
 
         $from = $params['from'];
         $to = $params['to'];
-        $replaceMode = $params['replace_mode'];
+        $mode = $params['mode'];
         $remove = $params['remove'];
         $prepend = $params['prepend'];
         $append = $params['append'];
@@ -1054,7 +1059,7 @@ class Module extends AbstractModule
         $checkFrom = mb_strlen($from);
 
         if ($checkFrom) {
-            switch ($replaceMode) {
+            switch ($mode) {
                 case 'regex':
                     // Check the validity of the regex.
                     // TODO Add the check of the validity of the regex in the form.
@@ -1098,7 +1103,7 @@ class Module extends AbstractModule
                 if ($remove) {
                     $html = '';
                 } elseif ($checkFrom) {
-                    switch ($replaceMode) {
+                    switch ($mode) {
                         case 'regex':
                             $html = preg_replace($from, $to, $html);
                             break;

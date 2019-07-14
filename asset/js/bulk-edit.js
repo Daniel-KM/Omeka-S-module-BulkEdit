@@ -2,10 +2,10 @@ $(document).ready(function() {
 
 // @todo To be removed when $this->form() witll be used instead of $this->formCollection().
 
-$('#propval_from, #propval_to, #propval_replace_mode, #propval_remove, #propval_prepend, #propval_append, #propval_language, #propval_language_clear, #propval_properties').closest('.field')
-    .wrapAll('<fieldset id="properties_values" class="field-container">');
-$('#properties_values')
-    .prepend('<legend>' + Omeka.jsTranslate('Literal values') + '</legend>');
+$('#replace_from, #replace_to, #replace_mode, #replace_remove, #replace_prepend, #replace_append, #replace_language, #replace_language_clear, #replace_properties').closest('.field')
+    .wrapAll('<fieldset id="replace" class="field-container">');
+$('#replace')
+    .prepend('<legend>' + Omeka.jsTranslate('Replace literal values') + '</legend>');
 
 $('#displace_from, #displace_to, #displace_datatypes, #displace_languages, #displace_visibility, #displace_contains').closest('.field')
     .wrapAll('<fieldset id="displace" class="field-container">');
@@ -17,7 +17,7 @@ $('#propvis_visibility, #propvis_properties').closest('.field')
 $('#properties_visibility')
     .prepend('<legend>' + Omeka.jsTranslate('Visibility') + '</legend>');
 
-$('#mediahtml_from, #mediahtml_to, #mediahtml_replace_mode, #mediahtml_remove, #mediahtml_prepend, #mediahtml_append').closest('.field')
+$('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_remove, #mediahtml_prepend, #mediahtml_append').closest('.field')
     .wrapAll('<fieldset id="media_html" class="field-container">');
 $('#media_html')
     .prepend('<legend>' + Omeka.jsTranslate('Media HTML') + '</legend>');

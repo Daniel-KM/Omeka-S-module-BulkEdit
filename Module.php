@@ -166,7 +166,7 @@ class Module extends AbstractModule
     /**
      * Process action on batch update (all or partial).
      *
-     * - curative trim on property values.
+     * @todo Merge all process into one api request (not so important since most of people change one thing a time)
      *
      * Data may need to be reindexed if a module like Search is used, even if
      * the results are probably the same with a simple trimming.
@@ -177,10 +177,17 @@ class Module extends AbstractModule
     {
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
+        $ids = (array) $request->getIds();
+        if (empty($ids)) {
+            return;
+        }
+
         $services = $this->getServiceLocator();
         $plugins = $services->get('ControllerPluginManager');
+        $adapter = $event->getTarget();
 
         //  TODO Factorize to avoid multiple update of resources.
+        $hasProcess = false;
 
         $params = $request->getValue('replace', []);
         if (!empty($params['properties'])) {
@@ -199,8 +206,7 @@ class Module extends AbstractModule
                 || mb_strlen($language)
                 || $languageClear
             ) {
-                $adapter = $event->getTarget();
-                $ids = (array) $request->getIds();
+                $hasProcess = true;
                 $this->updateValuesForResources($adapter, $ids, [
                     'from' => $from,
                     'to' => $to,
@@ -221,8 +227,7 @@ class Module extends AbstractModule
             $languages = array_filter(explode("\n", $languages));
             $properties = $params['properties'];
             if ($languages && $properties) {
-                $adapter = $event->getTarget();
-                $ids = (array) $request->getIds();
+                $hasProcess = true;
                 $this->orderValuesForResources($adapter, $ids, [
                     'languages' => $languages,
                     'properties' => $properties,
@@ -234,8 +239,7 @@ class Module extends AbstractModule
         if (!empty($params['from'])) {
             $to = $params['to'];
             if (mb_strlen($to)) {
-                $adapter = $event->getTarget();
-                $ids = (array) $request->getIds();
+                $hasProcess = true;
                 $this->displaceValuesForResources($adapter, $ids, [
                     'from' => $params['from'],
                     'to' => $to,
@@ -253,8 +257,7 @@ class Module extends AbstractModule
             && !empty($params['properties'])
         ) {
             $visibility = (int) (bool) $params['visibility'];
-            $adapter = $event->getTarget();
-            $ids = (array) $request->getIds();
+            $hasProcess = true;
             $this->applyVisibilityForResourcesValues($adapter, $ids, [
                 'visibility' => $visibility,
                 'properties' => $params['properties'],
@@ -273,8 +276,8 @@ class Module extends AbstractModule
             || mb_strlen($prepend)
             || mb_strlen($append)
         ) {
-            $adapter = $event->getTarget();
-            $ids = (array) $request->getIds();
+            // This process is specific, because not for current resources.
+            // $hasProcess = true;
             $this->updateMediaHtmlForResources($adapter, $ids, [
                 'from' => $from,
                 'to' => $to,
@@ -283,6 +286,15 @@ class Module extends AbstractModule
                 'prepend' => $prepend,
                 'append' => $append,
             ]);
+        }
+
+        if ($hasProcess) {
+            $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+            $apiOptions = ['initialize' => true, 'finalize' => true, 'isPartial' => true, 'responseContent' => 'resource'];
+            $resourceType = $adapter->getResourceName();
+            foreach ($ids as $resourceId) {
+                $api->update($resourceType, $resourceId, [], [], $apiOptions);
+            }
         }
 
         if ($this->checkModuleNext()) {
@@ -859,6 +871,7 @@ class Module extends AbstractModule
         array $params
     ) {
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $apiOptions = ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'];
         $resourceType = $adapter->getResourceName();
 
         $from = $params['from'];
@@ -1006,7 +1019,7 @@ class Module extends AbstractModule
                 }
             }
 
-            $api->update($resourceType, $resourceId, $data);
+            $api->update($resourceType, $resourceId, $data, [], $apiOptions);
         }
     }
 
@@ -1025,6 +1038,7 @@ class Module extends AbstractModule
         array $params
     ) {
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $apiOptions = ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'];
         $resourceType = $adapter->getResourceName();
 
         $languages = $params['languages'];
@@ -1072,7 +1086,7 @@ class Module extends AbstractModule
                 $data[$property] = $vals;
             }
 
-            $api->update($resourceType, $resourceId, $data);
+            $api->update($resourceType, $resourceId, $data, [], $apiOptions);
         }
     }
 
@@ -1089,6 +1103,7 @@ class Module extends AbstractModule
         array $params
     ) {
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $apiOptions = ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'];
         $resourceType = $adapter->getResourceName();
 
         $fromProperties = $params['from'];
@@ -1164,7 +1179,7 @@ class Module extends AbstractModule
                 }
             }
 
-            $api->update($resourceType, $resourceId, $data);
+            $api->update($resourceType, $resourceId, $data, [], $apiOptions);
         }
     }
 
@@ -1181,6 +1196,7 @@ class Module extends AbstractModule
         array $params
     ) {
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $apiOptions = ['initialize' => true, 'finalize' => true, 'responseContent' => 'resource'];
 
         $from = $params['from'];
         $to = $params['to'];
@@ -1265,7 +1281,7 @@ class Module extends AbstractModule
                 // $data['data']['html'] = $html;
                 // $data['o-cnt:chars'] = $html;
                 $data['o:media']['__index__']['html'] = $html;
-                $api->update('media', $media->id(), $data);
+                $api->update('media', $media->id(), $data, [], $apiOptions);
             }
         }
     }
@@ -1283,6 +1299,7 @@ class Module extends AbstractModule
         array $params
     ) {
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $apiOptions = ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'];
         $resourceType = $adapter->getResourceName();
 
         $visibility = (int) (bool) $params['visibility'];
@@ -1323,7 +1340,7 @@ class Module extends AbstractModule
                 continue;
             }
 
-            $api->update($resourceType, $resourceId, $data);
+            $api->update($resourceType, $resourceId, $data, [], $apiOptions);
         }
     }
 

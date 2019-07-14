@@ -10,6 +10,7 @@ if (!class_exists(\Generic\AbstractModule::class)) {
 use Generic\AbstractModule;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
+use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Form\Element\PropertySelect;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
@@ -166,8 +167,6 @@ class Module extends AbstractModule
     /**
      * Process action on batch update (all or partial).
      *
-     * @todo Merge all process into one api request (not so important since most of people change one thing a time)
-     *
      * Data may need to be reindexed if a module like Search is used, even if
      * the results are probably the same with a simple trimming.
      *
@@ -186,8 +185,13 @@ class Module extends AbstractModule
         $plugins = $services->get('ControllerPluginManager');
         $adapter = $event->getTarget();
 
-        //  TODO Factorize to avoid multiple update of resources.
-        $hasProcess = false;
+        // Other process (media html, cleaning) are managed differently.
+        $processes = [
+            'replace' => false,
+            'order_values' => false,
+            'displace' => false,
+            'properties_visibility' => false,
+        ];
 
         $params = $request->getValue('replace', []);
         if (!empty($params['properties'])) {
@@ -206,8 +210,7 @@ class Module extends AbstractModule
                 || mb_strlen($language)
                 || $languageClear
             ) {
-                $hasProcess = true;
-                $this->updateValuesForResources($adapter, $ids, [
+                $processes['replace'] = [
                     'from' => $from,
                     'to' => $to,
                     'mode' => $params['mode'],
@@ -217,7 +220,7 @@ class Module extends AbstractModule
                     'language' => $language,
                     'language_clear' => $languageClear,
                     'properties' => $params['properties'],
-                ]);
+                ];
             }
         }
 
@@ -227,11 +230,10 @@ class Module extends AbstractModule
             $languages = array_filter(explode("\n", $languages));
             $properties = $params['properties'];
             if ($languages && $properties) {
-                $hasProcess = true;
-                $this->orderValuesForResources($adapter, $ids, [
+                $processes['order_values'] = [
                     'languages' => $languages,
                     'properties' => $properties,
-                ]);
+                ];
             }
         }
 
@@ -239,15 +241,14 @@ class Module extends AbstractModule
         if (!empty($params['from'])) {
             $to = $params['to'];
             if (mb_strlen($to)) {
-                $hasProcess = true;
-                $this->displaceValuesForResources($adapter, $ids, [
+                $processes['displace'] = [
                     'from' => $params['from'],
                     'to' => $to,
                     'datatypes' => $params['datatypes'],
                     'languages' => $this->stringToList($params['languages']),
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
-                ]);
+                ];
             }
         }
 
@@ -257,12 +258,13 @@ class Module extends AbstractModule
             && !empty($params['properties'])
         ) {
             $visibility = (int) (bool) $params['visibility'];
-            $hasProcess = true;
-            $this->applyVisibilityForResourcesValues($adapter, $ids, [
+            $processes['properties_visibility'] = [
                 'visibility' => $visibility,
                 'properties' => $params['properties'],
-            ]);
+            ];
         }
+
+        $this->updateValues($adapter, $ids, $processes);
 
         $params = $request->getValue('media_html', []);
         $from = $params['from'];
@@ -286,15 +288,6 @@ class Module extends AbstractModule
                 'prepend' => $prepend,
                 'append' => $append,
             ]);
-        }
-
-        if ($hasProcess) {
-            $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
-            $apiOptions = ['initialize' => true, 'finalize' => true, 'isPartial' => true, 'responseContent' => 'resource'];
-            $resourceType = $adapter->getResourceName();
-            foreach ($ids as $resourceId) {
-                $api->update($resourceType, $resourceId, [], [], $apiOptions);
-            }
         }
 
         if ($this->checkModuleNext()) {
@@ -858,57 +851,18 @@ class Module extends AbstractModule
             ]);
     }
 
-    /**
-     * Update values for resources.
-     *
-     * @param AbstractResourceEntityAdapter $adapter
-     * @param array $resourceIds
-     * @param array $params
-     */
-    protected function updateValuesForResources(
+    protected function updateValues(
         AbstractResourceEntityAdapter$adapter,
         array $resourceIds,
-        array $params
+        array $processes
     ) {
-        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
-        $apiOptions = ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'];
-        $resourceType = $adapter->getResourceName();
-
-        $from = $params['from'];
-        $to = $params['to'];
-        $mode = $params['mode'];
-        $remove = $params['remove'];
-        $prepend = $params['prepend'];
-        $append = $params['append'];
-        $languageClear = $params['language_clear'];
-        $language = $languageClear ? '' : $params['language'];
-        $fromProperties = $params['properties'];
-
-        $processAllProperties = in_array('all', $fromProperties);
-        $checkFrom = mb_strlen($from);
-
-        if ($checkFrom) {
-            switch ($mode) {
-                case 'regex':
-                    // Check the validity of the regex.
-                    // TODO Add the check of the validity of the regex in the form.
-                    $isValidRegex = @preg_match($from, null) !== false;
-                    if (!$isValidRegex) {
-                        $from = '';
-                    }
-                    break;
-                case 'html':
-                    $from = [
-                        $from,
-                        htmlentities($from, ENT_NOQUOTES | ENT_HTML5 | ENT_SUBSTITUTE),
-                    ];
-                    $to = [
-                        $to,
-                        $to,
-                    ];
-                    break;
-            }
+        $processes = array_filter($processes);
+        if (!$processes) {
+            return;
         }
+
+        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $resourceType = $adapter->getResourceName();
 
         foreach ($resourceIds as $resourceId) {
             $resource = $adapter->findEntity(['id' => $resourceId]);
@@ -918,108 +872,189 @@ class Module extends AbstractModule
 
             /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
             $resource = $adapter->getRepresentation($resource);
-
-            $properties = $processAllProperties
-                ? array_keys($resource->values())
-                : array_intersect($fromProperties, array_keys($resource->values()));
-            if (empty($properties)) {
-                continue;
-            }
-
             $data = json_decode(json_encode($resource), true);
             $toUpdate = false;
 
-            if ($remove) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        if ($value['type'] !== 'literal') {
-                            continue;
-                        }
-                        $toUpdate = true;
-                        // Unsetting is done in last step.
-                        $data[$property][$key]['@value'] = '';
-                    }
-                }
-            } elseif ($checkFrom) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        if ($value['type'] !== 'literal') {
-                            continue;
-                        }
-                        switch ($mode) {
-                            case 'regex':
-                                $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
-                                break;
-                            case 'raw_i':
-                                $newValue = str_ireplace($from, $to, $data[$property][$key]['@value']);
-                                break;
-                            case 'raw':
-                            default:
-                                $newValue = str_replace($from, $to, $data[$property][$key]['@value']);
-                                break;
-                        }
-                        if ($value['@value'] === $newValue) {
-                            continue;
-                        }
-                        $toUpdate = true;
-                        $data[$property][$key]['@value'] = $newValue;
-                    }
+            foreach ($processes as $process => $params) {
+                switch ($process) {
+                    case 'replace':
+                        $this->updateValuesForResource($resource, $data, $toUpdate, $params);
+                        break;
+                    case 'order_values':
+                        $this->orderValuesForResource($resource, $data, $toUpdate, $params);
+                        break;
+                    case 'displace':
+                        $this->displaceValuesForResource($resource, $data, $toUpdate, $params);
+                        break;
+                    case 'properties_visibility':
+                        $this->applyVisibilityForResourceValues($resource, $data, $toUpdate, $params);
+                        break;
                 }
             }
 
-            if (mb_strlen($prepend) || mb_strlen($append)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        if ($value['type'] !== 'literal') {
-                            continue;
+            if ($toUpdate) {
+                $api->update($resourceType, $resourceId, $data, [], ['responseContent' => 'resource']);
+            }
+        }
+    }
+
+    /**
+     * Update values for resources.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
+     * @param array $params
+     */
+    protected function updateValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
+        array $params
+    ) {
+        static $settings;
+        if (is_null($settings)) {
+            $from = $params['from'];
+            $to = $params['to'];
+            $mode = $params['mode'];
+            $remove = $params['remove'];
+            $prepend = $params['prepend'];
+            $append = $params['append'];
+            $languageClear = $params['language_clear'];
+            $language = $languageClear ? '' : $params['language'];
+            $fromProperties = $params['properties'];
+
+            $processAllProperties = in_array('all', $fromProperties);
+            $checkFrom = mb_strlen($from);
+
+            if ($checkFrom) {
+                switch ($mode) {
+                    case 'regex':
+                        // Check the validity of the regex.
+                        // TODO Add the check of the validity of the regex in the form.
+                        $isValidRegex = @preg_match($from, null) !== false;
+                        if (!$isValidRegex) {
+                            $from = '';
                         }
-                        $newValue = $prepend . $data[$property][$key]['@value'] . $append;
-                        if ($value['@value'] === $newValue) {
-                            continue;
-                        }
-                        $toUpdate = true;
-                        $data[$property][$key]['@value'] = $newValue;
-                    }
+                        break;
+                    case 'html':
+                        $from = [
+                            $from,
+                            htmlentities($from, ENT_NOQUOTES | ENT_HTML5 | ENT_SUBSTITUTE),
+                        ];
+                        $to = [
+                            $to,
+                            $to,
+                        ];
+                        break;
                 }
             }
 
-            if ($languageClear || mb_strlen($language)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        if ($value['type'] !== 'literal') {
-                            continue;
-                        }
-                        $currentLanguage = isset($value['@language']) ? $value['@language'] : '';
-                        if ($currentLanguage === $language) {
-                            continue;
-                        }
-                        $toUpdate = true;
-                        $data[$property][$key]['@language'] = $language;
-                    }
-                }
-            }
+            $settings = $params;
+            $settings['from'] = $from;
+            $settings['to'] = $to;
+            $settings['languageClear'] = $languageClear;
+            $settings['language'] = $language;
+            $settings['fromProperties'] = $fromProperties;
+            $settings['processAllProperties'] = $processAllProperties;
+            $settings['checkFrom'] = $checkFrom;
+        } else {
+            extract($settings);
+        }
 
-            if (!$toUpdate) {
-                continue;
-            }
+        // Note: this is the original values.
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($fromProperties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
 
-            // Force trimming values and check if a value is empty to remove it.
+        if ($remove) {
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
                     if ($value['type'] !== 'literal') {
                         continue;
                     }
-                    if (!isset($data[$property][$key])) {
-                        continue;
-                    }
-                    $data[$property][$key]['@value'] = trim($data[$property][$key]['@value']);
-                    if (!mb_strlen($data[$property][$key]['@value'])) {
-                        unset($data[$property][$key]);
-                    }
+                    $toUpdate = true;
+                    // Unsetting is done in last step.
+                    $data[$property][$key]['@value'] = '';
                 }
             }
+        } elseif ($checkFrom) {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    if ($value['type'] !== 'literal') {
+                        continue;
+                    }
+                    switch ($mode) {
+                        case 'regex':
+                            $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
+                            break;
+                        case 'raw_i':
+                            $newValue = str_ireplace($from, $to, $data[$property][$key]['@value']);
+                            break;
+                        case 'raw':
+                        default:
+                            $newValue = str_replace($from, $to, $data[$property][$key]['@value']);
+                            break;
+                    }
+                    if ($value['@value'] === $newValue) {
+                        continue;
+                    }
+                    $toUpdate = true;
+                    $data[$property][$key]['@value'] = $newValue;
+                }
+            }
+        }
 
-            $api->update($resourceType, $resourceId, $data, [], $apiOptions);
+        if (mb_strlen($prepend) || mb_strlen($append)) {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    if ($value['type'] !== 'literal') {
+                        continue;
+                    }
+                    $newValue = $prepend . $data[$property][$key]['@value'] . $append;
+                    if ($value['@value'] === $newValue) {
+                        continue;
+                    }
+                    $toUpdate = true;
+                    $data[$property][$key]['@value'] = $newValue;
+                }
+            }
+        }
+
+        if ($languageClear || mb_strlen($language)) {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    if ($value['type'] !== 'literal') {
+                        continue;
+                    }
+                    $currentLanguage = isset($value['@language']) ? $value['@language'] : '';
+                    if ($currentLanguage === $language) {
+                        continue;
+                    }
+                    $toUpdate = true;
+                    $data[$property][$key]['@language'] = $language;
+                }
+            }
+        }
+
+        // Force trimming values and check if a value is empty to remove it.
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                if ($value['type'] !== 'literal') {
+                    continue;
+                }
+                if (!isset($data[$property][$key])) {
+                    continue;
+                }
+                $data[$property][$key]['@value'] = trim($data[$property][$key]['@value']);
+                if (!mb_strlen($data[$property][$key]['@value'])) {
+                    $toUpdate = true;
+                    unset($data[$property][$key]);
+                }
+            }
         }
     }
 
@@ -1028,19 +1063,17 @@ class Module extends AbstractModule
      *
      * This feature is generally used for title, description and subjects.
      *
-     * @param AbstractResourceEntityAdapter $adapter
-     * @param array $resourceIds
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
      * @param array $params
      */
-    protected function orderValuesForResources(
-        AbstractResourceEntityAdapter$adapter,
-        array $resourceIds,
+    protected function orderValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
         array $params
     ) {
-        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
-        $apiOptions = ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'];
-        $resourceType = $adapter->getResourceName();
-
         $languages = $params['languages'];
         $forProperties = $params['properties'];
         if (empty($languages) || empty($forProperties)) {
@@ -1049,137 +1082,134 @@ class Module extends AbstractModule
 
         $languages = array_fill_keys($languages, []);
         $processAllProperties = in_array('all', $forProperties);
-        foreach ($resourceIds as $resourceId) {
-            $resource = $adapter->findEntity(['id' => $resourceId]);
-            if (!$resource) {
-                continue;
-            }
 
-            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
-            $resource = $adapter->getRepresentation($resource);
+        // Note: this is the original values.
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($forProperties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
 
-            if ($processAllProperties) {
-                $properties = array_keys($resource->values());
-            } else {
-                $properties = array_intersect($forProperties, array_keys($resource->values()));
-            }
-            if (empty($properties)) {
-                continue;
-            }
+        $toUpdate = true;
 
-            $data = json_decode(json_encode($resource), true);
-
-            foreach ($properties as $property) {
-                // This two loops process is quicker with many languages.
-                $values = $languages;
-                foreach ($data[$property] as $value) {
-                    if ($value['type'] !== 'literal' || empty($value['@language'])) {
-                        $values[''][] = $value;
-                        continue;
-                    }
-                    $values[$value['@language']][] = $value;
+        foreach ($properties as $property) {
+            // This two loops process is quicker with many languages.
+            $values = $languages;
+            foreach ($data[$property] as $value) {
+                if ($value['type'] !== 'literal' || empty($value['@language'])) {
+                    $values[''][] = $value;
+                    continue;
                 }
-                $vals = [];
-                foreach ($values as $vs) {
-                    $vals = array_merge($vals, $vs);
-                }
-                $data[$property] = $vals;
+                $values[$value['@language']][] = $value;
             }
-
-            $api->update($resourceType, $resourceId, $data, [], $apiOptions);
+            $vals = [];
+            foreach ($values as $vs) {
+                $vals = array_merge($vals, $vs);
+            }
+            $data[$property] = $vals;
         }
     }
 
     /**
      * Displace values from a list of properties to another one.
      *
-     * @param AbstractResourceEntityAdapter $adapter
-     * @param array $resourceIds
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
      * @param array $params
      */
-    protected function displaceValuesForResources(
-        AbstractResourceEntityAdapter$adapter,
-        array $resourceIds,
+    protected function displaceValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
         array $params
     ) {
-        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
-        $apiOptions = ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'];
-        $resourceType = $adapter->getResourceName();
+        static $settings;
+        if (is_null($settings)) {
+            $fromProperties = $params['from'];
+            $toProperty = $params['to'];
+            $datatypes = $params['datatypes'];
+            $languages = $params['languages'];
+            $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
+            $contains = $params['contains'];
 
-        $fromProperties = $params['from'];
-        $toProperty = $params['to'];
-        $datatypes = $params['datatypes'];
-        $languages = $params['languages'];
-        $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
-        $contains = $params['contains'];
+            $to = array_search($toProperty, $fromProperties);
+            if ($to !== false) {
+                unset($fromProperties[$to]);
+            }
 
-        $to = array_search($toProperty, $fromProperties);
-        if ($to !== false) {
-            unset($fromProperties[$to]);
+            if (empty($fromProperties) || empty($toProperty)) {
+                return;
+            }
+
+            $processAllProperties = in_array('all', $fromProperties);
+            $checkDatatype = !empty($datatypes) && !in_array('all', $datatypes);
+            $checkLanguage = !empty($languages);
+            $checkVisibility = !is_null($visibility);
+            $checkContains = (bool) mb_strlen($contains);
+
+            $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+            $toId = $api->searchOne('properties', ['term' => $toProperty], ['returnScalar' => 'id'])->getContent();
+
+            $settings = $params;
+            $settings['fromProperties'] = $fromProperties;
+            $settings['toProperty'] = $toProperty;
+            $settings['visibility'] = $visibility;
+            $settings['to'] = $to;
+            $settings['processAllProperties'] = $processAllProperties;
+            $settings['checkDatatype'] = $checkDatatype;
+            $settings['checkLanguage'] = $checkLanguage;
+            $settings['checkVisibility'] = $checkVisibility;
+            $settings['checkContains'] = $checkContains;
+            $settings['toId'] = $toId;
+        } else {
+            extract($settings);
         }
 
         if (empty($fromProperties) || empty($toProperty)) {
             return;
         }
 
-        $processAllProperties = in_array('all', $fromProperties);
-        $checkDatatype = !empty($datatypes) && !in_array('all', $datatypes);
-        $checkLanguage = !empty($languages);
-        $checkVisibility = !is_null($visibility);
-        $checkContains = (bool) mb_strlen($contains);
+        // Note: this is the original values.
+        if ($processAllProperties) {
+            $properties = array_keys($resource->values());
+            $to = array_search($toProperty, $properties);
+            if ($to !== false) {
+                unset($properties[$to]);
+            }
+        } else {
+            $properties = array_intersect($fromProperties, array_keys($resource->values()));
+        }
+        if (empty($properties)) {
+            return;
+        }
 
-        $toId = $api->searchOne('properties', ['term' => $toProperty], ['returnScalar' => 'id'])->getContent();
+        $toUpdate = true;
 
-        foreach ($resourceIds as $resourceId) {
-            $resource = $adapter->findEntity(['id' => $resourceId]);
-            if (!$resource) {
+        foreach ($properties as $property) {
+            if ($property === $toProperty) {
                 continue;
             }
-
-            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
-            $resource = $adapter->getRepresentation($resource);
-
-            if ($processAllProperties) {
-                $properties = array_keys($resource->values());
-                $to = array_search($toProperty, $properties);
-                if ($to !== false) {
-                    unset($properties[$to]);
-                }
-            } else {
-                $properties = array_intersect($fromProperties, array_keys($resource->values()));
-            }
-            if (empty($properties)) {
-                continue;
-            }
-
-            $data = json_decode(json_encode($resource), true);
-
-            foreach ($properties as $property) {
-                if ($property === $toProperty) {
+            foreach ($data[$property] as $key => $value) {
+                $value += ['@language' => null, 'is_public' => 1, '@value' => null];
+                if ($checkDatatype && !in_array($value['type'], $datatypes)) {
                     continue;
                 }
-                foreach ($data[$property] as $key => $value) {
-                    $value += ['@language' => null, 'is_public' => 1, '@value' => null];
-                    if ($checkDatatype && !in_array($value['type'], $datatypes)) {
-                        continue;
-                    }
-                    if ($checkLanguage && !in_array($value['@language'], $languages)) {
-                        continue;
-                    }
-                    if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
-                        continue;
-                    }
-                    if ($checkContains && strpos($value['@value'], $contains) === false) {
-                        continue;
-                    }
-                    $value['property_id'] = $toId;
-                    unset($value['property_label']);
-                    $data[$toProperty][] = $value;
-                    unset($data[$property][$key]);
+                if ($checkLanguage && !in_array($value['@language'], $languages)) {
+                    continue;
                 }
+                if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
+                    continue;
+                }
+                if ($checkContains && strpos($value['@value'], $contains) === false) {
+                    continue;
+                }
+                $value['property_id'] = $toId;
+                unset($value['property_label']);
+                $data[$toProperty][] = $value;
+                unset($data[$property][$key]);
             }
-
-            $api->update($resourceType, $resourceId, $data, [], $apiOptions);
         }
     }
 
@@ -1289,58 +1319,39 @@ class Module extends AbstractModule
     /**
      * Set visibility to the specified properties of the specified resources.
      *
-     * @param AbstractResourceEntityAdapter $adapter
-     * @param array $resourceIds
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
      * @param array $params
      */
-    protected function applyVisibilityForResourcesValues(
-        AbstractResourceEntityAdapter$adapter,
-        array $resourceIds,
+    protected function applyVisibilityForResourceValues(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
         array $params
     ) {
-        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
-        $apiOptions = ['initialize' => false, 'finalize' => false, 'responseContent' => 'resource'];
-        $resourceType = $adapter->getResourceName();
-
         $visibility = (int) (bool) $params['visibility'];
         $fromProperties = $params['properties'];
 
         $processAllProperties = in_array('all', $fromProperties);
 
-        foreach ($resourceIds as $resourceId) {
-            $resource = $adapter->findEntity(['id' => $resourceId]);
-            if (!$resource) {
-                continue;
-            }
+        // Note: this is the original values.
+        $properties = $processAllProperties
+        ? array_keys($resource->values())
+        : array_intersect($fromProperties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
 
-            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
-            $resource = $adapter->getRepresentation($resource);
-
-            $properties = $processAllProperties
-                ? array_keys($resource->values())
-                : array_intersect($fromProperties, array_keys($resource->values()));
-            if (empty($properties)) {
-                continue;
-            }
-
-            $data = json_decode(json_encode($resource), true);
-            $toUpdate = false;
-
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
-                    if ($currentVisibility === $visibility) {
-                        continue;
-                    }
-                    $toUpdate = true;
-                    $data[$property][$key]['is_public'] = $visibility;
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
+                if ($currentVisibility === $visibility) {
+                    continue;
                 }
+                $toUpdate = true;
+                $data[$property][$key]['is_public'] = $visibility;
             }
-            if (!$toUpdate) {
-                continue;
-            }
-
-            $api->update($resourceType, $resourceId, $data, [], $apiOptions);
         }
     }
 

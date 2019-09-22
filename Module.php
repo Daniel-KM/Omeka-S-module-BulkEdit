@@ -191,6 +191,7 @@ class Module extends AbstractModule
             'order_values' => false,
             'properties_visibility' => false,
             'displace' => false,
+            'convert' => false,
         ];
 
         $params = $request->getValue('replace', []);
@@ -260,6 +261,20 @@ class Module extends AbstractModule
                     'languages' => $this->stringToList($params['languages']),
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
+                ];
+            }
+        }
+
+        $params = $request->getValue('convert', []);
+        if (!empty($params['from']) && !empty($params['to']) && !empty($params['properties'])) {
+            $from = $params['from'];
+            $to = $params['to'];
+            if ($from !== $to) {
+                $processes['convert'] = [
+                    'from' => $from,
+                    'to' => $to,
+                    'properties' => $params['properties'],
+                    'uri_label' => $params['uri_label'],
                 ];
             }
         }
@@ -599,7 +614,9 @@ class Module extends AbstractModule
             ],
         ]);
         $datatypes = $this->listDataTypesForSelect();
-        $datatypes = ['all' => '[All datatypes]'] + $datatypes; // @translate
+        $datatypes = [
+            'all' => '[All datatypes]', // @translate
+        ] + $datatypes;
         $fieldset->add([
             'name' => 'datatypes',
             'type' => Element\Select::class,
@@ -655,6 +672,90 @@ class Module extends AbstractModule
             ],
             'attributes' => [
                 'id' => 'displace_contains',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+
+        $form->add([
+            'name' => 'convert',
+            'type' => Fieldset::class,
+            'options' => [
+                'label' => 'Convert datatype', // @translate
+            ],
+            'attributes' => [
+                'id' => 'convert',
+                'class' => 'field-container',
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset = $form->get('convert');
+        $fieldset->add([
+            'name' => 'from',
+            'type' => Element\Select::class,
+            'options' => [
+                'label' => 'From datatype', // @translate
+                'value_options' => [
+                    'literal' => 'Literal', // @translate
+                    'uri' => 'Uri', // @translate
+                ],
+                'empty_option' => '', // @translate
+            ],
+            'attributes' => [
+                'id' => 'convert_from',
+                'class' => 'chosen-select',
+                'multiple' => false,
+                'data-placeholder' => 'Select datatype', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'to',
+            'type' => Element\Select::class,
+            'options' => [
+                'label' => 'To datatype', // @translate
+                'info' => 'Warning: When converted to uri, the format is not checked; When converted to text, the label is lost.', // @translate
+                'value_options' => [
+                    'literal' => 'Literal', // @translate
+                    'uri' => 'Uri', // @translate
+                ],
+                'empty_option' => '', // @translate
+            ],
+            'attributes' => [
+                'id' => 'convert_to',
+                'class' => 'chosen-select',
+                'multiple' => false,
+                'data-placeholder' => 'Select datatype', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'properties',
+            'type' => PropertySelect::class,
+            'options' => [
+                'label' => 'For properties', // @translate
+                'term_as_value' => true,
+            ],
+            'attributes' => [
+                'id' => 'convert_properties',
+                'class' => 'chosen-select',
+                'multiple' => true,
+                'data-placeholder' => 'Select properties', // @translate
+                // This attribute is required to make "batch edit all" working.
+                'data-collection-action' => 'replace',
+            ],
+        ]);
+        $fieldset->add([
+            'name' => 'uri_label',
+            'type' => Element\Text::class,
+            'options' => [
+                'label' => 'Set label of uri', // @translate
+            ],
+            'attributes' => [
+                'id' => 'convert_uri_label',
                 // This attribute is required to make "batch edit all" working.
                 'data-collection-action' => 'replace',
             ],
@@ -844,6 +945,19 @@ class Module extends AbstractModule
                 'name' => 'visibility',
                 'required' => false,
             ]);
+        $inputFilter->get('convert')
+            ->add([
+                'name' => 'from',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'to',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
         $inputFilter->get('media_html')
             ->add([
                 'name' => 'mode',
@@ -888,6 +1002,9 @@ class Module extends AbstractModule
                         break;
                     case 'displace':
                         $this->displaceValuesForResource($resource, $data, $toUpdate, $params);
+                        break;
+                    case 'convert':
+                        $this->convertDatatypeForResource($resource, $data, $toUpdate, $params);
                         break;
                 }
             }
@@ -1209,6 +1326,71 @@ class Module extends AbstractModule
                 unset($value['property_label']);
                 $data[$toProperty][] = $value;
                 unset($data[$property][$key]);
+            }
+        }
+    }
+
+    /**
+     * Convert datatype of a list of properties to another one.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
+     * @param array $params
+     */
+    protected function convertDatatypeForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
+        array $params
+    ) {
+        static $settings;
+        if (is_null($settings)) {
+            $fromDatatype = $params['from'];
+            $toDatatype = $params['to'];
+            $properties = $params['properties'];
+            $uriLabel = strlen($params['uri_label']) ? $params['uri_label'] : null;
+
+            $settings = $params;
+            $settings['fromDatatype'] = $fromDatatype;
+            $settings['toDatatype'] = $toDatatype;
+            $settings['properties'] = $properties;
+            $settings['uriLabel'] = $uriLabel;
+        } else {
+            extract($settings);
+        }
+
+        if (($fromDatatype === $toDatatype)
+            || ($fromDatatype && !$toDatatype)
+            || (!$fromDatatype && $toDatatype)
+        ) {
+            return;
+        }
+
+        // Note: this is the original values.
+        $properties = array_intersect($properties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        $toUpdate = true;
+
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                if ($value['type'] !== $fromDatatype) {
+                    continue;
+                }
+                switch ($toDatatype) {
+                    case 'literal':
+                        // From uri.
+                        $value = ['type' => 'literal', '@language' => null, '@value' => $value['@id'], '@id' => null, 'o:label' => null] + $value;
+                        break;
+                    case 'uri':
+                        // From text.
+                        $value = ['type' => 'uri', '@language' => null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel] + $value;
+                        break;
+                }
+                $data[$property][$key] = $value;
             }
         }
     }

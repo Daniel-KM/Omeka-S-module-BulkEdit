@@ -22,6 +22,11 @@ $('#displace_from, #displace_to, #displace_datatypes, #displace_languages, #disp
 $('#displace')
     .prepend('<legend>' + Omeka.jsTranslate('Displace values') + '</legend>');
 
+$('#convert_from, #convert_to, #convert_properties, #convert_uri_label').closest('.field')
+    .wrapAll('<fieldset id="convert" class="field-container">');
+$('#convert')
+    .prepend('<legend>' + Omeka.jsTranslate('Convert datatype') + '</legend>');
+
 $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_remove, #mediahtml_prepend, #mediahtml_append').closest('.field')
     .wrapAll('<fieldset id="media_html" class="field-container">');
 $('#media_html')

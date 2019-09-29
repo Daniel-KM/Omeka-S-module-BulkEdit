@@ -716,7 +716,7 @@ class Module extends AbstractModule
             'type' => Element\Select::class,
             'options' => [
                 'label' => 'To datatype', // @translate
-                'info' => 'Warning: When converted to uri, the format is not checked; When converted to text, the label is lost.', // @translate
+                'info' => 'Warning: When converted to uri, the format is not checked. When converted to text, the label is lost.', // @translate
                 'value_options' => [
                     'literal' => 'Literal', // @translate
                     'uri' => 'Uri', // @translate

@@ -282,11 +282,11 @@ class Module extends AbstractModule
         $this->updateValues($adapter, $ids, $processes);
 
         $params = $request->getValue('media_html', []);
-        $from = $params['from'];
-        $to = $params['to'];
-        $remove = (bool) $params['remove'];
-        $prepend = ltrim($params['prepend']);
-        $append = rtrim($params['append']);
+        $from = isset($params['from']) ? $params['from'] : null;
+        $to = isset($params['to']) ? $params['to'] : null;;
+        $remove = isset($params['remove']) && (bool) $params['remove'];
+        $prepend = isset($params['prepend']) ? ltrim($params['prepend']) : '';
+        $append = isset($params['prepend']) ? rtrim($params['append']) : '';
         if (mb_strlen($from)
             || mb_strlen($to)
             || $remove

@@ -189,6 +189,7 @@ class Module extends AbstractModule
             'order_values' => false,
             'properties_visibility' => false,
             'displace' => false,
+            'explode' => false,
             'convert' => false,
         ];
 
@@ -265,6 +266,18 @@ class Module extends AbstractModule
             }
         }
 
+        $params = isset($bulkedit['explode']) ? $bulkedit['explode'] : [];
+        if (!empty($params['properties'])) {
+            $separator = $params['separator'];
+            if (mb_strlen($separator)) {
+                $processes['explode'] = [
+                    'properties' => $params['properties'],
+                    'separator' => $separator,
+                    'contains' => $params['contains'],
+                ];
+            }
+        }
+
         $params = isset($bulkedit['convert']) ? $bulkedit['convert'] : [];
         if (!empty($params['from']) && !empty($params['to']) && !empty($params['properties'])) {
             $from = $params['from'];
@@ -283,7 +296,7 @@ class Module extends AbstractModule
 
         $params = isset($bulkedit['media_html']) ? $bulkedit['media_html'] : [];
         $from = isset($params['from']) ? $params['from'] : null;
-        $to = isset($params['to']) ? $params['to'] : null;;
+        $to = isset($params['to']) ? $params['to'] : null;
         $remove = isset($params['remove']) && (bool) $params['remove'];
         $prepend = isset($params['prepend']) ? ltrim($params['prepend']) : '';
         $append = isset($params['prepend']) ? rtrim($params['append']) : '';
@@ -451,6 +464,9 @@ class Module extends AbstractModule
                         break;
                     case 'displace':
                         $this->displaceValuesForResource($resource, $data, $toUpdate, $params);
+                        break;
+                    case 'explode':
+                        $this->explodeValuesForResource($resource, $data, $toUpdate, $params);
                         break;
                     case 'convert':
                         $this->convertDatatypeForResource($resource, $data, $toUpdate, $params);
@@ -776,6 +792,78 @@ class Module extends AbstractModule
                 $data[$toProperty][] = $value;
                 unset($data[$property][$key]);
             }
+        }
+    }
+
+    /**
+     * Explode values from a list of properties into multiple values.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
+     * @param array $params
+     */
+    protected function explodeValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
+        array $params
+    ) {
+        static $settings;
+        if (is_null($settings)) {
+            $properties = $params['properties'];
+            $separator = $params['separator'];
+            $contains = $params['contains'];
+
+            if (empty($properties) || !strlen($separator)) {
+                return;
+            }
+
+            $checkContains = (bool) mb_strlen($contains);
+
+            $settings = $params;
+            $settings['checkContains'] = $checkContains;
+        } else {
+            extract($settings);
+        }
+
+        if (empty($properties) || !strlen($separator)) {
+            return;
+        }
+
+        // Note: this is the original values.
+        $properties = array_intersect($properties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        $toUpdate = true;
+
+        foreach ($properties as $property) {
+            // This variable is used to keep order of original values.
+            $values = [];
+            foreach ($data[$property] as $value) {
+                if ($value['type'] !== 'literal') {
+                    $values[] = $value;
+                    continue;
+                }
+                if ($checkContains && strpos($value['@value'], $contains) === false) {
+                    $values[] = $value;
+                    continue;
+                }
+                $vs = array_filter(array_map('trim', explode($separator, $value['@value'])), function ($v) {
+                    return (bool) strlen($v);
+                });
+                if (empty($vs)) {
+                    continue;
+                }
+                $explodedValue = $value;
+                foreach ($vs as $v) {
+                    $explodedValue['@value'] = $v;
+                    $values[] = $explodedValue;
+                }
+            }
+            $data[$property] = $values;
         }
     }
 

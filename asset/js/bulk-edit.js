@@ -15,6 +15,7 @@ var bulkeditFieldsets = [
     'order_values',
     'properties_visibility',
     'displace',
+    'explode',
     'convert',
     'media_html',
     'cleaning',
@@ -39,6 +40,11 @@ $('#displace_from, #displace_to, #displace_datatypes, #displace_languages, #disp
     .wrapAll('<fieldset id="displace" class="field-container">');
 $('#displace')
     .prepend('<legend>' + Omeka.jsTranslate('Displace values') + '</legend>');
+
+$('#explode_properties, #explode_separator, #explode_contains').closest('.field')
+    .wrapAll('<fieldset id="explode" class="field-container">');
+$('#explode')
+    .prepend('<legend>' + Omeka.jsTranslate('Explode values') + '</legend>');
 
 $('#convert_from, #convert_to, #convert_properties, #convert_uri_label').closest('.field')
     .wrapAll('<fieldset id="convert" class="field-container">');
@@ -67,6 +73,8 @@ $('#batch-edit-item > fieldset')
         return bulkeditFieldsets.indexOf($(this).attr('id')) >= 0;
     })
     .wrapAll('<div id="bulk-edit" class="section">');
+$('#bulk-edit')
+    .prepend('<legend>' + Omeka.jsTranslate('It’s not recommended to process Displace, Explode, or Convert at the same time.') + '</legend>');
 
 // From resource-form.js.
 $('input.value-language').on('keyup', function(e) {

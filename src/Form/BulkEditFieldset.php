@@ -16,6 +16,7 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetOrderValues()
             ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetDisplace()
+            ->appendFieldsetExplode()
             ->appendFieldsetConvert()
             ->appendFieldsetMediaHtml();
 
@@ -394,6 +395,68 @@ class BulkEditFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'displace_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetExplode()
+    {
+        $this
+            ->add([
+                'name' => 'explode',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Explode values', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('explode');
+        $fieldset
+            ->add([
+                'name' => 'properties',
+                'type' => PropertySelect::class,
+                'options' => [
+                    'label' => 'Properties', // @translate
+                    'term_as_value' => true,
+                ],
+                'attributes' => [
+                    'id' => 'explode_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'separator',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Separator', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_separator',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'contains',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only containing', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_contains',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

@@ -403,6 +403,11 @@ class Module extends AbstractModule
                 'name' => 'visibility',
                 'required' => false,
             ]);
+        $inputFilter->get('explode')
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
         $inputFilter->get('convert')
             ->add([
                 'name' => 'from',

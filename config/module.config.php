@@ -3,7 +3,8 @@ namespace BulkEdit;
 
 return [
     'form_elements' => [
-        'invokables' => [
+        'factories' => [
+            Form\BulkEditFieldset::class => Service\Form\BulkEditFieldsetFactory::class,
         ],
     ],
     'controller_plugins' => [

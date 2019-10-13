@@ -7,15 +7,13 @@ if (!class_exists(\Generic\AbstractModule::class)) {
         : __DIR__ . '/src/Generic/AbstractModule.php';
 }
 
+use BulkEdit\Form\BulkEditFieldset;
 use Generic\AbstractModule;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
-use Omeka\Form\Element\PropertySelect;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
-use Zend\Form\Element;
-use Zend\Form\Fieldset;
 
 /**
  * BulkEdit
@@ -194,7 +192,9 @@ class Module extends AbstractModule
             'convert' => false,
         ];
 
-        $params = $request->getValue('replace', []);
+        $bulkedit = $request->getValue('bulkedit');
+
+        $params = isset($bulkedit['replace']) ? $bulkedit['replace'] : [];
         if (!empty($params['properties'])) {
             $from = $params['from'];
             $to = $params['to'];
@@ -225,7 +225,7 @@ class Module extends AbstractModule
             }
         }
 
-        $params = $request->getValue('order_values', []);
+        $params = isset($bulkedit['order_values']) ? $bulkedit['order_values'] : [];
         if (!empty($params['languages'])) {
             $languages = preg_replace('/[^a-zA-Z-]/', "\n", $params['languages']);
             $languages = array_filter(explode("\n", $languages));
@@ -238,7 +238,7 @@ class Module extends AbstractModule
             }
         }
 
-        $params = $request->getValue('properties_visibility', []);
+        $params = isset($bulkedit['properties_visibility']) ? $bulkedit['properties_visibility'] : [];
         if (isset($params['visibility'])
             && $params['visibility'] !== ''
             && !empty($params['properties'])
@@ -250,7 +250,7 @@ class Module extends AbstractModule
             ];
         }
 
-        $params = $request->getValue('displace', []);
+        $params = isset($bulkedit['displace']) ? $bulkedit['displace'] : [];
         if (!empty($params['from'])) {
             $to = $params['to'];
             if (mb_strlen($to)) {
@@ -265,7 +265,7 @@ class Module extends AbstractModule
             }
         }
 
-        $params = $request->getValue('convert', []);
+        $params = isset($bulkedit['convert']) ? $bulkedit['convert'] : [];
         if (!empty($params['from']) && !empty($params['to']) && !empty($params['properties'])) {
             $from = $params['from'];
             $to = $params['to'];
@@ -281,7 +281,7 @@ class Module extends AbstractModule
 
         $this->updateValues($adapter, $ids, $processes);
 
-        $params = $request->getValue('media_html', []);
+        $params = isset($bulkedit['media_html']) ? $bulkedit['media_html'] : [];
         $from = isset($params['from']) ? $params['from'] : null;
         $to = isset($params['to']) ? $params['to'] : null;;
         $remove = isset($params['remove']) && (bool) $params['remove'];
@@ -309,14 +309,13 @@ class Module extends AbstractModule
             return;
         }
 
-        $params = $request->getValue('cleaning', []);
+        $params = isset($bulkedit['cleaning']) ? $bulkedit['cleaning'] : [];
         if (!empty($params['trim_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
             $trimValues = $plugins->get('trimValues');
             $ids = (array) $request->getIds();
             $trimValues($ids);
         }
-
         if (!empty($params['deduplicate_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
             $deduplicateValues = $plugins->get('deduplicateValues');
@@ -327,587 +326,33 @@ class Module extends AbstractModule
 
     public function formAddElementsResourceBatchUpdateForm(Event $event)
     {
+        /** @var \Omeka\Form\ResourceBatchUpdateForm $form */
         $form = $event->getTarget();
-
-        $form->add([
-            'name' => 'replace',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Replace literal values', // @translate
-            ],
-            'attributes' => [
-                'id' => 'replace',
-                'class' => 'field-container',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset = $form->get('replace');
-        $fieldset->add([
-            'name' => 'from',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'String to replace…', // @translate
-            ],
-            'attributes' => [
-                'id' => 'replace_from',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'to',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => '… by…', // @translate
-            ],
-            'attributes' => [
-                'id' => 'replace_to',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'mode',
-            'type' => Element\Radio::class,
-            'options' => [
-                'label' => '… using replacement mode', // @translate
-                'value_options' => [
-                    'raw' => 'Simple', // @translate
-                    'raw_i' => 'Simple (case insensitive)', // @translate
-                    'html' => 'Simple and html entities', // @translate
-                    'regex' => 'Regex (full pattern)', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'replace_mode',
-                'value' => 'raw',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'remove',
-            'type' => Element\Checkbox::class,
-            'options' => [
-                'label' => 'Remove string', // @translate
-            ],
-            'attributes' => [
-                'id' => 'replace_remove',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'prepend',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'String to prepend', // @translate
-            ],
-            'attributes' => [
-                'id' => 'replace_prepend',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'append',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'String to append', // @translate
-            ],
-            'attributes' => [
-                'id' => 'replace_append',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'language',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'Set a language…', // @translate
-            ],
-            'attributes' => [
-                'id' => 'replace_language',
-                'class' => 'value-language active',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'language_clear',
-            'type' => Element\Checkbox::class,
-            'options' => [
-                'label' => '… or remove it…', // @translate
-            ],
-            'attributes' => [
-                'id' => 'replace_language_clear',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'properties',
-            'type' => PropertySelect::class,
-            'options' => [
-                'label' => '… for properties', // @translate
-                'term_as_value' => true,
-                'prepend_value_options' => [
-                    'all' => '[All properties]', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'replace_properties',
-                'class' => 'chosen-select',
-                'multiple' => true,
-                'data-placeholder' => 'Select properties', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-
-        $form->add([
-            'name' => 'order_values',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Values order', // @translate
-            ],
-            'attributes' => [
-                'id' => 'order_values',
-                'class' => 'field-container',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset = $form->get('order_values');
-        $fieldset->add([
-            'name' => 'languages',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'Order by language', // @translate
-                'info' => 'List the language you want to order before other values.' // @translate
-            ],
-            'attributes' => [
-                'id' => 'order_languages',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'properties',
-            'type' => PropertySelect::class,
-            'options' => [
-                'label' => 'Properties to order', // @translate
-                'term_as_value' => true,
-                'prepend_value_options' => [
-                    'all' => '[All properties]', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'order_properties',
-                'class' => 'chosen-select',
-                'multiple' => true,
-                'data-placeholder' => 'Select properties', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-
-        $form->add([
-            'name' => 'properties_visibility',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Visibility', // @translate
-            ],
-            'attributes' => [
-                'id' => 'properties_visibility',
-                'class' => 'field-container',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset = $form->get('properties_visibility');
-        $fieldset->add([
-            'name' => 'visibility',
-            'type' => Element\Radio::class,
-            'options' => [
-                'label' => 'Set visibility…', // @translate
-                'value_options' => [
-                    '1' => 'Public', // @translate
-                    '0' => 'Not public', // @translate
-                    '' => '[No change]', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'propvis_visibility',
-                'value' => '',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'properties',
-            'type' => PropertySelect::class,
-            'options' => [
-                'label' => '… for properties', // @translate
-                'term_as_value' => true,
-                'prepend_value_options' => [
-                    'all' => '[All properties]', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'propvis_properties',
-                'class' => 'chosen-select',
-                'multiple' => true,
-                'data-placeholder' => 'Select properties', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-
-        $form->add([
-            'name' => 'displace',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Displace values', // @translate
-            ],
-            'attributes' => [
-                'id' => 'displace',
-                'class' => 'field-container',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset = $form->get('displace');
-        $fieldset->add([
-            'name' => 'from',
-            'type' => PropertySelect::class,
-            'options' => [
-                'label' => 'From properties', // @translate
-                'term_as_value' => true,
-            ],
-            'attributes' => [
-                'id' => 'displace_from',
-                'class' => 'chosen-select',
-                'multiple' => true,
-                'data-placeholder' => 'Select properties', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'to',
-            'type' => PropertySelect::class,
-            'options' => [
-                'label' => 'To property', // @translate
-                'empty_option' => '', // @translate
-                'term_as_value' => true,
-            ],
-            'attributes' => [
-                'id' => 'displace_to',
-                'class' => 'chosen-select',
-                'multiple' => false,
-                'data-placeholder' => 'Select property', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $datatypes = $this->listDataTypesForSelect();
-        $datatypes = [
-            'all' => '[All datatypes]', // @translate
-        ] + $datatypes;
-        $fieldset->add([
-            'name' => 'datatypes',
-            'type' => Element\Select::class,
-            'options' => [
-                'label' => 'Only datatypes', // @translate
-                'value_options' => $datatypes,
-            ],
-            'attributes' => [
-                'id' => 'displace_datatypes',
-                'class' => 'chosen-select',
-                'multiple' => true,
-                'data-placeholder' => 'Select datatypes', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'languages',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'Only languages', // @translate
-            ],
-            'attributes' => [
-                'id' => 'displace_languages',
-                // 'class' => 'value-language active',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'visibility',
-            'type' => Element\Radio::class,
-            'options' => [
-                'label' => 'Only visibility', // @translate
-                'value_options' => [
-                    '1' => 'Public', // @translate
-                    '0' => 'Not public', // @translate
-                    '' => 'Any', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'displace_visibility',
-                'value' => '',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'contains',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'Only containing', // @translate
-            ],
-            'attributes' => [
-                'id' => 'displace_contains',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-
-        $form->add([
-            'name' => 'convert',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Convert datatype', // @translate
-            ],
-            'attributes' => [
-                'id' => 'convert',
-                'class' => 'field-container',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset = $form->get('convert');
-        $fieldset->add([
-            'name' => 'from',
-            'type' => Element\Select::class,
-            'options' => [
-                'label' => 'From datatype', // @translate
-                'value_options' => [
-                    'literal' => 'Literal', // @translate
-                    'uri' => 'Uri', // @translate
-                ],
-                'empty_option' => '', // @translate
-            ],
-            'attributes' => [
-                'id' => 'convert_from',
-                'class' => 'chosen-select',
-                'multiple' => false,
-                'data-placeholder' => 'Select datatype', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'to',
-            'type' => Element\Select::class,
-            'options' => [
-                'label' => 'To datatype', // @translate
-                'info' => 'Warning: When converted to uri, the format is not checked. When converted to text, the label is lost.', // @translate
-                'value_options' => [
-                    'literal' => 'Literal', // @translate
-                    'uri' => 'Uri', // @translate
-                ],
-                'empty_option' => '', // @translate
-            ],
-            'attributes' => [
-                'id' => 'convert_to',
-                'class' => 'chosen-select',
-                'multiple' => false,
-                'data-placeholder' => 'Select datatype', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'properties',
-            'type' => PropertySelect::class,
-            'options' => [
-                'label' => 'For properties', // @translate
-                'term_as_value' => true,
-            ],
-            'attributes' => [
-                'id' => 'convert_properties',
-                'class' => 'chosen-select',
-                'multiple' => true,
-                'data-placeholder' => 'Select properties', // @translate
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'uri_label',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'Set label of uri', // @translate
-            ],
-            'attributes' => [
-                'id' => 'convert_uri_label',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-
-        $form->add([
-            'name' => 'media_html',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Media HTML', // @translate
-            ],
-            'attributes' => [
-                'id' => 'media_html',
-                'class' => 'field-container',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset = $form->get('media_html');
-        $fieldset->add([
-            'name' => 'from',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'String to replace…', // @translate
-            ],
-            'attributes' => [
-                'id' => 'mediahtml_from',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'to',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => '… by…', // @translate
-            ],
-            'attributes' => [
-                'id' => 'mediahtml_to',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'mode',
-            'type' => Element\Radio::class,
-            'options' => [
-                'label' => '… using replacement mode', // @translate
-                'value_options' => [
-                    'raw' => 'Simple', // @translate
-                    'raw_i' => 'Simple (case insensitive)', // @translate
-                    'html' => 'Simple and html entities', // @translate
-                    'regex' => 'Regex (full pattern)', // @translate
-                ],
-            ],
-            'attributes' => [
-                'id' => 'mediahtml_mode',
-                'value' => 'raw',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'remove',
-            'type' => Element\Checkbox::class,
-            'options' => [
-                'label' => 'Remove string', // @translate
-            ],
-            'attributes' => [
-                'id' => 'mediahtml_remove',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'prepend',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'String to prepend', // @translate
-            ],
-            'attributes' => [
-                'id' => 'mediahtml_prepend',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset->add([
-            'name' => 'append',
-            'type' => Element\Text::class,
-            'options' => [
-                'label' => 'String to append', // @translate
-            ],
-            'attributes' => [
-                'id' => 'mediahtml_append',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-
-        if ($this->checkModuleNext()) {
-            return;
-        }
-
-        $form->add([
-            'name' => 'cleaning',
-            'type' => Fieldset::class,
-            'options' => [
-                'label' => 'Cleaning', // @translate
-            ],
-            'attributes' => [
-                'class' => 'field-container',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-        $fieldset = $form->get('cleaning');
-        $fieldset->add([
-            'name' => 'trim_values',
-            'type' => Element\Checkbox::class,
-            'options' => [
-                'label' => 'Trim property values', // @translate
-                'info' => 'Remove initial and trailing whitespace of all values of all properties', // @translate
-            ],
-            'attributes' => [
-                'id' => 'cleaning_trim',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
-
-        $fieldset->add([
-            'name' => 'deduplicate_values',
-            'type' => Element\Checkbox::class,
-            'options' => [
-                'label' => 'Deduplicate property values case insensitively', // @translate
-                'info' => 'Deduplicate values of all properties, case INsensitively. Trimming values before is recommended, because values are checked strictly.', // @translate
-            ],
-            'attributes' => [
-                'id' => 'cleaning_deduplicate',
-                // This attribute is required to make "batch edit all" working.
-                'data-collection-action' => 'replace',
-            ],
-        ]);
+        $options = [
+            'listDataTypesForSelect' => $this->listDataTypesForSelect(),
+            'hasModuleNext' => $this->checkModuleNext(),
+        ];
+        $fieldset = $this->getServiceLocator()->get('FormElementManager')
+            ->get(BulkEditFieldset::class, $options);
+        $form->add($fieldset);
     }
 
     public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
     {
         /** @var \Zend\InputFilter\InputFilterInterface $inputFilter */
         $inputFilter = $event->getParam('inputFilter');
+        $inputFilter = $inputFilter->get('bulkedit');
         $inputFilter->get('replace')
             ->add([
                 'name' => 'mode',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'remove',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'language_clear',
                 'required' => false,
             ])
             ->add([
@@ -961,6 +406,10 @@ class Module extends AbstractModule
         $inputFilter->get('media_html')
             ->add([
                 'name' => 'mode',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'remove',
                 'required' => false,
             ]);
     }

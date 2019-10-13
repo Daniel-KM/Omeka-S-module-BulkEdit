@@ -2,6 +2,24 @@ $(document).ready(function() {
 
 // @todo To be removed when $this->form() witll be used instead of $this->formCollection().
 
+var nav = '<nav class="section-nav">'
+    + '<ul>'
+    + '<li class="active"><a href="#batch-edit" id="batch-edit-label">' + Omeka.jsTranslate('Batch edit') + '</a></li>'
+    + '<li><a href="#bulk-edit" id="bulk-edit-label">' + Omeka.jsTranslate('Advanced bulk edit') + '</a></li>'
+    + '</ul>'
+    + '</nav>';
+$(nav).insertAfter('#page-actions');
+
+var bulkeditFieldsets = [
+    'replace',
+    'order_values',
+    'properties_visibility',
+    'displace',
+    'convert',
+    'media_html',
+    'cleaning',
+];
+
 $('#replace_from, #replace_to, #replace_mode, #replace_remove, #replace_prepend, #replace_append, #replace_language, #replace_language_clear, #replace_properties').closest('.field')
     .wrapAll('<fieldset id="replace" class="field-container">');
 $('#replace')
@@ -37,6 +55,19 @@ $('#cleaning_trim, #cleaning_deduplicate').closest('.field')
 $('#cleaning')
     .prepend('<legend>' + Omeka.jsTranslate('Cleaning') + '</legend>');
 
+$('#batch-edit-item > div, #batch-edit-item > fieldset')
+    .filter(function () {
+        var id = $(this).attr('id');
+        return bulkeditFieldsets.indexOf(id) < 0
+            && id !== 'page-actions';
+    })
+    .wrapAll('<div id="batch-edit" class="section active">');
+$('#batch-edit-item > fieldset')
+    .filter(function () {
+        return bulkeditFieldsets.indexOf($(this).attr('id')) >= 0;
+    })
+    .wrapAll('<div id="bulk-edit" class="section">');
+
 // From resource-form.js.
 $('input.value-language').on('keyup', function(e) {
     if ('' === this.value || Omeka.langIsValid(this.value)) {
@@ -44,6 +75,16 @@ $('input.value-language').on('keyup', function(e) {
     } else {
         this.setCustomValidity(Omeka.jsTranslate('Please enter a valid language tag'));
     }
+});
+
+// From admin.js.
+// Switch between section tabs.
+$('.section-nav a[href^="#"]').click(function (e) {
+    e.preventDefault();
+    Omeka.switchActiveSection($($(this).attr('href')));
+});
+$('.section > legend').click(function() {
+    $(this).parent().toggleClass('mobile-active');
 });
 
 });

@@ -24,10 +24,14 @@ return [
         ],
     ],
     'js_translate_strings' => [
+        'Advanced bulk edit', // @translate
         'Cleaning', // @translate
-        'Language', // @translate
-        'Values', // @translate
-        'Visibility', // @translate
+        'Convert datatype', // @translate
+        'Displace values', // @translate
+        'Media HTML', // @translate
+        'Order values', // @translate
+        'Replace literal values', // @translate
+        'Visibility of values', // @translate
     ],
     'bulkedit' => [
     ],

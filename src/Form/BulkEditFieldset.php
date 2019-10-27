@@ -328,7 +328,7 @@ class BulkEditFieldset extends Fieldset
                 'type' => PropertySelect::class,
                 'options' => [
                     'label' => 'To property', // @translate
-                    'empty_option' => '', // @translate
+                    'empty_option' => '',
                     'term_as_value' => true,
                 ],
                 'attributes' => [
@@ -492,7 +492,7 @@ class BulkEditFieldset extends Fieldset
                         'literal' => 'Literal', // @translate
                         'uri' => 'Uri', // @translate
                     ],
-                    'empty_option' => '', // @translate
+                    'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'convert_from',
@@ -513,7 +513,7 @@ class BulkEditFieldset extends Fieldset
                         'literal' => 'Literal', // @translate
                         'uri' => 'Uri', // @translate
                     ],
-                    'empty_option' => '', // @translate
+                    'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'convert_to',

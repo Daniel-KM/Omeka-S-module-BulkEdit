@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-01 00:00+0200\n"
+"POT-Creation-Date: 2019-10-28 00:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,97 +17,230 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/Generic/AbstractModule.php:452
+#: src/Generic/AbstractModule.php:498
 #, php-format
 msgid "This module requires the module \"%s\"."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:472
+#: src/Generic/AbstractModule.php:518
 #, php-format
 msgid "This module requires modules \"%s\"."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:540
+#: src/Generic/AbstractModule.php:586
 #, php-format
 msgid ""
 "The module \"%s\" was automatically deactivated because the dependencies are "
 "unavailable."
 msgstr ""
 
-#: Module.php:292 Module.php:454
+#: src/Form/BulkEditFieldset.php:37 config/module.config.php:35
+msgid "Replace literal values"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:52 src/Form/BulkEditFieldset.php:581
 msgid "String to replace…"
 msgstr ""
 
-#: Module.php:302 Module.php:464
+#: src/Form/BulkEditFieldset.php:64 src/Form/BulkEditFieldset.php:593
 msgid "… by…"
 msgstr ""
 
-#: Module.php:312 Module.php:474
+#: src/Form/BulkEditFieldset.php:76 src/Form/BulkEditFieldset.php:605
 msgid "… using replacement mode"
 msgstr ""
 
-#: Module.php:314 Module.php:476
+#: src/Form/BulkEditFieldset.php:78 src/Form/BulkEditFieldset.php:607
 msgid "Simple"
 msgstr ""
 
-#: Module.php:315 Module.php:477
-msgid "Regex (with delimiters)"
+#: src/Form/BulkEditFieldset.php:79 src/Form/BulkEditFieldset.php:608
+msgid "Simple (case insensitive)"
 msgstr ""
 
-#: Module.php:327 Module.php:489
+#: src/Form/BulkEditFieldset.php:80 src/Form/BulkEditFieldset.php:609
+msgid "Simple and html entities"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:81 src/Form/BulkEditFieldset.php:610
+msgid "Regex (full pattern)"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:95 src/Form/BulkEditFieldset.php:624
 msgid "Remove string"
 msgstr ""
 
-#: Module.php:337 Module.php:499
+#: src/Form/BulkEditFieldset.php:107 src/Form/BulkEditFieldset.php:636
 msgid "String to prepend"
 msgstr ""
 
-#: Module.php:347 Module.php:509
+#: src/Form/BulkEditFieldset.php:119 src/Form/BulkEditFieldset.php:648
 msgid "String to append"
 msgstr ""
 
-#: Module.php:357
+#: src/Form/BulkEditFieldset.php:131
 msgid "Set a language…"
 msgstr ""
 
-#: Module.php:368
+#: src/Form/BulkEditFieldset.php:144
 msgid "… or remove it…"
 msgstr ""
 
-#: Module.php:378 Module.php:424
+#: src/Form/BulkEditFieldset.php:156 src/Form/BulkEditFieldset.php:268
 msgid "… for properties"
 msgstr ""
 
-#: Module.php:381 Module.php:427
+#: src/Form/BulkEditFieldset.php:159 src/Form/BulkEditFieldset.php:212
+#: src/Form/BulkEditFieldset.php:271
 msgid "[All properties]"
 msgstr ""
 
-#: Module.php:408
+#: src/Form/BulkEditFieldset.php:181
+msgid "Values order"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:196
+msgid "Order by language"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:197
+msgid "List the language you want to order before other values."
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:209
+msgid "Properties to order"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:250
 msgid "Set visibility…"
 msgstr ""
 
-#: Module.php:442
+#: src/Form/BulkEditFieldset.php:291
+msgid "[All datatypes]"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:299 config/module.config.php:31
+msgid "Displace values"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:314
+msgid "From properties"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:330
+msgid "To property"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:347
+msgid "Only datatypes"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:354
+msgid "Select datatypes"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:363
+msgid "Only languages"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:376
+msgid "Only visibility"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:380
+msgid "Any"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:394 src/Form/BulkEditFieldset.php:456
+msgid "Only containing"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:413 config/module.config.php:32
+msgid "Explode values"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:444
+msgid "Separator"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:475 config/module.config.php:30
+msgid "Convert datatype"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:490
+msgid "From datatype"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:492 src/Form/BulkEditFieldset.php:513
+msgid "Literal"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:493 src/Form/BulkEditFieldset.php:514
+msgid "Uri"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:501 src/Form/BulkEditFieldset.php:522
+msgid "Select datatype"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:510
+msgid "To datatype"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:511
+msgid ""
+"Warning: When converted to uri, the format is not checked. When converted to "
+"text, the label is lost."
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:531
+msgid "For properties"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:547
+msgid "Set label of uri"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:566 config/module.config.php:33
 msgid "Media HTML"
 msgstr ""
 
-#: Module.php:524 config/module.config.php:26
+#: src/Form/BulkEditFieldset.php:667 config/module.config.php:29
 msgid "Cleaning"
 msgstr ""
 
-#: Module.php:535
+#: src/Form/BulkEditFieldset.php:681
 msgid "Trim property values"
 msgstr ""
 
-#: Module.php:536
+#: src/Form/BulkEditFieldset.php:682
 msgid "Remove initial and trailing whitespace of all values of all properties"
 msgstr ""
 
-#: Module.php:549
+#: src/Form/BulkEditFieldset.php:694
 msgid "Deduplicate property values case insensitively"
 msgstr ""
 
-#: Module.php:550
+#: src/Form/BulkEditFieldset.php:695
 msgid ""
 "Deduplicate values of all properties, case INsensitively. Trimming values "
 "before is recommended, because values are checked strictly."
+msgstr ""
+
+#: config/module.config.php:27
+msgid "Advanced bulk edit"
+msgstr ""
+
+#: config/module.config.php:28
+msgid ""
+"It’s not recommended to process Displace, Explode, or Convert at the same "
+"time."
+msgstr ""
+
+#: config/module.config.php:34
+msgid "Order values"
+msgstr ""
+
+#: config/module.config.php:36
+msgid "Visibility of values"
 msgstr ""

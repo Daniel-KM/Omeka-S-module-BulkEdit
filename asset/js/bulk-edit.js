@@ -8,7 +8,7 @@ var nav = '<nav class="section-nav">'
     + '<li><a href="#bulk-edit" id="bulk-edit-label">' + Omeka.jsTranslate('Advanced bulk edit') + '</a></li>'
     + '</ul>'
     + '</nav>';
-$(nav).insertAfter('#page-actions');
+$(nav).insertAfter('.batch-edit #page-actions');
 
 var bulkeditFieldsets = [
     'replace',

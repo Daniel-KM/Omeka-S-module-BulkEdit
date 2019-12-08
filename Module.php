@@ -249,6 +249,9 @@ class Module extends AbstractModule
             $processes['properties_visibility'] = [
                 'visibility' => $visibility,
                 'properties' => $params['properties'],
+                'datatypes' => $params['datatypes'],
+                'languages' => $this->stringToList($params['languages']),
+                'contains' => $params['contains'],
             ];
         }
 
@@ -385,6 +388,10 @@ class Module extends AbstractModule
             ])
             ->add([
                 'name' => 'properties',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'datatypes',
                 'required' => false,
             ]);
         $inputFilter->get('displace')
@@ -700,6 +707,77 @@ class Module extends AbstractModule
     }
 
     /**
+     * Set visibility to the specified properties of the specified resources.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
+     * @param array $params
+     */
+    protected function applyVisibilityForResourceValues(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
+        array $params
+    ) {
+        static $settings;
+        if (is_null($settings)) {
+            $visibility = (int) (bool) $params['visibility'];
+            $properties = $params['properties'];
+            $datatypes = $params['datatypes'];
+            $languages = $params['languages'];
+            $contains = $params['contains'];
+
+            $checkDatatype = !empty($datatypes) && !in_array('all', $datatypes);
+            $checkLanguage = !empty($languages);
+            $checkContains = (bool) mb_strlen($contains);
+
+            $settings = $params;
+            $settings['properties'] = $properties;
+            $settings['visibility'] = $visibility;
+            $settings['checkDatatype'] = $checkDatatype;
+            $settings['checkLanguage'] = $checkLanguage;
+            $settings['checkContains'] = $checkContains;
+        } else {
+            extract($settings);
+        }
+
+        if (empty($properties)) {
+            return;
+        }
+
+        // Note: this is the original values.
+        $processAllProperties = in_array('all', $properties);
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($properties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                $value += ['@language' => null, 'type' => null, '@value' => null];
+                $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
+                if ($currentVisibility === $visibility) {
+                    continue;
+                }
+                if ($checkDatatype && !in_array($value['type'], $datatypes)) {
+                    continue;
+                }
+                if ($checkLanguage && !in_array($value['@language'], $languages)) {
+                    continue;
+                }
+                if ($checkContains && strpos($value['@value'], $contains) === false) {
+                    continue;
+                }
+                $toUpdate = true;
+                $data[$property][$key]['is_public'] = $visibility;
+            }
+        }
+    }
+
+    /**
      * Displace values from a list of properties to another one.
      *
      * @param AbstractResourceEntityRepresentation $resource
@@ -934,45 +1012,6 @@ class Module extends AbstractModule
                         break;
                 }
                 $data[$property][$key] = $value;
-            }
-        }
-    }
-
-    /**
-     * Set visibility to the specified properties of the specified resources.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
-     */
-    protected function applyVisibilityForResourceValues(
-        AbstractResourceEntityRepresentation $resource,
-        array &$data,
-        &$toUpdate,
-        array $params
-    ) {
-        $visibility = (int) (bool) $params['visibility'];
-        $fromProperties = $params['properties'];
-
-        $processAllProperties = in_array('all', $fromProperties);
-
-        // Note: this is the original values.
-        $properties = $processAllProperties
-            ? array_keys($resource->values())
-            : array_intersect($fromProperties, array_keys($resource->values()));
-        if (empty($properties)) {
-            return;
-        }
-
-        foreach ($properties as $property) {
-            foreach ($data[$property] as $key => $value) {
-                $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
-                if ($currentVisibility === $visibility) {
-                    continue;
-                }
-                $toUpdate = true;
-                $data[$property][$key]['is_public'] = $visibility;
             }
         }
     }

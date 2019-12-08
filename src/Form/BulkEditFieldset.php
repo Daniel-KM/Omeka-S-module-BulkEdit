@@ -229,6 +229,11 @@ class BulkEditFieldset extends Fieldset
 
     protected function appendFieldsetPropertiesVisibility()
     {
+        $datatypes = $this->listDataTypesForSelect();
+        $datatypes = [
+            'all' => '[All datatypes]', // @translate
+        ] + $datatypes;
+
         $this
             ->add([
                 'name' => 'properties_visibility',
@@ -278,6 +283,47 @@ class BulkEditFieldset extends Fieldset
                     'class' => 'chosen-select',
                     'multiple' => true,
                     'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'type' => Element\Select::class,
+                'options' => [
+                    'label' => 'Only datatypes', // @translate
+                    'value_options' => $datatypes,
+                ],
+                'attributes' => [
+                    'id' => 'propvis_datatypes',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select datatypes', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'languages',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only languages', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'propvis_languages',
+                    // 'class' => 'value-language active',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'contains',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only containing', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'propvis_contains',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

@@ -31,7 +31,7 @@ $('#order_languages, #order_properties').closest('.field')
 $('#order_values')
     .prepend('<legend>' + Omeka.jsTranslate('Order values') + '</legend>');
 
-$('#propvis_visibility, #propvis_properties').closest('.field')
+$('#propvis_visibility, #propvis_properties, #propvis_datatypes, #propvis_languages, #propvis_contains').closest('.field')
     .wrapAll('<fieldset id="properties_visibility" class="field-container">');
 $('#properties_visibility')
     .prepend('<legend>' + Omeka.jsTranslate('Visibility of values') + '</legend>');

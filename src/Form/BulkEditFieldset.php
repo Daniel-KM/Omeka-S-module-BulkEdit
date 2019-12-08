@@ -12,6 +12,8 @@ class BulkEditFieldset extends Fieldset
         $this
             ->setName('bulkedit')
             ->setAttribute('id', 'bulk-edit')
+            // TODO Remove all the attributes for each field. May still be used in previous versions.
+            ->setAttribute('data-collection-action', 'replace')
             ->appendFieldsetReplace()
             ->appendFieldsetOrderValues()
             ->appendFieldsetPropertiesVisibility()

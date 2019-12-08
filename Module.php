@@ -156,10 +156,11 @@ class Module extends AbstractModule
     public function viewBatchEditBefore(Event $event)
     {
         $view = $event->getTarget();
+        $assetUrl = $view->plugin('assetUrl');
         $view->headLink()
-            ->appendStylesheet($view->assetUrl('css/bulk-edit.css', __NAMESPACE__));
+            ->appendStylesheet($assetUrl('css/bulk-edit.css', 'BulkEdit'));
         $view->headScript()
-            ->appendFile($view->assetUrl('js/bulk-edit.js', __NAMESPACE__));
+            ->appendFile($assetUrl('js/bulk-edit.js', 'BulkEdit'));
     }
 
     /**

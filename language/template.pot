@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-28 00:00+0100\n"
+"POT-Creation-Date: 2019-12-09 00:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,211 +17,212 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/Generic/AbstractModule.php:498
+#: src/Generic/AbstractModule.php:518
 #, php-format
 msgid "This module requires the module \"%s\"."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:518
+#: src/Generic/AbstractModule.php:538
 #, php-format
 msgid "This module requires modules \"%s\"."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:586
+#: src/Generic/AbstractModule.php:606
 #, php-format
 msgid ""
 "The module \"%s\" was automatically deactivated because the dependencies are "
 "unavailable."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:37 config/module.config.php:35
+#: src/Form/BulkEditFieldset.php:39 config/module.config.php:35
 msgid "Replace literal values"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:52 src/Form/BulkEditFieldset.php:581
+#: src/Form/BulkEditFieldset.php:54 src/Form/BulkEditFieldset.php:629
 msgid "String to replace…"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:64 src/Form/BulkEditFieldset.php:593
+#: src/Form/BulkEditFieldset.php:66 src/Form/BulkEditFieldset.php:641
 msgid "… by…"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:76 src/Form/BulkEditFieldset.php:605
+#: src/Form/BulkEditFieldset.php:78 src/Form/BulkEditFieldset.php:653
 msgid "… using replacement mode"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:78 src/Form/BulkEditFieldset.php:607
+#: src/Form/BulkEditFieldset.php:80 src/Form/BulkEditFieldset.php:655
 msgid "Simple"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:79 src/Form/BulkEditFieldset.php:608
+#: src/Form/BulkEditFieldset.php:81 src/Form/BulkEditFieldset.php:656
 msgid "Simple (case insensitive)"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:80 src/Form/BulkEditFieldset.php:609
+#: src/Form/BulkEditFieldset.php:82 src/Form/BulkEditFieldset.php:657
 msgid "Simple and html entities"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:81 src/Form/BulkEditFieldset.php:610
+#: src/Form/BulkEditFieldset.php:83 src/Form/BulkEditFieldset.php:658
 msgid "Regex (full pattern)"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:95 src/Form/BulkEditFieldset.php:624
+#: src/Form/BulkEditFieldset.php:97 src/Form/BulkEditFieldset.php:672
 msgid "Remove string"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:107 src/Form/BulkEditFieldset.php:636
+#: src/Form/BulkEditFieldset.php:109 src/Form/BulkEditFieldset.php:684
 msgid "String to prepend"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:119 src/Form/BulkEditFieldset.php:648
+#: src/Form/BulkEditFieldset.php:121 src/Form/BulkEditFieldset.php:696
 msgid "String to append"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:131
+#: src/Form/BulkEditFieldset.php:133
 msgid "Set a language…"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:144
+#: src/Form/BulkEditFieldset.php:146
 msgid "… or remove it…"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:156 src/Form/BulkEditFieldset.php:268
+#: src/Form/BulkEditFieldset.php:158 src/Form/BulkEditFieldset.php:275
 msgid "… for properties"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:159 src/Form/BulkEditFieldset.php:212
-#: src/Form/BulkEditFieldset.php:271
+#: src/Form/BulkEditFieldset.php:161 src/Form/BulkEditFieldset.php:214
+#: src/Form/BulkEditFieldset.php:278
 msgid "[All properties]"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:181
+#: src/Form/BulkEditFieldset.php:183
 msgid "Values order"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:196
+#: src/Form/BulkEditFieldset.php:198
 msgid "Order by language"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:197
+#: src/Form/BulkEditFieldset.php:199
 msgid "List the language you want to order before other values."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:209
+#: src/Form/BulkEditFieldset.php:211
 msgid "Properties to order"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:250
-msgid "Set visibility…"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:291
+#: src/Form/BulkEditFieldset.php:234 src/Form/BulkEditFieldset.php:339
 msgid "[All datatypes]"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:299 config/module.config.php:31
-msgid "Displace values"
+#: src/Form/BulkEditFieldset.php:257
+msgid "Set visibility…"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:314
-msgid "From properties"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:330
-msgid "To property"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:347
+#: src/Form/BulkEditFieldset.php:294 src/Form/BulkEditFieldset.php:395
 msgid "Only datatypes"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:354
+#: src/Form/BulkEditFieldset.php:301 src/Form/BulkEditFieldset.php:402
 msgid "Select datatypes"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:363
+#: src/Form/BulkEditFieldset.php:310 src/Form/BulkEditFieldset.php:411
 msgid "Only languages"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:376
-msgid "Only visibility"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:380
-msgid "Any"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:394 src/Form/BulkEditFieldset.php:456
+#: src/Form/BulkEditFieldset.php:323 src/Form/BulkEditFieldset.php:442
+#: src/Form/BulkEditFieldset.php:504
 msgid "Only containing"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:413 config/module.config.php:32
+#: src/Form/BulkEditFieldset.php:347 config/module.config.php:31
+msgid "Displace values"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:362
+msgid "From properties"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:378
+msgid "To property"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:424
+msgid "Only visibility"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:428
+msgid "Any"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:461 config/module.config.php:32
 msgid "Explode values"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:444
+#: src/Form/BulkEditFieldset.php:492
 msgid "Separator"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:475 config/module.config.php:30
+#: src/Form/BulkEditFieldset.php:523 config/module.config.php:30
 msgid "Convert datatype"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:490
+#: src/Form/BulkEditFieldset.php:538
 msgid "From datatype"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:492 src/Form/BulkEditFieldset.php:513
+#: src/Form/BulkEditFieldset.php:540 src/Form/BulkEditFieldset.php:561
 msgid "Literal"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:493 src/Form/BulkEditFieldset.php:514
+#: src/Form/BulkEditFieldset.php:541 src/Form/BulkEditFieldset.php:562
 msgid "Uri"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:501 src/Form/BulkEditFieldset.php:522
+#: src/Form/BulkEditFieldset.php:549 src/Form/BulkEditFieldset.php:570
 msgid "Select datatype"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:510
+#: src/Form/BulkEditFieldset.php:558
 msgid "To datatype"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:511
+#: src/Form/BulkEditFieldset.php:559
 msgid ""
 "Warning: When converted to uri, the format is not checked. When converted to "
 "text, the label is lost."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:531
+#: src/Form/BulkEditFieldset.php:579
 msgid "For properties"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:547
+#: src/Form/BulkEditFieldset.php:595
 msgid "Set label of uri"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:566 config/module.config.php:33
+#: src/Form/BulkEditFieldset.php:614 config/module.config.php:33
 msgid "Media HTML"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:667 config/module.config.php:29
+#: src/Form/BulkEditFieldset.php:715 config/module.config.php:29
 msgid "Cleaning"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:681
+#: src/Form/BulkEditFieldset.php:729
 msgid "Trim property values"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:682
+#: src/Form/BulkEditFieldset.php:730
 msgid "Remove initial and trailing whitespace of all values of all properties"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:694
+#: src/Form/BulkEditFieldset.php:742
 msgid "Deduplicate property values case insensitively"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:695
+#: src/Form/BulkEditFieldset.php:743
 msgid ""
 "Deduplicate values of all properties, case INsensitively. Trimming values "
 "before is recommended, because values are checked strictly."

@@ -191,6 +191,7 @@ class Module extends AbstractModule
             'properties_visibility' => false,
             'displace' => false,
             'explode' => false,
+            'merge' => false,
             'convert' => false,
         ];
 
@@ -280,6 +281,13 @@ class Module extends AbstractModule
                     'contains' => $params['contains'],
                 ];
             }
+        }
+
+        $params = isset($bulkedit['merge']) ? $bulkedit['merge'] : [];
+        if (!empty($params['properties'])) {
+            $processes['merge'] = [
+                'properties' => $params['properties'],
+            ];
         }
 
         $params = isset($bulkedit['convert']) ? $bulkedit['convert'] : [];
@@ -416,6 +424,11 @@ class Module extends AbstractModule
                 'name' => 'properties',
                 'required' => false,
             ]);
+        $inputFilter->get('merge')
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
         $inputFilter->get('convert')
             ->add([
                 'name' => 'from',
@@ -480,6 +493,9 @@ class Module extends AbstractModule
                         break;
                     case 'explode':
                         $this->explodeValuesForResource($resource, $data, $toUpdate, $params);
+                        break;
+                    case 'merge':
+                        $this->mergeValuesForResource($resource, $data, $toUpdate, $params);
                         break;
                     case 'convert':
                         $this->convertDatatypeForResource($resource, $data, $toUpdate, $params);
@@ -948,6 +964,112 @@ class Module extends AbstractModule
                 }
             }
             $data[$property] = $values;
+        }
+    }
+
+    /**
+     * Merge values from a list of properties into one.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
+     * @param array $params
+     */
+    protected function mergeValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
+        array $params
+    ) {
+        static $settings;
+        if (is_null($settings)) {
+            $properties = $params['properties'];
+
+            if (empty($properties)) {
+                return;
+            }
+
+            $settings = $params;
+        } else {
+            extract($settings);
+        }
+
+        if (empty($properties)) {
+            return;
+        }
+
+        // Note: this is the original values.
+        $properties = array_intersect($properties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        foreach ($properties as $property) {
+            // Skip properties with an odd number of values.
+            if (!count($data[$property]) || count($data[$property]) % 2 !== 0) {
+                continue;
+            }
+
+            // First loop to create pairs.
+            $pairs = [];
+            foreach (array_values($data[$property]) as $key => $value) {
+                if ($key %2 === 1) {
+                    --$key;
+                }
+                $pairs[$key][] = $value;
+            }
+
+            // Second loop to check values.
+            foreach ($pairs as $pair) {
+                // Check if values are two uri.
+                if ($pair[0]['type'] === 'uri' && $pair[1]['type'] === 'uri') {
+                    continue 2;
+                }
+
+                // When they are uri, check if the value has already a url and a label.
+                if (($pair[0]['type'] === 'uri' && strlen($pair[0]['@id']) && isset($pair[0]['o:label']) && strlen($pair[0]['o:label']))
+                    || ($pair[1]['type'] === 'uri' && strlen($pair[1]['@id']) && isset($pair[1]['o:label']) && strlen($pair[1]['o:label']))
+                ) {
+                    continue 2;
+                }
+
+                $mainValueA = $pair[0]['type'] === 'uri' ? $pair[0]['@id'] : $pair[0]['@value'];
+                $mainValueB = $pair[1]['type'] === 'uri' ? $pair[1]['@id'] : $pair[1]['@value'];
+
+                // There should be one and only one url unless they are the same.
+                $isUrlA = strpos($mainValueA, 'http://') === 0 || strpos($mainValueA, 'https://') === 0;
+                $isUrlB = strpos($mainValueB, 'http://') === 0 || strpos($mainValueB, 'https://') === 0;
+                if ($isUrlA && $isUrlB) {
+                    if ($mainValueA !== $mainValueB) {
+                        continue 2;
+                    }
+                } elseif (!$isUrlA && !$isUrlB) {
+                    continue 2;
+                }
+            }
+
+            if (empty($pairs)) {
+                continue;
+            }
+
+            $toUpdate = true;
+
+            // Third loop to update data.
+            $data[$property] = [];
+            foreach ($pairs as $pair) {
+                $mainValueA = $pair[0]['type'] === 'uri' ? $pair[0]['@id'] : $pair[0]['@value'];
+                $mainValueB = $pair[1]['type'] === 'uri' ? $pair[1]['@id'] : $pair[1]['@value'];
+                $isUrlA = strpos($mainValueA, 'http://') === 0 || strpos($mainValueA, 'https://') === 0;
+                $data[$property][] = [
+                    'type' => 'uri',
+                    'property_id' => $pair[0]['property_id'],
+                    'is_public' => (int) !empty($pair[0]['is_public']),
+                    '@language' => null,
+                    '@value' => null,
+                    '@id' => $isUrlA ? $mainValueA : $mainValueB,
+                    'o:label' => $isUrlA ? $mainValueB : $mainValueA,
+                ];
+            }
         }
     }
 

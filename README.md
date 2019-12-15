@@ -96,15 +96,36 @@ displayed in many places.
 So just write the language in the order you want for the properties you want.
 Values with other languages or without language will be kept after.
 
+### Set or unset visibility of a property
+
+Select the properties to set or unset visibility.
+
 # Displace values from a property to another one
 
 Select the source properties and the destination property, then process edit.
 Some filters (datatype, language, string, visibility) allows to move only
 selected values.
 
-### Set or unset visibility of a property
+# Explode a value into multiple values
 
-Select the properties to set or unset visibility.
+This tool is useful for an import of a csv file, where the checkbox for "multivalue"
+was missed. Select the properties and the separator, that may have multiple
+character.
+
+# Merge two values as uri
+
+Select the properties and their values will be merged two by two. This tool can
+only be used when the number of values is even. When a value has already the
+datatype "uri" with a label, it is not changed and all values of the property
+are skipped to avoid merge issues. When two uris follow each other, the property
+is skipped too. At least one value should be an url. When the label and the
+values are different urls, the property is skipped. It’s recommended to check
+order of values first.
+
+# Convert datatype
+
+Select the source datatype and the new datatype. Only some datatype are managed
+currently .
 
 ### Update media html from item
 

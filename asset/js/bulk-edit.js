@@ -17,6 +17,7 @@ var bulkeditFieldsets = [
     'properties_visibility',
     'displace',
     'explode',
+    'merge',
     'convert',
     'media_html',
 ];
@@ -51,6 +52,11 @@ $('#explode_properties, #explode_separator, #explode_contains').closest('.field'
 $('#explode')
     .prepend('<legend>' + Omeka.jsTranslate('Explode values') + '</legend>');
 
+$('#merge_properties').closest('.field')
+    .wrapAll('<fieldset id="merge" class="field-container">');
+$('#merge')
+    .prepend('<legend>' + Omeka.jsTranslate('Merge values as uri and label') + '</legend>');
+
 $('#convert_from, #convert_to, #convert_properties, #convert_uri_label').closest('.field')
     .wrapAll('<fieldset id="convert" class="field-container">');
 $('#convert')
@@ -74,7 +80,7 @@ $('#batch-edit-item > fieldset')
     })
     .wrapAll('<div id="bulk-edit" class="section">');
 $('#bulk-edit')
-    .prepend('<legend>' + Omeka.jsTranslate('It’s not recommended to process Displace, Explode, or Convert at the same time.') + '</legend>');
+    .prepend('<legend>' + Omeka.jsTranslate('It’s not recommended to process Displace, Explode, Merge, or Convert at the same time.') + '</legend>');
 
 // Hidden inputs that should not be after the inputs.
 $('#batch-edit-item input[type=hidden][name=set_value_visibility]').insertAfter($('#batch-edit-item input[name=csrf]'));

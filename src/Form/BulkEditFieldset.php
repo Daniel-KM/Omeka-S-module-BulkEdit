@@ -24,6 +24,7 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetDisplace()
             ->appendFieldsetExplode()
+            ->appendFieldsetMerge()
             ->appendFieldsetConvert()
             ->appendFieldsetMediaHtml()
         ;
@@ -505,6 +506,45 @@ class BulkEditFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'explode_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetMerge()
+    {
+        $this
+            ->add([
+                'name' => 'merge',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Merge values as uri and label', // @translate
+                    'info' => 'The values are merged two by two, whatever order and initial datatype. The number of values must be even and clean.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'merge',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('merge');
+        $fieldset
+            ->add([
+                'name' => 'properties',
+                'type' => PropertySelect::class,
+                'options' => [
+                    'label' => 'Properties', // @translate
+                    'term_as_value' => true,
+                ],
+                'attributes' => [
+                    'id' => 'merge_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

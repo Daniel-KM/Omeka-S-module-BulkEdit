@@ -12,21 +12,21 @@ class BulkEditFieldset extends Fieldset
         $this
             ->setName('bulkedit')
             ->setAttribute('id', 'bulk-edit')
-            // TODO Remove all the attributes for each field. May still be used in previous versions.
-            ->setAttribute('data-collection-action', 'replace')
+            // TODO Remove all the attributes for each field. May still be used in previous versions (< 2.0).
+            ->setAttribute('data-collection-action', 'replace');
+        if (!$this->hasOldModuleNext()) {
+            $this
+                ->appendFieldsetCleaning();
+        }
+        $this
             ->appendFieldsetReplace()
             ->appendFieldsetOrderValues()
             ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetDisplace()
             ->appendFieldsetExplode()
             ->appendFieldsetConvert()
-            ->appendFieldsetMediaHtml();
-
-        if ($this->hasModuleNext()) {
-            return;
-        }
-        $this
-            ->appendFieldsetMediaHtml();
+            ->appendFieldsetMediaHtml()
+        ;
     }
 
     protected function appendFieldsetReplace()
@@ -763,8 +763,8 @@ class BulkEditFieldset extends Fieldset
     /**
      * @return bool
      */
-    protected function hasModuleNext()
+    protected function hasOldModuleNext()
     {
-        return !empty($this->getOption('hasModuleNext'));
+        return !empty($this->getOption('hasOldModuleNext'));
     }
 }

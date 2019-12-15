@@ -80,7 +80,7 @@ class Module extends AbstractModule
      */
     public function handleResourceProcessPre(Event $event)
     {
-        if ($this->checkModuleNext()) {
+        if ($this->checkOldModuleNext()) {
             return;
         }
 
@@ -322,7 +322,7 @@ class Module extends AbstractModule
             ]);
         }
 
-        if ($this->checkModuleNext()) {
+        if ($this->checkOldModuleNext()) {
             return;
         }
 
@@ -347,7 +347,7 @@ class Module extends AbstractModule
         $form = $event->getTarget();
         $options = [
             'listDataTypesForSelect' => $this->listDataTypesForSelect(),
-            'hasModuleNext' => $this->checkModuleNext(),
+            'hasOldModuleNext' => $this->checkOldModuleNext(),
         ];
         $fieldset = $this->getServiceLocator()->get('FormElementManager')
             ->get(BulkEditFieldset::class, $options);
@@ -1163,11 +1163,11 @@ class Module extends AbstractModule
     }
 
     /**
-     * Check if the module Next is enabled and greater than 3.1.2.9.
+     * Check if the module Next is enabled and smaller than 3.1.2.9.
      *
      * @return bool
      */
-    protected function checkModuleNext()
+    protected function checkOldModuleNext()
     {
         $services = $this->getServiceLocator();
         /** @var \Omeka\Module\Manager $moduleManager */

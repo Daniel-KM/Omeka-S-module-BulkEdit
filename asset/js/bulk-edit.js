@@ -11,6 +11,7 @@ var nav = '<nav class="section-nav">'
 $(nav).insertAfter('.batch-edit #page-actions');
 
 var bulkeditFieldsets = [
+    'cleaning',
     'replace',
     'order_values',
     'properties_visibility',
@@ -18,8 +19,12 @@ var bulkeditFieldsets = [
     'explode',
     'convert',
     'media_html',
-    'cleaning',
 ];
+
+$('#cleaning_trim, #cleaning_deduplicate').closest('.field')
+    .wrapAll('<fieldset id="cleaning" class="field-container">');
+$('#cleaning')
+    .prepend('<legend>' + Omeka.jsTranslate('Cleaning') + '</legend>');
 
 $('#replace_from, #replace_to, #replace_mode, #replace_remove, #replace_prepend, #replace_append, #replace_language, #replace_language_clear, #replace_properties').closest('.field')
     .wrapAll('<fieldset id="replace" class="field-container">');
@@ -55,11 +60,6 @@ $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_remove, #mediahtm
     .wrapAll('<fieldset id="media_html" class="field-container">');
 $('#media_html')
     .prepend('<legend>' + Omeka.jsTranslate('Media HTML') + '</legend>');
-
-$('#cleaning_trim, #cleaning_deduplicate').closest('.field')
-    .wrapAll('<fieldset id="cleaning" class="field-container">');
-$('#cleaning')
-    .prepend('<legend>' + Omeka.jsTranslate('Cleaning') + '</legend>');
 
 $('#batch-edit-item > div, #batch-edit-item > fieldset')
     .filter(function () {

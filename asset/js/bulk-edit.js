@@ -76,6 +76,10 @@ $('#batch-edit-item > fieldset')
 $('#bulk-edit')
     .prepend('<legend>' + Omeka.jsTranslate('It’s not recommended to process Displace, Explode, or Convert at the same time.') + '</legend>');
 
+// Hidden inputs that should not be after the inputs.
+$('#batch-edit-item input[type=hidden][name=set_value_visibility]').insertAfter($('#batch-edit-item input[name=csrf]'));
+$('#batch-edit-item input[type=hidden][name=value]').insertAfter($('#batch-edit-item input[name=csrf]'));
+
 // From resource-form.js.
 $('input.value-language').on('keyup', function(e) {
     if ('' === this.value || Omeka.langIsValid(this.value)) {

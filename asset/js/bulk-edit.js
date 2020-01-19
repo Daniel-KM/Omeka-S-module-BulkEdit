@@ -67,24 +67,24 @@ $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_remove, #mediahtm
 $('#media_html')
     .prepend('<legend>' + Omeka.jsTranslate('Media HTML') + '</legend>');
 
-$('#batch-edit-item > div, #batch-edit-item > fieldset')
+$('.batch-edit #content > form:first-of-type > div, .batch-edit #content > form:first-of-type > fieldset')
     .filter(function () {
         var id = $(this).attr('id');
         return bulkeditFieldsets.indexOf(id) < 0
             && id !== 'page-actions';
     })
     .wrapAll('<div id="batch-edit" class="section active">');
-$('#batch-edit-item > fieldset')
+$('.batch-edit #content > form:first-of-type > fieldset')
     .filter(function () {
         return bulkeditFieldsets.indexOf($(this).attr('id')) >= 0;
     })
     .wrapAll('<div id="bulk-edit" class="section">');
 $('#bulk-edit')
-    .prepend('<legend>' + Omeka.jsTranslate('It’s not recommended to process Displace, Explode, Merge, or Convert at the same time.') + '</legend>');
+    .prepend('<legend>' + Omeka.jsTranslate('It’s not recommended to mix multiple processes at the same time.') + '</legend>');
 
 // Hidden inputs that should not be after the inputs.
-$('#batch-edit-item input[type=hidden][name=set_value_visibility]').insertAfter($('#batch-edit-item input[name=csrf]'));
-$('#batch-edit-item input[type=hidden][name=value]').insertAfter($('#batch-edit-item input[name=csrf]'));
+$('.batch-edit #content > form:first-of-type input[type=hidden][name=set_value_visibility]').insertAfter($('.batch-edit #content > form:first-of-type input[name=csrf]'));
+$('.batch-edit #content > form:first-of-type input[type=hidden][name=value]').insertAfter($('.batch-edit #content > form:first-of-type input[name=csrf]'));
 
 // From resource-form.js.
 $('input.value-language').on('keyup', function(e) {

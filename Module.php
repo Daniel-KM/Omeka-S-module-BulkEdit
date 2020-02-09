@@ -915,7 +915,7 @@ class Module extends AbstractModule
             $separator = $params['separator'];
             $contains = $params['contains'];
 
-            if (empty($properties) || !strlen($separator)) {
+            if (empty($properties) || !mb_strlen($separator)) {
                 return;
             }
 
@@ -927,7 +927,7 @@ class Module extends AbstractModule
             extract($settings);
         }
 
-        if (empty($properties) || !strlen($separator)) {
+        if (empty($properties) || !mb_strlen($separator)) {
             return;
         }
 
@@ -1027,8 +1027,8 @@ class Module extends AbstractModule
                 }
 
                 // When they are uri, check if the value has already a url and a label.
-                if (($pair[0]['type'] === 'uri' && strlen($pair[0]['@id']) && isset($pair[0]['o:label']) && strlen($pair[0]['o:label']))
-                    || ($pair[1]['type'] === 'uri' && strlen($pair[1]['@id']) && isset($pair[1]['o:label']) && strlen($pair[1]['o:label']))
+                if (($pair[0]['type'] === 'uri' && mb_strlen($pair[0]['@id']) && isset($pair[0]['o:label']) && mb_strlen($pair[0]['o:label']))
+                    || ($pair[1]['type'] === 'uri' && mb_strlen($pair[1]['@id']) && isset($pair[1]['o:label']) && mb_strlen($pair[1]['o:label']))
                 ) {
                     continue 2;
                 }
@@ -1037,8 +1037,8 @@ class Module extends AbstractModule
                 $mainValueB = $pair[1]['type'] === 'uri' ? $pair[1]['@id'] : $pair[1]['@value'];
 
                 // There should be one and only one url unless they are the same.
-                $isUrlA = strpos($mainValueA, 'http://') === 0 || strpos($mainValueA, 'https://') === 0;
-                $isUrlB = strpos($mainValueB, 'http://') === 0 || strpos($mainValueB, 'https://') === 0;
+                $isUrlA = mb_strpos($mainValueA, 'http://') === 0 || mb_strpos($mainValueA, 'https://') === 0;
+                $isUrlB = mb_strpos($mainValueB, 'http://') === 0 || mb_strpos($mainValueB, 'https://') === 0;
                 if ($isUrlA && $isUrlB) {
                     if ($mainValueA !== $mainValueB) {
                         continue 2;
@@ -1059,7 +1059,7 @@ class Module extends AbstractModule
             foreach ($pairs as $pair) {
                 $mainValueA = $pair[0]['type'] === 'uri' ? $pair[0]['@id'] : $pair[0]['@value'];
                 $mainValueB = $pair[1]['type'] === 'uri' ? $pair[1]['@id'] : $pair[1]['@value'];
-                $isUrlA = strpos($mainValueA, 'http://') === 0 || strpos($mainValueA, 'https://') === 0;
+                $isUrlA = mb_strpos($mainValueA, 'http://') === 0 || mb_strpos($mainValueA, 'https://') === 0;
                 $data[$property][] = [
                     'type' => 'uri',
                     'property_id' => $pair[0]['property_id'],
@@ -1092,7 +1092,7 @@ class Module extends AbstractModule
             $fromDatatype = $params['from'];
             $toDatatype = $params['to'];
             $properties = $params['properties'];
-            $uriLabel = strlen($params['uri_label']) ? $params['uri_label'] : null;
+            $uriLabel = mb_strlen($params['uri_label']) ? $params['uri_label'] : null;
 
             $settings = $params;
             $settings['fromDatatype'] = $fromDatatype;

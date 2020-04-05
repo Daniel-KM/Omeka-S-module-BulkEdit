@@ -951,9 +951,7 @@ class Module extends AbstractModule
                     $values[] = $value;
                     continue;
                 }
-                $vs = array_filter(array_map('trim', explode($separator, $value['@value'])), function ($v) {
-                    return (bool) strlen($v);
-                });
+                $vs = array_filter(array_map('trim', explode($separator, $value['@value'])), 'strlen');
                 if (empty($vs)) {
                     continue;
                 }

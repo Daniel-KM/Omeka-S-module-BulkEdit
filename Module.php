@@ -160,7 +160,7 @@ class Module extends AbstractModule
         $view->headLink()
             ->appendStylesheet($assetUrl('css/bulk-edit.css', 'BulkEdit'));
         $view->headScript()
-            ->appendFile($assetUrl('js/bulk-edit.js', 'BulkEdit'));
+            ->appendFile($assetUrl('js/bulk-edit.js', 'BulkEdit'), 'text/javascript', ['defer' => 'defer']);
     }
 
     /**

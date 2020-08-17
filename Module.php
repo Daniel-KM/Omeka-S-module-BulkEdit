@@ -1109,8 +1109,8 @@ class Module extends AbstractModule
         }
 
         if (($fromDatatype === $toDatatype)
-            || ($fromDatatype && !$toDatatype)
-            || (!$fromDatatype && $toDatatype)
+            || !in_array($fromDatatype, ['literal', 'uri'])
+            || !in_array($toDatatype, ['literal', 'uri'])
         ) {
             return;
         }
@@ -1123,42 +1123,40 @@ class Module extends AbstractModule
 
         $toUpdate = true;
 
+        $fromTo = $fromDatatype . ' => ' . $toDatatype;
+
         foreach ($properties as $property) {
             foreach ($data[$property] as $key => $value) {
                 if ($value['type'] !== $fromDatatype) {
                     continue;
                 }
-                switch ($toDatatype) {
-                    case 'literal':
-                        // From uri.
+                switch ($fromTo) {
+                    case 'literal => uri':
+                        $value = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel];
+                        break;
+
+                    case 'uri => literal':
                         $currentUri = &$value['@id'];
                         $currentLabel = &$value['o:label'];
-                        // TODO What was the purpose to add value?
                         switch ($literalValue) {
                             case 'label_uri':
                                 $label = strlen($currentLabel) ? $currentLabel. ' (' . $currentUri .')' : $currentUri;
-                                $value = ['type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null] + $value;
+                                $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri_label':
                                 $label = strlen($currentLabel) ? $currentUri . ' (' . $currentLabel  .')' : $currentUri;
-                                $value = ['type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null] + $value;
+                                $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri':
-                                $value = ['type' => 'literal', '@language' => null, '@value' => $currentUri, '@id' => null, 'o:label' => null] + $value;
+                                $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $currentUri, '@id' => null, 'o:label' => null];
                                 break;
                             case 'label':
                                 if (!strlen($currentLabel)) {
                                     continue 3;
                                 }
-                                $value = ['type' => 'literal', '@language' => null, '@value' => $currentLabel, '@id' => null, 'o:label' => null] + $value;
+                                $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $currentLabel, '@id' => null, 'o:label' => null];
                                 break;
-                            default:
-                                return;
                         }
-                        break;
-                    case 'uri':
-                        // From text.
-                        $value = ['type' => 'uri', '@language' => null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel] + $value;
                         break;
                 }
                 $data[$property][$key] = $value;

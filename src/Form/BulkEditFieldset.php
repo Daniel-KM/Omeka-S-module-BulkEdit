@@ -596,7 +596,7 @@ class BulkEditFieldset extends Fieldset
                 'type' => Element\Select::class,
                 'options' => [
                     'label' => 'To datatype', // @translate
-                    'info' => 'Warning: When converted to uri, the format is not checked. When converted to text, the label is lost.', // @translate
+                    'info' => 'Warning: When converted to uri, the format is not checked.', // @translate
                     'value_options' => [
                         'literal' => 'Literal', // @translate
                         'uri' => 'Uri', // @translate
@@ -629,10 +629,32 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'literal_value',
+                'type' => Element\Select::class,
+                'options' => [
+                    'label' => 'Convert to literal', // @translate
+                    'value_options' => [
+                        'label_uri' => 'Label and uri', // @translate
+                        'uri_label' => 'Uri and label', // @translate
+                        'uri' => 'Uri only', // @translate
+                        'label' => 'Label only', // @translate
+                    ],
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'convert_literal_value',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-placeholder' => 'Select option', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'uri_label',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Set label of uri', // @translate
+                    'label' => 'Convert to uri: Label of uri', // @translate
                 ],
                 'attributes' => [
                     'id' => 'convert_uri_label',

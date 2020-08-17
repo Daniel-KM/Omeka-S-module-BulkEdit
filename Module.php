@@ -299,6 +299,7 @@ class Module extends AbstractModule
                     'from' => $from,
                     'to' => $to,
                     'properties' => $params['properties'],
+                    'literal_value' => $params['literal_value'],
                     'uri_label' => $params['uri_label'],
                 ];
             }
@@ -440,6 +441,10 @@ class Module extends AbstractModule
             ])
             ->add([
                 'name' => 'properties',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'literal_value',
                 'required' => false,
             ]);
         $inputFilter->get('media_html')
@@ -1011,7 +1016,7 @@ class Module extends AbstractModule
             // First loop to create pairs.
             $pairs = [];
             foreach (array_values($data[$property]) as $key => $value) {
-                if ($key %2 === 1) {
+                if ($key % 2 === 1) {
                     --$key;
                 }
                 $pairs[$key][] = $value;
@@ -1090,12 +1095,14 @@ class Module extends AbstractModule
             $fromDatatype = $params['from'];
             $toDatatype = $params['to'];
             $properties = $params['properties'];
+            $literalValue = $params['literal_value'];
             $uriLabel = mb_strlen($params['uri_label']) ? $params['uri_label'] : null;
 
             $settings = $params;
             $settings['fromDatatype'] = $fromDatatype;
             $settings['toDatatype'] = $toDatatype;
             $settings['properties'] = $properties;
+            $settings['literalValue'] = $literalValue;
             $settings['uriLabel'] = $uriLabel;
         } else {
             extract($settings);
@@ -1124,7 +1131,30 @@ class Module extends AbstractModule
                 switch ($toDatatype) {
                     case 'literal':
                         // From uri.
-                        $value = ['type' => 'literal', '@language' => null, '@value' => $value['@id'], '@id' => null, 'o:label' => null] + $value;
+                        $currentUri = &$value['@id'];
+                        $currentLabel = &$value['o:label'];
+                        // TODO What was the purpose to add value?
+                        switch ($literalValue) {
+                            case 'label_uri':
+                                $label = strlen($currentLabel) ? $currentLabel. ' (' . $currentUri .')' : $currentUri;
+                                $value = ['type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null] + $value;
+                                break;
+                            case 'uri_label':
+                                $label = strlen($currentLabel) ? $currentUri . ' (' . $currentLabel  .')' : $currentUri;
+                                $value = ['type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null] + $value;
+                                break;
+                            case 'uri':
+                                $value = ['type' => 'literal', '@language' => null, '@value' => $currentUri, '@id' => null, 'o:label' => null] + $value;
+                                break;
+                            case 'label':
+                                if (!strlen($currentLabel)) {
+                                    continue 3;
+                                }
+                                $value = ['type' => 'literal', '@language' => null, '@value' => $currentLabel, '@id' => null, 'o:label' => null] + $value;
+                                break;
+                            default:
+                                return;
+                        }
                         break;
                     case 'uri':
                         // From text.

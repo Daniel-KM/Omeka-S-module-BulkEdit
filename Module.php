@@ -185,7 +185,7 @@ class Module extends AbstractModule
         $plugins = $services->get('ControllerPluginManager');
         $adapter = $event->getTarget();
 
-        // Other process (media html, cleaning) are managed differently.
+        // Some process are managed differently (direct sql).
         $processes = [
             'replace' => false,
             'order_values' => false,
@@ -194,6 +194,7 @@ class Module extends AbstractModule
             'explode' => false,
             'merge' => false,
             'convert' => false,
+            'media_html' => false,
         ];
 
         $bulkedit = $request->getValue('bulkedit');
@@ -307,8 +308,6 @@ class Module extends AbstractModule
             }
         }
 
-        $this->updateValues($adapter, $ids, $processes);
-
         $params = isset($bulkedit['media_html']) ? $bulkedit['media_html'] : [];
         $from = isset($params['from']) ? $params['from'] : null;
         $to = isset($params['to']) ? $params['to'] : null;
@@ -321,17 +320,26 @@ class Module extends AbstractModule
             || mb_strlen($prepend)
             || mb_strlen($append)
         ) {
-            // This process is specific, because not for current resources.
-            // $hasProcess = true;
-            $this->updateMediaHtmlForResources($adapter, $ids, [
+            $processes['media_html'] = [
                 'from' => $from,
                 'to' => $to,
                 'mode' => $params['mode'],
                 'remove' => $remove,
                 'prepend' => $prepend,
                 'append' => $append,
-            ]);
+            ];
         }
+
+        $this->getServiceLocator()->get('Omeka\Logger')->info(new Message(
+            "Cleaned params used for bulk edit:\n%s", // @translate
+            json_encode($processes,
+                PHP_VERSION_ID >= 70100
+                    ? (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS)
+                    : (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+            )
+        ));
+
+        $this->updateValues($adapter, $ids, $processes);
 
         if ($this->checkOldModuleNext()) {
             return;
@@ -517,6 +525,11 @@ class Module extends AbstractModule
             if ($toUpdate) {
                 $api->update($resourceType, $resourceId, $data, [], ['responseContent' => 'resource']);
             }
+        }
+
+        // This process is specific, because not for current resources.
+        if ($processes['media_html']) {
+            $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
         }
     }
 

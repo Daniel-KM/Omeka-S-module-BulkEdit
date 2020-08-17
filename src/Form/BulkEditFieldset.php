@@ -161,6 +161,8 @@ class BulkEditFieldset extends Fieldset
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
                     ],
+                    'empty_option' => '',
+                    'used_terms' => true,
                 ],
                 'attributes' => [
                     'id' => 'replace_properties',
@@ -214,6 +216,8 @@ class BulkEditFieldset extends Fieldset
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
                     ],
+                    'empty_option' => '',
+                    'used_terms' => true,
                 ],
                 'attributes' => [
                     'id' => 'order_properties',
@@ -278,6 +282,8 @@ class BulkEditFieldset extends Fieldset
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
                     ],
+                    'empty_option' => '',
+                    'used_terms' => true,
                 ],
                 'attributes' => [
                     'id' => 'propvis_properties',
@@ -294,6 +300,7 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'value_options' => $datatypes,
+                    'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'propvis_datatypes',
@@ -362,6 +369,8 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'From properties', // @translate
                     'term_as_value' => true,
+                    'empty_option' => '',
+                    'used_terms' => true,
                 ],
                 'attributes' => [
                     'id' => 'displace_from',
@@ -377,8 +386,8 @@ class BulkEditFieldset extends Fieldset
                 'type' => PropertySelect::class,
                 'options' => [
                     'label' => 'To property', // @translate
-                    'empty_option' => '',
                     'term_as_value' => true,
+                    'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'displace_to',
@@ -395,6 +404,7 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'value_options' => $datatypes,
+                    'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'displace_datatypes',
@@ -476,6 +486,8 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'Properties', // @translate
                     'term_as_value' => true,
+                    'empty_option' => '',
+                    'used_terms' => true,
                 ],
                 'attributes' => [
                     'id' => 'explode_properties',
@@ -539,6 +551,8 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'Properties', // @translate
                     'term_as_value' => true,
+                    'empty_option' => '',
+                    'used_terms' => true,
                 ],
                 'attributes' => [
                     'id' => 'merge_properties',
@@ -621,6 +635,8 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
+                    'empty_option' => '',
+                    'used_terms' => true,
                 ],
                 'attributes' => [
                     'id' => 'convert_properties',
@@ -662,6 +678,8 @@ class BulkEditFieldset extends Fieldset
                     'prepend_value_options' => [
                         'o:id' => 'Omeka internal id', // @translate
                     ],
+                    'empty_option' => '',
+                    'used_terms' => true,
                 ],
                 'attributes' => [
                     'id' => 'convert_resource_properties',

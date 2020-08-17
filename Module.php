@@ -49,6 +49,11 @@ class Module extends AbstractModule
 
             $sharedEventManager->attach(
                 $adapter,
+                'api.preprocess_batch_update',
+                [$this, 'handleResourceBatchUpdatePreprocess']
+            );
+            $sharedEventManager->attach(
+                $adapter,
                 'api.batch_update.post',
                 [$this, 'handleResourceBatchUpdatePost']
             );
@@ -69,6 +74,118 @@ class Module extends AbstractModule
             'form.add_input_filters',
             [$this, 'formAddInputFiltersResourceBatchUpdateForm']
         );
+    }
+
+    public function formAddElementsResourceBatchUpdateForm(Event $event)
+    {
+        /** @var \Omeka\Form\ResourceBatchUpdateForm $form */
+        $form = $event->getTarget();
+        $options = [
+            'listDataTypesForSelect' => $this->listDataTypesForSelect(),
+            'hasOldModuleNext' => $this->checkOldModuleNext(),
+        ];
+        $fieldset = $this->getServiceLocator()->get('FormElementManager')
+            ->get(BulkEditFieldset::class, $options);
+        $form->add($fieldset);
+    }
+
+    public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
+    {
+        /** @var \Zend\InputFilter\InputFilterInterface $inputFilter */
+        $inputFilter = $event->getParam('inputFilter');
+        $inputFilter = $inputFilter->get('bulkedit');
+        $inputFilter->get('replace')
+            ->add([
+                'name' => 'mode',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'remove',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'language_clear',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
+        $inputFilter->get('order_values')
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
+        $inputFilter->get('properties_visibility')
+            ->add([
+                'name' => 'visibility',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'required' => false,
+            ]);
+        $inputFilter->get('displace')
+            ->add([
+                'name' => 'from',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'to',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'visibility',
+                'required' => false,
+            ]);
+        $inputFilter->get('explode')
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
+        $inputFilter->get('merge')
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ]);
+        $inputFilter->get('convert')
+            ->add([
+                'name' => 'from',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'to',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'literal_value',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'resource_properties',
+                'required' => false,
+            ]);
+        $inputFilter->get('media_html')
+            ->add([
+                'name' => 'mode',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'remove',
+                'required' => false,
+            ]);
     }
 
     /**
@@ -164,6 +281,19 @@ class Module extends AbstractModule
             ->appendFile($assetUrl('js/bulk-edit.js', 'BulkEdit'), 'text/javascript', ['defer' => 'defer']);
     }
 
+    public function handleResourceBatchUpdatePreprocess(Event $event)
+    {
+        /** @var \Omeka\Api\Request $request */
+        $request = $event->getParam('request');
+        $data = $event->getParam('data');
+
+        $bulkedit = $request->getValue('bulkedit');
+        $processes = $this->prepareProcesses($bulkedit);
+
+        $data['bulkedit'] = $processes;
+        $event->setParam('data', $data);
+    }
+
     /**
      * Process action on batch update (all or partial).
      *
@@ -181,11 +311,24 @@ class Module extends AbstractModule
             return;
         }
 
-        $services = $this->getServiceLocator();
-        $plugins = $services->get('ControllerPluginManager');
-        $adapter = $event->getTarget();
+        $processes = $this->prepareProcesses();
+        $processes = array_filter($processes);
+        if (!count($processes)) {
+            return;
+        }
 
-        // Some process are managed differently (direct sql).
+        $adapter = $event->getTarget();
+        $this->updateValues($adapter, $ids, $processes);
+    }
+
+    protected function prepareProcesses($bulkedit = null)
+    {
+        static $processes;
+
+        if (!is_null($processes)) {
+            return $processes;
+        }
+
         $processes = [
             'replace' => false,
             'order_values' => false,
@@ -195,9 +338,13 @@ class Module extends AbstractModule
             'merge' => false,
             'convert' => false,
             'media_html' => false,
+            'trim_values' => false,
+            'deduplicate_values' => false,
         ];
 
-        $bulkedit = $request->getValue('bulkedit');
+        if (empty($bulkedit)) {
+            return $processes;
+        }
 
         $params = isset($bulkedit['replace']) ? $bulkedit['replace'] : [];
         if (!empty($params['properties'])) {
@@ -330,6 +477,11 @@ class Module extends AbstractModule
             ];
         }
 
+        if (!$this->checkOldModuleNext()) {
+            $processes['trim_values'] = !empty($bulkedit['cleaning']['trim_values']);
+            $processes['deduplicate_values'] = !empty($bulkedit['cleaning']['deduplicate_values']);
+        }
+
         $this->getServiceLocator()->get('Omeka\Logger')->info(new Message(
             "Cleaned params used for bulk edit:\n%s", // @translate
             json_encode($processes,
@@ -339,137 +491,7 @@ class Module extends AbstractModule
             )
         ));
 
-        $this->updateValues($adapter, $ids, $processes);
-
-        if ($this->checkOldModuleNext()) {
-            return;
-        }
-
-        $params = isset($bulkedit['cleaning']) ? $bulkedit['cleaning'] : [];
-        if (!empty($params['trim_values'])) {
-            /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
-            $trimValues = $plugins->get('trimValues');
-            $ids = (array) $request->getIds();
-            $trimValues($ids);
-        }
-        if (!empty($params['deduplicate_values'])) {
-            /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
-            $deduplicateValues = $plugins->get('deduplicateValues');
-            $ids = (array) $request->getIds();
-            $deduplicateValues($ids);
-        }
-    }
-
-    public function formAddElementsResourceBatchUpdateForm(Event $event)
-    {
-        /** @var \Omeka\Form\ResourceBatchUpdateForm $form */
-        $form = $event->getTarget();
-        $options = [
-            'listDataTypesForSelect' => $this->listDataTypesForSelect(),
-            'hasOldModuleNext' => $this->checkOldModuleNext(),
-        ];
-        $fieldset = $this->getServiceLocator()->get('FormElementManager')
-            ->get(BulkEditFieldset::class, $options);
-        $form->add($fieldset);
-    }
-
-    public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
-    {
-        /** @var \Zend\InputFilter\InputFilterInterface $inputFilter */
-        $inputFilter = $event->getParam('inputFilter');
-        $inputFilter = $inputFilter->get('bulkedit');
-        $inputFilter->get('replace')
-            ->add([
-                'name' => 'mode',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'remove',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'language_clear',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'properties',
-                'required' => false,
-            ]);
-        $inputFilter->get('order_values')
-            ->add([
-                'name' => 'properties',
-                'required' => false,
-            ]);
-        $inputFilter->get('properties_visibility')
-            ->add([
-                'name' => 'visibility',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'properties',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'datatypes',
-                'required' => false,
-            ]);
-        $inputFilter->get('displace')
-            ->add([
-                'name' => 'from',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'to',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'datatypes',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'visibility',
-                'required' => false,
-            ]);
-        $inputFilter->get('explode')
-            ->add([
-                'name' => 'properties',
-                'required' => false,
-            ]);
-        $inputFilter->get('merge')
-            ->add([
-                'name' => 'properties',
-                'required' => false,
-            ]);
-        $inputFilter->get('convert')
-            ->add([
-                'name' => 'from',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'to',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'properties',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'literal_value',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'resource_properties',
-                'required' => false,
-            ]);
-        $inputFilter->get('media_html')
-            ->add([
-                'name' => 'mode',
-                'required' => false,
-            ])
-            ->add([
-                'name' => 'remove',
-                'required' => false,
-            ]);
+        return $processes;
     }
 
     protected function updateValues(
@@ -477,12 +499,9 @@ class Module extends AbstractModule
         array $resourceIds,
         array $processes
     ) {
-        $processes = array_filter($processes);
-        if (!$processes) {
-            return;
-        }
-
-        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $services = $this->getServiceLocator();
+        $plugins = $services->get('ControllerPluginManager');
+        $api = $plugins->get('api');
         $resourceType = $adapter->getResourceName();
 
         foreach ($resourceIds as $resourceId) {
@@ -519,17 +538,42 @@ class Module extends AbstractModule
                     case 'convert':
                         $this->convertDatatypeForResource($resource, $data, $toUpdate, $params);
                         break;
+                    default:
+                        continue 2;
                 }
             }
 
             if ($toUpdate) {
-                $api->update($resourceType, $resourceId, $data, [], ['responseContent' => 'resource']);
+                $api->update($resourceType, (int) $resourceId, $data, [], [
+                    'responseContent' => 'resource',
+                    'initialize' => true,
+                    'finalize' => true,
+                    'flushEntityManager' => false,
+                ]);
             }
         }
 
         // This process is specific, because not for current resources.
-        if ($processes['media_html']) {
+        if (!empty($processes['media_html'])) {
             $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
+        }
+
+        // This is a post batch update, so the entity manager should be flushed.
+        /** @var \Doctrine\ORM\EntityManager $entityManager */
+        $entityManager = $services->get('Omeka\EntityManager');
+        $entityManager->flush();
+        $entityManager->clear();
+
+        // These processes are specific, because they use a direct sql.
+        if (!empty($processes['trim_values'])) {
+            /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
+            $trimValues = $plugins->get('trimValues');
+            $trimValues($resourceIds);
+        }
+        if (!empty($params['deduplicate_values'])) {
+            /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
+            $deduplicateValues = $plugins->get('deduplicateValues');
+            $deduplicateValues($resourceIds);
         }
     }
 

@@ -1,9 +1,9 @@
 <?php
 namespace BulkEdit\Form;
 
+use Omeka\Form\Element\PropertySelect;
 use Zend\Form\Element;
 use Zend\Form\Fieldset;
-use Omeka\Form\Element\PropertySelect;
 
 class BulkEditFieldset extends Fieldset
 {
@@ -576,8 +576,10 @@ class BulkEditFieldset extends Fieldset
                 'type' => Element\Select::class,
                 'options' => [
                     'label' => 'From datatype', // @translate
+                    'info' => 'Some combinations are not managed.', // @translate
                     'value_options' => [
                         'literal' => 'Literal', // @translate
+                        'resource' => 'Resource', // @translate
                         'uri' => 'Uri', // @translate
                     ],
                     'empty_option' => '',
@@ -599,6 +601,7 @@ class BulkEditFieldset extends Fieldset
                     'info' => 'Warning: When converted to uri, the format is not checked.', // @translate
                     'value_options' => [
                         'literal' => 'Literal', // @translate
+                        'resource' => 'Resource', // @translate
                         'uri' => 'Uri', // @translate
                     ],
                     'empty_option' => '',

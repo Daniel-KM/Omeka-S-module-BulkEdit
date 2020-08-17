@@ -12,6 +12,7 @@ use Generic\AbstractModule;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
+use Omeka\Stdlib\Message;
 use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
 
@@ -1092,6 +1093,7 @@ class Module extends AbstractModule
     ) {
         static $settings;
         if (is_null($settings)) {
+            $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
             $fromDatatype = $params['from'];
             $toDatatype = $params['to'];
             $properties = $params['properties'];
@@ -1099,6 +1101,7 @@ class Module extends AbstractModule
             $uriLabel = mb_strlen($params['uri_label']) ? $params['uri_label'] : null;
 
             $settings = $params;
+            $settings['api'] = $api;
             $settings['fromDatatype'] = $fromDatatype;
             $settings['toDatatype'] = $toDatatype;
             $settings['properties'] = $properties;
@@ -1109,8 +1112,8 @@ class Module extends AbstractModule
         }
 
         if (($fromDatatype === $toDatatype)
-            || !in_array($fromDatatype, ['literal', 'uri'])
-            || !in_array($toDatatype, ['literal', 'uri'])
+            || !in_array($fromDatatype, ['literal', 'resource', 'uri'])
+            || !in_array($toDatatype, ['literal', 'resource', 'uri'])
         ) {
             return;
         }
@@ -1134,6 +1137,25 @@ class Module extends AbstractModule
                     case 'literal => uri':
                         $value = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel];
                         break;
+
+                    case 'resource => literal':
+                        if (isset($value['display_title']) && strlen($value['display_title'])) {
+                            $label = $value['display_title'];
+                        } else {
+                            $label = $api->searchOne($value['value_resource_id'])->getContent();
+                            if (!$label) {
+                                continue 2;
+                            }
+                            $label = $label->displayTitle();
+                        }
+                        $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
+                        break;
+
+                    case 'resource => uri':
+                        $this->getServiceLocator()->get('Omeka\Logger')->warn(new Message(
+                            'Conversion from data type "%s" to "%s" is not managed.', // @translate
+                                'resource', 'uri'));
+                        return;
 
                     case 'uri => literal':
                         $currentUri = &$value['@id'];

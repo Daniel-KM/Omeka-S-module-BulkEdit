@@ -63,26 +63,26 @@ class TrimValues extends AbstractPlugin
         ) {
             // The pattern is a full unicode one.
             $query = <<<'SQL'
-UPDATE value v
+UPDATE `value` AS `v`
 SET
-v.value = NULLIF(REGEXP_REPLACE(v.value, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
-v.lang = NULLIF(REGEXP_REPLACE(v.lang, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
-v.uri = NULLIF(REGEXP_REPLACE(v.uri, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), "")
+`v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
+`v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
+`v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), "")
 SQL;
         } else {
             // The pattern uses a simple trim.
             $query = <<<'SQL'
-UPDATE value v
+UPDATE `value` AS `v`
 SET
-v.value = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM v.value))))), ""),
-v.lang = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM v.lang))))), ""),
-v.uri = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM v.uri))))), "")
+`v`.`value` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`value`))))), ""),
+`v`.`lang` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`lang`))))), ""),
+`v`.`uri` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`uri`))))), "")
 SQL;
         }
 
         if ($idsString) {
             $query .= "\n" . <<<SQL
-WHERE v.resource_id IN ($idsString)
+WHERE `v`.`resource_id` IN ($idsString)
 SQL;
         }
 
@@ -91,14 +91,14 @@ SQL;
 
         // Remove empty values, even if there is a language.
         $query = <<<'SQL'
-DELETE FROM value
-WHERE value_resource_id IS NULL
-AND value IS NULL
-AND uri IS NULL
+DELETE FROM `value`
+WHERE `value_resource_id` IS NULL
+AND `value` IS NULL
+AND `uri` IS NULL
 SQL;
         if ($idsString) {
             $query .= "\n" . <<<SQL
-AND resource_id IN ($idsString)
+AND `resource_id` IN ($idsString)
 SQL;
         }
         $deleted = $connection->exec($query);

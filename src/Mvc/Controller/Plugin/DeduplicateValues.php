@@ -61,17 +61,17 @@ class DeduplicateValues extends AbstractPlugin
     protected function prepareQuery()
     {
         return <<<'SQL'
-DROP TABLE IF EXISTS value_temporary;
-CREATE TEMPORARY TABLE value_temporary (id INT, PRIMARY KEY (id))
+DROP TABLE IF EXISTS `value_temporary`;
+CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
 AS
-    SELECT id
-    FROM value
-    GROUP BY resource_id, property_id, value_resource_id, type, lang, value, uri, is_public;
-DELETE v FROM value v
-LEFT JOIN value_temporary value_temporary
-    ON value_temporary.id = v.id
-WHERE value_temporary.id IS NULL;
-DROP TABLE IF EXISTS value_temporary;
+    SELECT `id`
+    FROM `value`
+    GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
+DELETE `v` FROM `value` AS `v`
+LEFT JOIN `value_temporary` AS `value_temporary`
+    ON `value_temporary`.`id` = `v`.`id`
+WHERE `value_temporary`.`id` IS NULL;
+DROP TABLE IF EXISTS `value_temporary`;
 SQL;
     }
 
@@ -79,18 +79,18 @@ SQL;
     {
         $idsString = implode(',', $resourceIds);
         return <<<SQL
-CREATE TEMPORARY TABLE value_temporary (id INT, PRIMARY KEY (id))
+CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
 AS
-    SELECT id
-    FROM value
-    WHERE resource_id IN ($idsString)
-    GROUP BY resource_id, property_id, value_resource_id, type, lang, value, uri, is_public;
-DELETE v FROM value v
-    LEFT JOIN value_temporary value_temporary
-    ON value_temporary.id = v.id
-WHERE resource_id IN ($idsString)
-    AND value_temporary.id IS NULL;
-DROP TABLE IF EXISTS value_temporary;
+    SELECT `id`
+    FROM `value`
+    WHERE `resource_id` IN ($idsString)
+    GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type``, `lang`, `value`, `uri`, `is_public`;
+DELETE `v` FROM `value` AS `v`
+    LEFT JOIN `value_temporary` AS `value_temporary`
+    ON `value_temporary`.`id` = `v`.`id`
+WHERE `resource_id` IN ($idsString)
+    AND `value_temporary`.`id` IS NULL;
+DROP TABLE IF EXISTS `value_temporary`;
 SQL;
     }
 }

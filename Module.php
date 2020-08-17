@@ -301,6 +301,7 @@ class Module extends AbstractModule
                     'to' => $to,
                     'properties' => $params['properties'],
                     'literal_value' => $params['literal_value'],
+                    'resource_properties' => $params['resource_properties'],
                     'uri_label' => $params['uri_label'],
                 ];
             }
@@ -446,6 +447,10 @@ class Module extends AbstractModule
             ])
             ->add([
                 'name' => 'literal_value',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'resource_properties',
                 'required' => false,
             ]);
         $inputFilter->get('media_html')
@@ -1093,19 +1098,24 @@ class Module extends AbstractModule
     ) {
         static $settings;
         if (is_null($settings)) {
-            $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+            $plugins = $this->getServiceLocator()->get('ControllerPluginManager');
+            $api = $plugins->get('api');
+            $findResourcesFromIdentifiers = $plugins->has('findResourcesFromIdentifiers') ? $plugins->get('findResourcesFromIdentifiers') : null;
             $fromDatatype = $params['from'];
             $toDatatype = $params['to'];
             $properties = $params['properties'];
             $literalValue = $params['literal_value'];
+            $resourceProperties = $params['resource_properties'];
             $uriLabel = mb_strlen($params['uri_label']) ? $params['uri_label'] : null;
 
             $settings = $params;
             $settings['api'] = $api;
+            $settings['findResourcesFromIdentifiers'] = $findResourcesFromIdentifiers;
             $settings['fromDatatype'] = $fromDatatype;
             $settings['toDatatype'] = $toDatatype;
             $settings['properties'] = $properties;
             $settings['literalValue'] = $literalValue;
+            $settings['resourceProperties'] = $resourceProperties;
             $settings['uriLabel'] = $uriLabel;
         } else {
             extract($settings);
@@ -1124,9 +1134,23 @@ class Module extends AbstractModule
             return;
         }
 
-        $toUpdate = true;
-
         $fromTo = $fromDatatype . ' => ' . $toDatatype;
+        if ($fromTo === 'literal => resource') {
+            if (!$findResourcesFromIdentifiers) {
+                $this->getServiceLocator()->get('Omeka\Logger')->warn(new Message(
+                    'Conversion from data type "%s" to "%s" requires the module Bulk Import.', // @translate
+                    'literal', 'resource'));
+                return;
+            }
+            if (empty($resourceProperties)) {
+                $this->getServiceLocator()->get('Omeka\Logger')->warn(new Message(
+                    'To convert into the data type "resource", the properties where to find the identifier should be set.' // @translate
+                ));
+                return;
+            }
+        }
+
+        $toUpdate = true;
 
         foreach ($properties as $property) {
             foreach ($data[$property] as $key => $value) {
@@ -1134,6 +1158,14 @@ class Module extends AbstractModule
                     continue;
                 }
                 switch ($fromTo) {
+                    case 'literal => resource':
+                        $valueResourceId = $findResourcesFromIdentifiers($value['@value'], $resourceProperties);
+                        if (!$valueResourceId) {
+                            continue 2;
+                        }
+                        $value = ['property_id' => $value['property_id'], 'type' => 'resource', '@language' => null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
+                        break;
+
                     case 'literal => uri':
                         $value = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel];
                         break;
@@ -1180,6 +1212,12 @@ class Module extends AbstractModule
                                 break;
                         }
                         break;
+
+                    case 'uri => resource':
+                        $this->getServiceLocator()->get('Omeka\Logger')->warn(new Message(
+                            'Conversion from data type "%s" to "%s" is not managed.', // @translate
+                                'uri', 'resource'));
+                        return;
                 }
                 $data[$property][$key] = $value;
             }

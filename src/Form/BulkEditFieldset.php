@@ -635,7 +635,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'literal_value',
                 'type' => Element\Select::class,
                 'options' => [
-                    'label' => 'Convert to literal', // @translate
+                    'label' => 'Convert to literal: Content', // @translate
                     'value_options' => [
                         'label_uri' => 'Label and uri', // @translate
                         'uri_label' => 'Uri and label', // @translate
@@ -649,6 +649,25 @@ class BulkEditFieldset extends Fieldset
                     'class' => 'chosen-select',
                     'multiple' => false,
                     'data-placeholder' => 'Select option', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'resource_properties',
+                'type' => PropertySelect::class,
+                'options' => [
+                    'label' => 'Convert to resource: Properties where to search the identifier', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'o:id' => 'Omeka internal id', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'convert_resource_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

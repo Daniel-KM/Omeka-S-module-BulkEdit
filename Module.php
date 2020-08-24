@@ -242,6 +242,38 @@ class Module extends AbstractModule
         }
         unset($values);
 
+        // Specifying.
+        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        $resourceNameToTypes = [
+            'items' => 'resource:item',
+            'media' => 'resource:media',
+            'item_sets' => 'resource:itemset',
+            'annotations' => 'resource:annotation',
+        ];
+        foreach ($data as $term => &$values) {
+            // Process properties only.
+            if (mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
+                continue;
+            }
+            $first = reset($values);
+            if (empty($first['property_id'])) {
+                continue;
+            }
+            foreach ($values as &$value) {
+                if ($value['type'] === 'resource' || strpos($value['type'], 'resource') === 0) {
+                    try {
+                        $linkedResource = $api->read('resources', ['id' => $value['value_resource_id']], ['initialize' => false, 'finalize' => false])->getContent();
+                        $linkedResourceName = $linkedResource->resourceName();
+                        if (isset($resourceNameToTypes[$linkedResourceName])) {
+                            $value['type'] = $resourceNameToTypes[$linkedResourceName];
+                        }
+                    } catch (\Exception $e) {
+                    }
+                }
+            }
+        }
+        unset($values);
+
         // Deduplicating.
         foreach ($data as $term => &$values) {
             // Process properties only.

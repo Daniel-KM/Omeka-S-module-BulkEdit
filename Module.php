@@ -1297,11 +1297,11 @@ class Module extends AbstractModule
                         $currentLabel = &$value['o:label'];
                         switch ($literalValue) {
                             case 'label_uri':
-                                $label = strlen($currentLabel) ? $currentLabel. ' (' . $currentUri .')' : $currentUri;
+                                $label = strlen($currentLabel) ? $currentLabel . ' (' . $currentUri . ')' : $currentUri;
                                 $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri_label':
-                                $label = strlen($currentLabel) ? $currentUri . ' (' . $currentLabel  .')' : $currentUri;
+                                $label = strlen($currentLabel) ? $currentUri . ' (' . $currentLabel . ')' : $currentUri;
                                 $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri':

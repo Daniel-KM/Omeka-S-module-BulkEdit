@@ -47,15 +47,14 @@ class DeduplicateValues extends AbstractPlugin
 
         // For large base, a temporary table is prefered to speed process.
         $connection = $this->entityManager->getConnection();
-        $logger = $this->logger;
 
         $query = is_null($resourceIds)
             ? $this->prepareQuery()
             : $this->prepareQueryForResourceIds($resourceIds);
 
-        $deduplicated = $connection->exec($query);
-        $logger->info(sprintf('Deduplicated %d values.', $deduplicated));
-        return $deduplicated;
+        $processed = $connection->exec($query);
+        $this->logger->info(sprintf('Deduplicated %d values.', $processed));
+        return $processed;
     }
 
     protected function prepareQuery()

@@ -22,7 +22,7 @@ var bulkeditFieldsets = [
     'media_html',
 ];
 
-$('#cleaning_trim, #cleaning_deduplicate').closest('.field')
+$('#cleaning_trim, #cleaning_datatypes, #cleaning_deduplicate').closest('.field')
     .wrapAll('<fieldset id="cleaning" class="field-container">');
 $('#cleaning')
     .prepend('<legend>' + Omeka.jsTranslate('Cleaning') + '</legend>');

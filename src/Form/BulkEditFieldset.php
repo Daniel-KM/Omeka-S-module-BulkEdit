@@ -838,6 +838,19 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'specify_datatypes',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Specify data type "resource" for linked resources', // @translate
+                    'info' => 'In some cases, linked resources are saved in the database with the generic data type "resource", not with the specific "resource:item", "resource:media, etc.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_datatypes',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'deduplicate_values',
                 'type' => Element\Checkbox::class,
                 'options' => [

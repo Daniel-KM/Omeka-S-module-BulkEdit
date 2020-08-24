@@ -339,6 +339,7 @@ class Module extends AbstractModule
             'convert' => false,
             'media_html' => false,
             'trim_values' => false,
+            'specify_datatypes' => false,
             'deduplicate_values' => false,
         ];
 
@@ -479,6 +480,7 @@ class Module extends AbstractModule
 
         if (!$this->checkOldModuleNext()) {
             $processes['trim_values'] = !empty($bulkedit['cleaning']['trim_values']);
+            $processes['specify_datatypes'] = !empty($bulkedit['cleaning']['specify_datatypes']);
             $processes['deduplicate_values'] = !empty($bulkedit['cleaning']['deduplicate_values']);
         }
 
@@ -569,6 +571,11 @@ class Module extends AbstractModule
             /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
             $trimValues = $plugins->get('trimValues');
             $trimValues($resourceIds);
+        }
+        if (!empty($processes['specify_datatypes'])) {
+            /** @var \BulkEdit\Mvc\Controller\Plugin\SpecifyDatatypes $specifyDatatypes */
+            $specifyDatatypes = $plugins->get('specifyDatatypes');
+            $specifyDatatypes($resourceIds);
         }
         if (!empty($processes['deduplicate_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */

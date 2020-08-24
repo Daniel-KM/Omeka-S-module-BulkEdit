@@ -49,7 +49,6 @@ class TrimValues extends AbstractPlugin
         // The entity manager can not be used directly, because it doesn't
         // manage regex.
         $connection = $this->entityManager->getConnection();
-        $logger = $this->logger;
 
         $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);
 
@@ -86,8 +85,8 @@ WHERE `v`.`resource_id` IN ($idsString)
 SQL;
         }
 
-        $trimmed = $connection->exec($query);
-        $logger->info(sprintf('Trimmed %d values.', $trimmed));
+        $processed = $connection->exec($query);
+        $this->logger->info(sprintf('Trimmed %d values.', $processed));
 
         // Remove empty values, even if there is a language.
         $query = <<<'SQL'
@@ -102,9 +101,9 @@ AND `resource_id` IN ($idsString)
 SQL;
         }
         $deleted = $connection->exec($query);
-        $logger->info(sprintf('Removed %d empty string values after trimming.', $deleted));
+        $this->logger->info(sprintf('Removed %d empty string values after trimming.', $deleted));
 
-        return $trimmed;
+        return $processed;
     }
 
     /**

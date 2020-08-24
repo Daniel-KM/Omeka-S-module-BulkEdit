@@ -851,6 +851,18 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'clean_languages',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Clean languages (set null when language is empty)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_languages',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'deduplicate_values',
                 'type' => Element\Checkbox::class,
                 'options' => [

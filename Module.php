@@ -372,6 +372,7 @@ class Module extends AbstractModule
             'media_html' => false,
             'trim_values' => false,
             'specify_datatypes' => false,
+            'clean_languages' => false,
             'deduplicate_values' => false,
         ];
 
@@ -513,6 +514,7 @@ class Module extends AbstractModule
         if (!$this->checkOldModuleNext()) {
             $processes['trim_values'] = !empty($bulkedit['cleaning']['trim_values']);
             $processes['specify_datatypes'] = !empty($bulkedit['cleaning']['specify_datatypes']);
+            $processes['clean_languages'] = !empty($bulkedit['cleaning']['clean_languages']);
             $processes['deduplicate_values'] = !empty($bulkedit['cleaning']['deduplicate_values']);
         }
 
@@ -608,6 +610,11 @@ class Module extends AbstractModule
             /** @var \BulkEdit\Mvc\Controller\Plugin\SpecifyDatatypes $specifyDatatypes */
             $specifyDatatypes = $plugins->get('specifyDatatypes');
             $specifyDatatypes($resourceIds);
+        }
+        if (!empty($processes['clean_languages'])) {
+            /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguages $cleanLanguages */
+            $cleanLanguages = $plugins->get('cleanLanguages');
+            $cleanLanguages($resourceIds);
         }
         if (!empty($processes['deduplicate_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */

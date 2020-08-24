@@ -9,6 +9,7 @@ return [
     ],
     'controller_plugins' => [
         'factories' => [
+            'cleanLanguages' => Service\ControllerPlugin\CleanLanguagesFactory::class,
             'deduplicateValues' => Service\ControllerPlugin\DeduplicateValuesFactory::class,
             'specifyDatatypes' => Service\ControllerPlugin\SpecifyDatatypesFactory::class,
             'trimValues' => Service\ControllerPlugin\TrimValuesFactory::class,

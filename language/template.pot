@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-10 00:00+0000\n"
+"POT-Creation-Date: 2020-08-24 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,31 +34,31 @@ msgid ""
 "unavailable."
 msgstr ""
 
-#: Module.php:486
+#: Module.php:522
 #, php-format
 msgid ""
 "Cleaned params used for bulk edit:\n"
 "%s"
 msgstr ""
 
-#: Module.php:1197
+#: Module.php:1244
 #, php-format
 msgid ""
 "Conversion from data type \"%s\" to \"%s\" requires the module Bulk Import."
 msgstr ""
 
-#: Module.php:1203
+#: Module.php:1250
 msgid ""
 "To convert into the data type \"resource\", the properties where to find the "
 "identifier should be set."
 msgstr ""
 
-#: Module.php:1244 Module.php:1274
+#: Module.php:1291 Module.php:1321
 #, php-format
 msgid "Conversion from data type \"%s\" to \"%s\" is not managed."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:40 config/module.config.php:35
+#: src/Form/BulkEditFieldset.php:40 config/module.config.php:37
 msgid "Replace literal values"
 msgstr ""
 
@@ -160,7 +160,7 @@ msgstr ""
 msgid "Only containing"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:355 config/module.config.php:31
+#: src/Form/BulkEditFieldset.php:355 config/module.config.php:33
 msgid "Displace values"
 msgstr ""
 
@@ -180,7 +180,7 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:472 config/module.config.php:32
+#: src/Form/BulkEditFieldset.php:472 config/module.config.php:34
 msgid "Explode values"
 msgstr ""
 
@@ -198,7 +198,7 @@ msgid ""
 "number of values must be even and clean."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:577 config/module.config.php:30
+#: src/Form/BulkEditFieldset.php:577 config/module.config.php:32
 msgid "Convert datatype"
 msgstr ""
 
@@ -270,11 +270,11 @@ msgstr ""
 msgid "Convert to uri: Label of uri"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:716 config/module.config.php:33
+#: src/Form/BulkEditFieldset.php:716 config/module.config.php:35
 msgid "Media HTML"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:817 config/module.config.php:29
+#: src/Form/BulkEditFieldset.php:817 config/module.config.php:31
 msgid "Cleaning"
 msgstr ""
 
@@ -287,29 +287,44 @@ msgid "Remove initial and trailing whitespace of all values of all properties"
 msgstr ""
 
 #: src/Form/BulkEditFieldset.php:844
-msgid "Deduplicate property values case insensitively"
+msgid "Specify data type \"resource\" for linked resources"
 msgstr ""
 
 #: src/Form/BulkEditFieldset.php:845
+msgid ""
+"In some cases, linked resources are saved in the database with the generic "
+"data type \"resource\", not with the specific \"resource:item\", \"resource:"
+"media, etc."
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:857
+msgid "Clean languages (set null when language is empty)"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:869
+msgid "Deduplicate property values case insensitively"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:870
 msgid ""
 "Deduplicate values of all properties, case INsensitively. Trimming values "
 "before is recommended, because values are checked strictly."
 msgstr ""
 
-#: config/module.config.php:27
+#: config/module.config.php:29
 msgid "Advanced bulk edit"
 msgstr ""
 
-#: config/module.config.php:28
+#: config/module.config.php:30
 msgid ""
 "It’s not recommended to process Displace, Explode, or Convert at the same "
 "time."
 msgstr ""
 
-#: config/module.config.php:34
+#: config/module.config.php:36
 msgid "Order values"
 msgstr ""
 
-#: config/module.config.php:36
+#: config/module.config.php:38
 msgid "Visibility of values"
 msgstr ""

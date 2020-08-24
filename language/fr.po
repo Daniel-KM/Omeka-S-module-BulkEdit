@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-10 00:00+0000\n"
-"PO-Revision-Date: 2020-08-10 00:00+0000\n"
+"POT-Creation-Date: 2020-08-24 00:00+0000\n"
+"PO-Revision-Date: 2020-08-24 00:00+0000\n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -36,7 +36,7 @@ msgstr ""
 "Le module « %s » a été automatiquement désactivé car ses dépendances ne sont "
 "plus disponibles."
 
-#: Module.php:486
+#: Module.php:522
 #, php-format
 msgid ""
 "Cleaned params used for bulk edit:\n"
@@ -45,7 +45,7 @@ msgstr ""
 "Paramètres utilisés pour le traitement avancé :\n"
 "%s"
 
-#: Module.php:1197
+#: Module.php:1244
 #, php-format
 msgid ""
 "Conversion from data type \"%s\" to \"%s\" requires the module Bulk Import."
@@ -53,7 +53,7 @@ msgstr ""
 "La conversion du type de données \"%s\" en \"%s\" nécessite le module Bulk "
 "Import."
 
-#: Module.php:1203
+#: Module.php:1250
 msgid ""
 "To convert into the data type \"resource\", the properties where to find the "
 "identifier should be set."
@@ -61,12 +61,12 @@ msgstr ""
 "Pour convertir vers le type de données \"ressource\", il convient de définir "
 "les propriétés dans lesquelles trouver l’identifiant."
 
-#: Module.php:1244 Module.php:1274
+#: Module.php:1291 Module.php:1321
 #, php-format
 msgid "Conversion from data type \"%s\" to \"%s\" is not managed."
 msgstr "La conversion du type de données \"%s\" en \"%s\" n’est pas gérée."
 
-#: src/Form/BulkEditFieldset.php:40 config/module.config.php:35
+#: src/Form/BulkEditFieldset.php:40 config/module.config.php:37
 msgid "Replace literal values"
 msgstr "Remplacer des valeurs textuelles"
 
@@ -168,7 +168,7 @@ msgstr "Seulement les langues"
 msgid "Only containing"
 msgstr "Seulement contenant"
 
-#: src/Form/BulkEditFieldset.php:355 config/module.config.php:31
+#: src/Form/BulkEditFieldset.php:355 config/module.config.php:33
 msgid "Displace values"
 msgstr "Déplacer des valeurs"
 
@@ -188,7 +188,7 @@ msgstr "Seulement la visibilité"
 msgid "Any"
 msgstr "Tous"
 
-#: src/Form/BulkEditFieldset.php:472 config/module.config.php:32
+#: src/Form/BulkEditFieldset.php:472 config/module.config.php:34
 msgid "Explode values"
 msgstr "Éclater des valeurs"
 
@@ -208,7 +208,7 @@ msgstr ""
 "Les valeurs sont fusionnées deux par deux, quelque soit l’ordre et le type "
 "de données. Le nombre de données doit être pair."
 
-#: src/Form/BulkEditFieldset.php:577 config/module.config.php:30
+#: src/Form/BulkEditFieldset.php:577 config/module.config.php:32
 msgid "Convert datatype"
 msgstr "Conversion du type de données"
 
@@ -281,11 +281,11 @@ msgstr "Id interne d’Omeka"
 msgid "Convert to uri: Label of uri"
 msgstr "Conversion en uri : libellé de l’uri"
 
-#: src/Form/BulkEditFieldset.php:716 config/module.config.php:33
+#: src/Form/BulkEditFieldset.php:716 config/module.config.php:35
 msgid "Media HTML"
 msgstr "Média HTML"
 
-#: src/Form/BulkEditFieldset.php:817 config/module.config.php:29
+#: src/Form/BulkEditFieldset.php:817 config/module.config.php:31
 msgid "Cleaning"
 msgstr "Nettoyage"
 
@@ -300,10 +300,28 @@ msgstr ""
 "les propriétés"
 
 #: src/Form/BulkEditFieldset.php:844
+msgid "Specify data type \"resource\" for linked resources"
+msgstr "Préciser le type de données \"resource\" pour les ressources liées"
+
+#: src/Form/BulkEditFieldset.php:845
+msgid ""
+"In some cases, linked resources are saved in the database with the generic "
+"data type \"resource\", not with the specific \"resource:item\", \"resource:"
+"media, etc."
+msgstr ""
+"Dans certains cas, les ressources liées sont enregistrées dans la base avec "
+"le type de données générique \"resource\" et non avec le type spécifique "
+"\"resource:item\", resource:media\", etc."
+
+#: src/Form/BulkEditFieldset.php:857
+msgid "Clean languages (set null when language is empty)"
+msgstr "Nettoyer la langue (indiquer nul quand la langue est vide)"
+
+#: src/Form/BulkEditFieldset.php:869
 msgid "Deduplicate property values case insensitively"
 msgstr "Dédoublonner les valeurs des propriétés sans tenir compte de la casse"
 
-#: src/Form/BulkEditFieldset.php:845
+#: src/Form/BulkEditFieldset.php:870
 msgid ""
 "Deduplicate values of all properties, case INsensitively. Trimming values "
 "before is recommended, because values are checked strictly."
@@ -311,11 +329,11 @@ msgstr ""
 "Dédoublonner les valeurs de toutes les propriétés, sans tenir compte de la "
 "casse. Il est recommandé de nettoyer les espaces auparavant."
 
-#: config/module.config.php:27
+#: config/module.config.php:29
 msgid "Advanced bulk edit"
 msgstr "Traitement en lot avancé"
 
-#: config/module.config.php:28
+#: config/module.config.php:30
 msgid ""
 "It’s not recommended to process Displace, Explode, or Convert at the same "
 "time."
@@ -323,10 +341,10 @@ msgstr ""
 "Il n’est pas recommandé d’utiliser Déplacer, Éclater ou Convertir en même "
 "temps."
 
-#: config/module.config.php:34
+#: config/module.config.php:36
 msgid "Order values"
 msgstr "Trier les valeurs"
 
-#: config/module.config.php:36
+#: config/module.config.php:38
 msgid "Visibility of values"
 msgstr "Visibilité des valeurs"

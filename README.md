@@ -52,6 +52,14 @@ when possible (with mysql ≥ 8.0.4 or mariadb ≥ 10.0.5). There is no differen
 in most of the cases, except when there are multiple whitespace mixed (space,
 tabulation, new line, end of line, etc.).
 
+### Specify data type of linked resources
+
+In some cases, in particular when using resource templates with data type "resource",
+linked resources are saved in the database with the generic data type "resource",
+not with the specific "resourc:item", "resource:media, etc.
+This process is needed to clarify output of the facets with module [Search],
+lists from the module [Reference], and in some other places.
+
 ### Deduplicate property values
 
 Remove exact duplicated values on any new or updated resource preventively.
@@ -180,7 +188,7 @@ of the CeCILL license and that you accept its terms.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2018-2019 (see [Daniel-KM])
+* Copyright Daniel Berthereau, 2018-2020 (see [Daniel-KM])
 
 First developed for the [Archives Henri Poincaré] of [Université de Lorraine].
 
@@ -190,6 +198,8 @@ First developed for the [Archives Henri Poincaré] of [Université de Lorraine].
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [Advanced Search Plus]: https://github.com/Daniel-KM/Omeka-S-module-AdvancedSearchPlus
 [#1258]: https://github.com/omeka/omeka-s/issues/1258
+[Search]: https://github.com/Daniel-KM/Omeka-S-module-Search
+[Reference]: https://github.com/Daniel-KM/Omeka-S-module-Reference
 [module issues]: https://github.com/Daniel-KM/Omeka-S-module-BulkEdit/issues
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html

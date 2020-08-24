@@ -570,7 +570,7 @@ class Module extends AbstractModule
             $trimValues = $plugins->get('trimValues');
             $trimValues($resourceIds);
         }
-        if (!empty($params['deduplicate_values'])) {
+        if (!empty($processes['deduplicate_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
             $deduplicateValues = $plugins->get('deduplicateValues');
             $deduplicateValues($resourceIds);

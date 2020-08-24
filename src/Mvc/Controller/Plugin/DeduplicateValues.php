@@ -84,7 +84,7 @@ AS
     SELECT `id`
     FROM `value`
     WHERE `resource_id` IN ($idsString)
-    GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type``, `lang`, `value`, `uri`, `is_public`;
+    GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
 DELETE `v` FROM `value` AS `v`
     LEFT JOIN `value_temporary` AS `value_temporary`
     ON `value_temporary`.`id` = `v`.`id`

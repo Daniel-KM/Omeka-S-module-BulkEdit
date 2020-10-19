@@ -3,7 +3,7 @@ namespace BulkEdit\Service\ControllerPlugin;
 
 use BulkEdit\Mvc\Controller\Plugin\CleanLanguages;
 use Interop\Container\ContainerInterface;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class CleanLanguagesFactory implements FactoryInterface
 {

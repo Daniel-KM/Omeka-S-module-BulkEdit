@@ -3,7 +3,7 @@ namespace BulkEdit\Service\ControllerPlugin;
 
 use BulkEdit\Mvc\Controller\Plugin\SpecifyDatatypes;
 use Interop\Container\ContainerInterface;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class SpecifyDatatypesFactory implements FactoryInterface
 {

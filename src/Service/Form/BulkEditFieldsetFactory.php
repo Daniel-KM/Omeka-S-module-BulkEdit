@@ -3,7 +3,7 @@ namespace BulkEdit\Service\Form;
 
 use BulkEdit\Form\BulkEditFieldset;
 use Interop\Container\ContainerInterface;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 
 /**
  * Service factory to get the BulkEditFieldset.

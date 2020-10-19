@@ -13,8 +13,8 @@ use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Stdlib\Message;
-use Zend\EventManager\Event;
-use Zend\EventManager\SharedEventManagerInterface;
+use Laminas\EventManager\Event;
+use Laminas\EventManager\SharedEventManagerInterface;
 
 /**
  * BulkEdit
@@ -91,7 +91,7 @@ class Module extends AbstractModule
 
     public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
     {
-        /** @var \Zend\InputFilter\InputFilterInterface $inputFilter */
+        /** @var \Laminas\InputFilter\InputFilterInterface $inputFilter */
         $inputFilter = $event->getParam('inputFilter');
         $inputFilter = $inputFilter->get('bulkedit');
         $inputFilter->get('replace')

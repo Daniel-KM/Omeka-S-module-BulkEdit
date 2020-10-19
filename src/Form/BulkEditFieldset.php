@@ -1,13 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 namespace BulkEdit\Form;
 
-use Omeka\Form\Element\PropertySelect;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
+use Omeka\Form\Element\PropertySelect;
 
 class BulkEditFieldset extends Fieldset
 {
-    public function init()
+    public function init(): void
     {
         $this
             ->setName('bulkedit')

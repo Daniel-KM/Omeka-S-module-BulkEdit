@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace BulkEdit;
 
 if (!class_exists(\Generic\AbstractModule::class)) {
@@ -9,12 +9,12 @@ if (!class_exists(\Generic\AbstractModule::class)) {
 
 use BulkEdit\Form\BulkEditFieldset;
 use Generic\AbstractModule;
+use Laminas\EventManager\Event;
+use Laminas\EventManager\SharedEventManagerInterface;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Stdlib\Message;
-use Laminas\EventManager\Event;
-use Laminas\EventManager\SharedEventManagerInterface;
 
 /**
  * BulkEdit
@@ -28,7 +28,7 @@ class Module extends AbstractModule
 {
     const NAMESPACE = __NAMESPACE__;
 
-    public function attachListeners(SharedEventManagerInterface $sharedEventManager)
+    public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
     {
         $adapters = [
             \Omeka\Api\Adapter\ItemAdapter::class,
@@ -76,7 +76,7 @@ class Module extends AbstractModule
         );
     }
 
-    public function formAddElementsResourceBatchUpdateForm(Event $event)
+    public function formAddElementsResourceBatchUpdateForm(Event $event): void
     {
         /** @var \Omeka\Form\ResourceBatchUpdateForm $form */
         $form = $event->getTarget();
@@ -89,7 +89,7 @@ class Module extends AbstractModule
         $form->add($fieldset);
     }
 
-    public function formAddInputFiltersResourceBatchUpdateForm(Event $event)
+    public function formAddInputFiltersResourceBatchUpdateForm(Event $event): void
     {
         /** @var \Laminas\InputFilter\InputFilterInterface $inputFilter */
         $inputFilter = $event->getParam('inputFilter');
@@ -196,7 +196,7 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
-    public function handleResourceProcessPre(Event $event)
+    public function handleResourceProcessPre(Event $event): void
     {
         if ($this->checkOldModuleNext()) {
             return;
@@ -303,7 +303,7 @@ class Module extends AbstractModule
         $request->setContent($data);
     }
 
-    public function viewBatchEditBefore(Event $event)
+    public function viewBatchEditBefore(Event $event): void
     {
         $view = $event->getTarget();
         $assetUrl = $view->plugin('assetUrl');
@@ -313,7 +313,7 @@ class Module extends AbstractModule
             ->appendFile($assetUrl('js/bulk-edit.js', 'BulkEdit'), 'text/javascript', ['defer' => 'defer']);
     }
 
-    public function handleResourceBatchUpdatePreprocess(Event $event)
+    public function handleResourceBatchUpdatePreprocess(Event $event): void
     {
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
@@ -334,7 +334,7 @@ class Module extends AbstractModule
      *
      * @param Event $event
      */
-    public function handleResourceBatchUpdatePost(Event $event)
+    public function handleResourceBatchUpdatePost(Event $event): void
     {
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
@@ -534,7 +534,7 @@ class Module extends AbstractModule
         AbstractResourceEntityAdapter$adapter,
         array $resourceIds,
         array $processes
-    ) {
+    ): void {
         $services = $this->getServiceLocator();
         $plugins = $services->get('ControllerPluginManager');
         $api = $plugins->get('api');
@@ -636,7 +636,7 @@ class Module extends AbstractModule
         array &$data,
         &$toUpdate,
         array $params
-    ) {
+    ): void {
         static $settings;
         if (is_null($settings)) {
             $from = $params['from'];
@@ -798,7 +798,7 @@ class Module extends AbstractModule
         array &$data,
         &$toUpdate,
         array $params
-    ) {
+    ): void {
         $languages = $params['languages'];
         $forProperties = $params['properties'];
         if (empty($languages) || empty($forProperties)) {
@@ -849,7 +849,7 @@ class Module extends AbstractModule
         array &$data,
         &$toUpdate,
         array $params
-    ) {
+    ): void {
         static $settings;
         if (is_null($settings)) {
             $visibility = (int) (bool) $params['visibility'];
@@ -920,7 +920,7 @@ class Module extends AbstractModule
         array &$data,
         &$toUpdate,
         array $params
-    ) {
+    ): void {
         static $settings;
         if (is_null($settings)) {
             $fromProperties = $params['from'];
@@ -1022,7 +1022,7 @@ class Module extends AbstractModule
         array &$data,
         &$toUpdate,
         array $params
-    ) {
+    ): void {
         static $settings;
         if (is_null($settings)) {
             $properties = $params['properties'];
@@ -1092,7 +1092,7 @@ class Module extends AbstractModule
         array &$data,
         &$toUpdate,
         array $params
-    ) {
+    ): void {
         static $settings;
         if (is_null($settings)) {
             $properties = $params['properties'];
@@ -1198,7 +1198,7 @@ class Module extends AbstractModule
         array &$data,
         &$toUpdate,
         array $params
-    ) {
+    ): void {
         static $settings;
         if (is_null($settings)) {
             $plugins = $this->getServiceLocator()->get('ControllerPluginManager');
@@ -1338,7 +1338,7 @@ class Module extends AbstractModule
         ItemAdapter$adapter,
         array $resourceIds,
         array $params
-    ) {
+    ): void {
         $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
         $apiOptions = ['initialize' => true, 'finalize' => true, 'responseContent' => 'resource'];
 
@@ -1468,9 +1468,7 @@ class Module extends AbstractModule
         }
         // Always put data types not organized in option groups before data
         // types organized within option groups.
-        $options = array_merge($options, $optgroupOptions);
-
-        return $options;
+        return array_merge($options, $optgroupOptions);
     }
 
     /**

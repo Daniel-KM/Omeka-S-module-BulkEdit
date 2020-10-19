@@ -161,7 +161,7 @@ See online issues on the [module issues] page.
 License
 -------
 
-This module is published under the [CeCILL v2.1] licence, compatible with
+This module is published under the [CeCILL v2.1] license, compatible with
 [GNU/GPL] and approved by [FSF] and [OSI].
 
 This software is governed by the CeCILL license under French law and abiding by
@@ -196,14 +196,14 @@ Copyright
 First developed for the [Archives Henri Poincaré] of [Université de Lorraine].
 
 
-[Bulk Edit]: https://github.com/Daniel-KM/Omeka-S-module-BulkEdit
+[Bulk Edit]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit
 [Omeka S]: https://omeka.org/s
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
-[Advanced Search Plus]: https://github.com/Daniel-KM/Omeka-S-module-AdvancedSearchPlus
+[Advanced Search Plus]: https://gitlab.com/Daniel-KM/Omeka-S-module-AdvancedSearchPlus
 [#1258]: https://github.com/omeka/omeka-s/issues/1258
-[Search]: https://github.com/Daniel-KM/Omeka-S-module-Search
-[Reference]: https://github.com/Daniel-KM/Omeka-S-module-Reference
-[module issues]: https://github.com/Daniel-KM/Omeka-S-module-BulkEdit/issues
+[Search]: https://gitlab.com/Daniel-KM/Omeka-S-module-Search
+[Reference]: https://gitlab.com/Daniel-KM/Omeka-S-module-Reference
+[module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit/-/issues
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
@@ -211,4 +211,4 @@ First developed for the [Archives Henri Poincaré] of [Université de Lorraine].
 [Archives Henri Poincaré]: https://poincare.univ-lorraine.fr
 [Université de Lorraine]: https://www.univ-lorraine.fr
 [GitLab]: https://gitlab.com/Daniel-KM
-[Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"
+[Daniel-KM]: https://gitlab.com/Daniel-KM "Daniel Berthereau"

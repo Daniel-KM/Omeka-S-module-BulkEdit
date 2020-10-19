@@ -9,9 +9,9 @@
             "email": "Daniel.packagist@Berthereau.net"
         }
     ],
-    "homepage": "https://github.com/Daniel-KM/Omeka-S-module-BulkEdit",
+    "homepage": "https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit",
     "support": {
-        "issues": "https://github.com/Daniel-KM/Omeka-S-module-BulkEdit/issues",
+        "issues": "https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit/-/issues",
         "forum": "https://forum.omeka.org/"
     },
     "keywords": [

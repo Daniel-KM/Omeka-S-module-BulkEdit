@@ -1,6 +1,9 @@
 Bulk Edit (module for Omeka S)
 ==============================
 
+> __New versions of this module and support for Omeka S version 3.0 and above
+> are available on [GitLab], which seems to respect users and privacy better.__
+
 [Bulk Edit] is a module for [Omeka S] that adds tools to bulk edit resources in
 order to modify or to clean them.
 
@@ -207,4 +210,5 @@ First developed for the [Archives Henri Poincaré] of [Université de Lorraine].
 [OSI]: http://opensource.org
 [Archives Henri Poincaré]: https://poincare.univ-lorraine.fr
 [Université de Lorraine]: https://www.univ-lorraine.fr
+[GitLab]: https://gitlab.com/Daniel-KM
 [Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"

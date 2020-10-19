@@ -13,12 +13,8 @@ class BulkEditFieldset extends Fieldset
             ->setName('bulkedit')
             ->setAttribute('id', 'bulk-edit')
             // TODO Remove all the attributes for each field. May still be used in previous versions (< 2.0).
-            ->setAttribute('data-collection-action', 'replace');
-        if (!$this->hasOldModuleNext()) {
-            $this
-                ->appendFieldsetCleaning();
-        }
-        $this
+            ->setAttribute('data-collection-action', 'replace')
+            ->appendFieldsetCleaning()
             ->appendFieldsetReplace()
             ->appendFieldsetOrderValues()
             ->appendFieldsetPropertiesVisibility()
@@ -885,13 +881,5 @@ class BulkEditFieldset extends Fieldset
     protected function listDataTypesForSelect()
     {
         return $this->getOption('listDataTypesForSelect') ?: [];
-    }
-
-    /**
-     * @return bool
-     */
-    protected function hasOldModuleNext()
-    {
-        return !empty($this->getOption('hasOldModuleNext'));
     }
 }

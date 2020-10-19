@@ -82,7 +82,6 @@ class Module extends AbstractModule
         $form = $event->getTarget();
         $options = [
             'listDataTypesForSelect' => $this->listDataTypesForSelect(),
-            'hasOldModuleNext' => $this->checkOldModuleNext(),
         ];
         $fieldset = $this->getServiceLocator()->get('FormElementManager')
             ->get(BulkEditFieldset::class, $options);
@@ -198,10 +197,6 @@ class Module extends AbstractModule
      */
     public function handleResourceProcessPre(Event $event): void
     {
-        if ($this->checkOldModuleNext()) {
-            return;
-        }
-
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $request->getContent();
@@ -318,11 +313,8 @@ class Module extends AbstractModule
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $event->getParam('data');
-
         $bulkedit = $request->getValue('bulkedit');
-        $processes = $this->prepareProcesses($bulkedit);
-
-        $data['bulkedit'] = $processes;
+        $data['bulkedit'] = $this->prepareProcesses($bulkedit);
         $event->setParam('data', $data);
     }
 
@@ -511,20 +503,14 @@ class Module extends AbstractModule
             ];
         }
 
-        if (!$this->checkOldModuleNext()) {
-            $processes['trim_values'] = !empty($bulkedit['cleaning']['trim_values']);
-            $processes['specify_datatypes'] = !empty($bulkedit['cleaning']['specify_datatypes']);
-            $processes['clean_languages'] = !empty($bulkedit['cleaning']['clean_languages']);
-            $processes['deduplicate_values'] = !empty($bulkedit['cleaning']['deduplicate_values']);
-        }
+        $processes['trim_values'] = !empty($bulkedit['cleaning']['trim_values']);
+        $processes['specify_datatypes'] = !empty($bulkedit['cleaning']['specify_datatypes']);
+        $processes['clean_languages'] = !empty($bulkedit['cleaning']['clean_languages']);
+        $processes['deduplicate_values'] = !empty($bulkedit['cleaning']['deduplicate_values']);
 
         $this->getServiceLocator()->get('Omeka\Logger')->info(new Message(
             "Cleaned params used for bulk edit:\n%s", // @translate
-            json_encode($processes,
-                PHP_VERSION_ID >= 70100
-                    ? (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS)
-                    : (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-            )
+            json_encode($processes,JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS)
         ));
 
         return $processes;
@@ -1469,23 +1455,5 @@ class Module extends AbstractModule
         // Always put data types not organized in option groups before data
         // types organized within option groups.
         return array_merge($options, $optgroupOptions);
-    }
-
-    /**
-     * Check if the module Next is enabled and smaller than 3.1.2.9.
-     *
-     * @return bool
-     */
-    protected function checkOldModuleNext()
-    {
-        $services = $this->getServiceLocator();
-        /** @var \Omeka\Module\Manager $moduleManager */
-        $moduleManager = $services->get('Omeka\ModuleManager');
-        $module = $moduleManager->getModule('Next');
-        if (!$module || $module->getState() !== \Omeka\Module\Manager::STATE_ACTIVE) {
-            return false;
-        }
-        $version = $module->getIni('version');
-        return version_compare($version, '3.1.2.9', '<');
     }
 }

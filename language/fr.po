@@ -174,7 +174,7 @@ msgstr "Déplacer des valeurs"
 
 #: src/Form/BulkEditFieldset.php:370
 msgid "From properties"
-msgstr "Vers le type de données"
+msgstr "Depuis les propriétés"
 
 #: src/Form/BulkEditFieldset.php:388
 msgid "To property"

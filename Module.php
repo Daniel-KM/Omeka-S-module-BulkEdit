@@ -208,7 +208,7 @@ class Module extends AbstractModule
         // Trimming.
         foreach ($data as $term => &$values) {
             // Process properties only.
-            if (mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
+            if (!is_string($term) || mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
                 continue;
             }
             $first = reset($values);
@@ -247,7 +247,7 @@ class Module extends AbstractModule
         ];
         foreach ($data as $term => &$values) {
             // Process properties only.
-            if (mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
+            if (!is_string($term) || mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
                 continue;
             }
             $first = reset($values);
@@ -272,7 +272,7 @@ class Module extends AbstractModule
         // Deduplicating.
         foreach ($data as $term => &$values) {
             // Process properties only.
-            if (mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
+            if (!is_string($term) || mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
                 continue;
             }
             $first = reset($values);

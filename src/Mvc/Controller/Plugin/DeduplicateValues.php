@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace BulkEdit\Mvc\Controller\Plugin;
 
 use Doctrine\ORM\EntityManager;
@@ -20,13 +21,20 @@ class DeduplicateValues extends AbstractPlugin
     protected $logger;
 
     /**
+     * @param bool
+     */
+    protected $supportAnyValue;
+
+    /**
      * @param EntityManager $entityManager
      * @param LoggerInterface $logger
+     * @param bool $supportAnyValue
      */
-    public function __construct(EntityManager $entityManager, LoggerInterface $logger)
+    public function __construct(EntityManager $entityManager, LoggerInterface $logger, bool $supportAnyValue)
     {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
+        $this->supportAnyValue = $supportAnyValue;
     }
 
     /**
@@ -59,11 +67,18 @@ class DeduplicateValues extends AbstractPlugin
 
     protected function prepareQuery()
     {
-        return <<<'SQL'
+        if ($this->supportAnyValue) {
+            $prefix = 'ANY_VALUE(';
+            $suffix = ')';
+        } else {
+            $prefix = $suffix = '';
+        }
+        return <<<SQL
+SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY',''));
 DROP TABLE IF EXISTS `value_temporary`;
 CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
 AS
-    SELECT `id`
+    SELECT $prefix`id`$suffix
     FROM `value`
     GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
 DELETE `v` FROM `value` AS `v`
@@ -71,16 +86,25 @@ LEFT JOIN `value_temporary` AS `value_temporary`
     ON `value_temporary`.`id` = `v`.`id`
 WHERE `value_temporary`.`id` IS NULL;
 DROP TABLE IF EXISTS `value_temporary`;
+SET sql_mode=(SELECT CONCAT('ONLY_FULL_GROUP_BY,', @@sql_mode));
 SQL;
     }
 
     protected function prepareQueryForResourceIds(array $resourceIds)
     {
+        if ($this->supportAnyValue) {
+            $prefix = 'ANY_VALUE(';
+            $suffix = ')';
+        } else {
+            $prefix = $suffix = '';
+        }
         $idsString = implode(',', $resourceIds);
         return <<<SQL
+SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY',''));
+DROP TABLE IF EXISTS `value_temporary`;
 CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
 AS
-    SELECT `id`
+    SELECT $prefix`id`$suffix
     FROM `value`
     WHERE `resource_id` IN ($idsString)
     GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
@@ -90,6 +114,7 @@ DELETE `v` FROM `value` AS `v`
 WHERE `resource_id` IN ($idsString)
     AND `value_temporary`.`id` IS NULL;
 DROP TABLE IF EXISTS `value_temporary`;
+SET sql_mode=(SELECT CONCAT('ONLY_FULL_GROUP_BY,', @@sql_mode));
 SQL;
     }
 }

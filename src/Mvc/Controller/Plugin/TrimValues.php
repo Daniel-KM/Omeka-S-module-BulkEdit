@@ -86,7 +86,9 @@ SQL;
         }
 
         $processed = $connection->exec($query);
-        $this->logger->info(sprintf('Trimmed %d values.', $processed));
+        if ($processed) {
+            $this->logger->info(sprintf('Trimmed %d values.', $processed));
+        }
 
         // Remove empty values, even if there is a language.
         $query = <<<'SQL'
@@ -100,9 +102,11 @@ SQL;
 AND `resource_id` IN ($idsString)
 SQL;
         }
-        $deleted = $connection->exec($query);
-        $this->logger->info(sprintf('Removed %d empty string values after trimming.', $deleted));
 
+        $deleted = $connection->exec($query);
+        if ($deleted) {
+            $this->logger->info(sprintf('Removed %d empty string values after trimming.', $deleted));
+        }
         return $processed;
     }
 

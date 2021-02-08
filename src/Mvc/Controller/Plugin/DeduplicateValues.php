@@ -67,7 +67,9 @@ class DeduplicateValues extends AbstractPlugin
 
         $connection->exec("SET sql_mode = '$sqlMode';");
 
-        $this->logger->info(sprintf('Deduplicated %d values.', $processed));
+        if ($processed) {
+            $this->logger->info(sprintf('Deduplicated %d values.', $processed));
+        }
         return $processed;
     }
 

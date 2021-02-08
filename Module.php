@@ -453,7 +453,7 @@ class Module extends AbstractModule
             'deduplicate_values' => null,
         ];
 
-        $params = isset($bulkedit['replace']) ? $bulkedit['replace'] : [];
+        $params = $bulkedit['replace'] ?? [];
         if (!empty($params['properties'])) {
             $from = $params['from'];
             $to = $params['to'];
@@ -484,7 +484,7 @@ class Module extends AbstractModule
             }
         }
 
-        $params = isset($bulkedit['order_values']) ? $bulkedit['order_values'] : [];
+        $params = $bulkedit['order_values'] ?? [];
         if (!empty($params['languages'])) {
             $languages = preg_replace('/[^a-zA-Z-]/', "\n", $params['languages']);
             $languages = array_filter(explode("\n", $languages));
@@ -497,7 +497,7 @@ class Module extends AbstractModule
             }
         }
 
-        $params = isset($bulkedit['properties_visibility']) ? $bulkedit['properties_visibility'] : [];
+        $params = $bulkedit['properties_visibility'] ?? [];
         if (isset($params['visibility'])
             && $params['visibility'] !== ''
             && !empty($params['properties'])
@@ -512,7 +512,7 @@ class Module extends AbstractModule
             ];
         }
 
-        $params = isset($bulkedit['displace']) ? $bulkedit['displace'] : [];
+        $params = $bulkedit['displace'] ?? [];
         if (!empty($params['from'])) {
             $to = $params['to'];
             if (mb_strlen($to)) {
@@ -527,7 +527,7 @@ class Module extends AbstractModule
             }
         }
 
-        $params = isset($bulkedit['explode']) ? $bulkedit['explode'] : [];
+        $params = $bulkedit['explode'] ?? [];
         if (!empty($params['properties'])) {
             $separator = $params['separator'];
             if (mb_strlen($separator)) {
@@ -539,14 +539,14 @@ class Module extends AbstractModule
             }
         }
 
-        $params = isset($bulkedit['merge']) ? $bulkedit['merge'] : [];
+        $params = $bulkedit['merge'] ?? [];
         if (!empty($params['properties'])) {
             $processes['merge'] = [
                 'properties' => $params['properties'],
             ];
         }
 
-        $params = isset($bulkedit['convert']) ? $bulkedit['convert'] : [];
+        $params = $bulkedit['convert'] ?? [];
         if (!empty($params['from']) && !empty($params['to']) && !empty($params['properties'])) {
             $from = $params['from'];
             $to = $params['to'];
@@ -562,9 +562,9 @@ class Module extends AbstractModule
             }
         }
 
-        $params = isset($bulkedit['media_html']) ? $bulkedit['media_html'] : [];
-        $from = isset($params['from']) ? $params['from'] : null;
-        $to = isset($params['to']) ? $params['to'] : null;
+        $params = $bulkedit['media_html'] ?? [];
+        $from = $params['from'] ?? null;
+        $to = $params['to'] ?? null;
         $remove = isset($params['remove']) && (bool) $params['remove'];
         $prepend = isset($params['prepend']) ? ltrim($params['prepend']) : '';
         $append = isset($params['prepend']) ? rtrim($params['append']) : '';
@@ -596,7 +596,7 @@ class Module extends AbstractModule
 
         $this->getServiceLocator()->get('Omeka\Logger')->info(new Message(
             "Cleaned params used for bulk edit:\n%s", // @translate
-            json_encode($processes,JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS)
+            json_encode($processes, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS)
         ));
 
         return $processes;
@@ -824,7 +824,7 @@ class Module extends AbstractModule
                     if ($value['type'] !== 'literal') {
                         continue;
                     }
-                    $currentLanguage = isset($value['@language']) ? $value['@language'] : '';
+                    $currentLanguage = $value['@language'] ?? '';
                     if ($currentLanguage === $language) {
                         continue;
                     }

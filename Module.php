@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace BulkEdit;
 
 if (!class_exists(\Generic\AbstractModule::class)) {
@@ -21,7 +22,7 @@ use Omeka\Stdlib\Message;
  *
  * Improve the bulk edit process with new features.
  *
- * @copyright Daniel Berthereau, 2018-2019
+ * @copyright Daniel Berthereau, 2018-2021
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 class Module extends AbstractModule
@@ -52,12 +53,26 @@ class Module extends AbstractModule
                 'api.preprocess_batch_update',
                 [$this, 'handleResourceBatchUpdatePreprocess']
             );
+            // Batch update is designed to do the same process to all resources,
+            // but BulkEdit needs to check each data separately.
+            $sharedEventManager->attach(
+                $adapter,
+                'api.update.pre',
+                [$this, 'handleResourceUpdatePreBatchUpdate']
+            );
             $sharedEventManager->attach(
                 $adapter,
                 'api.batch_update.post',
                 [$this, 'handleResourceBatchUpdatePost']
             );
         }
+
+        // Special listener to manage media html from items.
+        $sharedEventManager->attach(
+            \Omeka\Api\Adapter\ItemAdapter::class,
+            'api.batch_update.pre',
+            [$this, 'handleResourceBatchUpdatePre']
+        );
 
         $sharedEventManager->attach(
             '*',
@@ -310,12 +325,69 @@ class Module extends AbstractModule
 
     public function handleResourceBatchUpdatePreprocess(Event $event): void
     {
+        // Clean the request one time only (batch process is divided in bulks).
+
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $event->getParam('data');
         $bulkedit = $request->getValue('bulkedit');
         $data['bulkedit'] = $this->prepareProcesses($bulkedit);
         $event->setParam('data', $data);
+    }
+
+    public function handleResourceBatchUpdatePre(Event $event): void
+    {
+        $processes = $this->prepareProcesses();
+        $request = $event->getParam('request');
+        $this->updateResourcesPre($event->getTarget(), $request->getIds(), $processes);
+    }
+
+    public function handleResourceUpdatePreBatchUpdate(Event $event): void
+    {
+        /**
+         * A batch update process is launched one to three times in the core,
+         * at least with option "collectionAction" = "replace".
+         * Batch updates are always partial,.
+         * @see \Omeka\Job\BatchUpdate::perform()
+         * @var \Omeka\Api\Request $request
+         */
+        $request = $event->getParam('request');
+        if (!$request->getOption('isPartial') || $request->getOption('collectionAction') !== 'replace') {
+            return;
+        }
+
+        $data = $request->getContent('data');
+        if (empty($data['bulkedit'])) {
+            return;
+        }
+
+        // Some batch processes are done globally via a single sql.
+        $postProcesses = [
+            // This process is different, because on another resource.
+            'media_html' => null,
+            // Post processes.
+            'trim_values' => null,
+            'specify_datatypes' => null,
+            'clean_languages' => null,
+            'deduplicate_values' => null,
+        ];
+        $bulkedit = array_diff_key($data['bulkedit'], $postProcesses);
+        if (!count($bulkedit)) {
+            return;
+        }
+
+        /** @var \Omeka\Api\Adapter\AbstractResourceEntityAdapter $adapter */
+        $adapter = $event->getTarget();
+        try {
+            $resource = $adapter->findEntity($request->getId());
+        } catch (\Exception $e) {
+            return;
+        }
+
+        // Keep data that are currently to be updated, but not yet flushed.
+        $representation = $adapter->getRepresentation($resource);
+        $data = $this->updateResourcePre($adapter, $representation, $data, $bulkedit);
+        $request->setContent($data);
     }
 
     /**
@@ -335,14 +407,23 @@ class Module extends AbstractModule
             return;
         }
 
+        $postProcesses = [
+            // This process is different, because on another resource.
+            // 'media_html' => null,
+            // Post processes.
+            'trim_values' => null,
+            'specify_datatypes' => null,
+            'clean_languages' => null,
+            'deduplicate_values' => null,
+        ];
         $processes = $this->prepareProcesses();
-        $processes = array_filter($processes);
-        if (!count($processes)) {
+        $bulkedit = array_intersect_key($processes, $postProcesses);
+        if (!count($bulkedit)) {
             return;
         }
 
         $adapter = $event->getTarget();
-        $this->updateValues($adapter, $ids, $processes);
+        $this->updateValues($adapter, $ids, $bulkedit);
     }
 
     protected function prepareProcesses($bulkedit = null)
@@ -353,24 +434,24 @@ class Module extends AbstractModule
             return $processes;
         }
 
-        $processes = [
-            'replace' => false,
-            'order_values' => false,
-            'properties_visibility' => false,
-            'displace' => false,
-            'explode' => false,
-            'merge' => false,
-            'convert' => false,
-            'media_html' => false,
-            'trim_values' => false,
-            'specify_datatypes' => false,
-            'clean_languages' => false,
-            'deduplicate_values' => false,
-        ];
-
         if (empty($bulkedit)) {
-            return $processes;
+            return [];
         }
+
+        $processes = [
+            'replace' => null,
+            'order_values' => null,
+            'properties_visibility' => null,
+            'displace' => null,
+            'explode' => null,
+            'merge' => null,
+            'convert' => null,
+            'media_html' => null,
+            'trim_values' => null,
+            'specify_datatypes' => null,
+            'clean_languages' => null,
+            'deduplicate_values' => null,
+        ];
 
         $params = isset($bulkedit['replace']) ? $bulkedit['replace'] : [];
         if (!empty($params['properties'])) {
@@ -503,10 +584,15 @@ class Module extends AbstractModule
             ];
         }
 
-        $processes['trim_values'] = !empty($bulkedit['cleaning']['trim_values']);
-        $processes['specify_datatypes'] = !empty($bulkedit['cleaning']['specify_datatypes']);
-        $processes['clean_languages'] = !empty($bulkedit['cleaning']['clean_languages']);
-        $processes['deduplicate_values'] = !empty($bulkedit['cleaning']['deduplicate_values']);
+        $processes['trim_values'] = empty($bulkedit['cleaning']['trim_values']) ? null : true;
+        $processes['specify_datatypes'] = empty($bulkedit['cleaning']['specify_datatypes']) ? null : true;
+        $processes['clean_languages'] = empty($bulkedit['cleaning']['clean_languages']) ? null : true;
+        $processes['deduplicate_values'] = empty($bulkedit['cleaning']['deduplicate_values']) ? null : true;
+
+        $processes = array_filter($processes);
+        if (!count($processes)) {
+            return [];
+        }
 
         $this->getServiceLocator()->get('Omeka\Logger')->info(new Message(
             "Cleaned params used for bulk edit:\n%s", // @translate
@@ -516,6 +602,64 @@ class Module extends AbstractModule
         return $processes;
     }
 
+    protected function updateResourcesPre(
+        AbstractResourceEntityAdapter$adapter,
+        array $resourceIds,
+        array $processes
+    ): void {
+        // This process is specific, because not for current resources.
+        if (!empty($processes['media_html'])) {
+            $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
+        }
+    }
+
+    protected function updateResourcePre(
+        AbstractResourceEntityAdapter$adapter,
+        AbstractResourceEntityRepresentation $resource,
+        array $dataToUpdate,
+        array $processes
+    ): array {
+        // It's simpler to process data as a full array.
+        $data = json_decode(json_encode($resource), true);
+        // Keep only properties values: a batch edit is partial and Bulk Edit
+        // manages only properties.
+        $properties = $this->getPropertyTerms();
+        $data = array_intersect_key($data, array_flip($properties));
+
+        // Keep data that may have been added during batch pre-process,
+        $data = array_replace($data, $dataToUpdate);
+
+        // TODO Remove toUpdate that is not used anymore.
+        $toUpdate = false;
+        foreach ($processes as $process => $params) switch ($process) {
+            case 'replace':
+                $this->updateValuesForResource($resource, $data, $toUpdate, $params);
+                break;
+            case 'order_values':
+                $this->orderValuesForResource($resource, $data, $toUpdate, $params);
+                break;
+            case 'properties_visibility':
+                $this->applyVisibilityForResourceValues($resource, $data, $toUpdate, $params);
+                break;
+            case 'displace':
+                $this->displaceValuesForResource($resource, $data, $toUpdate, $params);
+                break;
+            case 'explode':
+                $this->explodeValuesForResource($resource, $data, $toUpdate, $params);
+                break;
+            case 'merge':
+                $this->mergeValuesForResource($resource, $data, $toUpdate, $params);
+                break;
+            case 'convert':
+                $this->convertDatatypeForResource($resource, $data, $toUpdate, $params);
+                break;
+            default:
+                break;
+        }
+
+        return $data;
+    }
+
     protected function updateValues(
         AbstractResourceEntityAdapter$adapter,
         array $resourceIds,
@@ -523,70 +667,9 @@ class Module extends AbstractModule
     ): void {
         $services = $this->getServiceLocator();
         $plugins = $services->get('ControllerPluginManager');
-        $api = $plugins->get('api');
-        $resourceType = $adapter->getResourceName();
-
-        foreach ($resourceIds as $resourceId) {
-            $resource = $adapter->findEntity(['id' => $resourceId]);
-            if (!$resource) {
-                continue;
-            }
-
-            /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
-            $resource = $adapter->getRepresentation($resource);
-            $data = json_decode(json_encode($resource), true);
-            $toUpdate = false;
-
-            foreach ($processes as $process => $params) {
-                switch ($process) {
-                    case 'replace':
-                        $this->updateValuesForResource($resource, $data, $toUpdate, $params);
-                        break;
-                    case 'order_values':
-                        $this->orderValuesForResource($resource, $data, $toUpdate, $params);
-                        break;
-                    case 'properties_visibility':
-                        $this->applyVisibilityForResourceValues($resource, $data, $toUpdate, $params);
-                        break;
-                    case 'displace':
-                        $this->displaceValuesForResource($resource, $data, $toUpdate, $params);
-                        break;
-                    case 'explode':
-                        $this->explodeValuesForResource($resource, $data, $toUpdate, $params);
-                        break;
-                    case 'merge':
-                        $this->mergeValuesForResource($resource, $data, $toUpdate, $params);
-                        break;
-                    case 'convert':
-                        $this->convertDatatypeForResource($resource, $data, $toUpdate, $params);
-                        break;
-                    default:
-                        continue 2;
-                }
-            }
-
-            if ($toUpdate) {
-                $api->update($resourceType, (int) $resourceId, $data, [], [
-                    'responseContent' => 'resource',
-                    'initialize' => true,
-                    'finalize' => true,
-                    'flushEntityManager' => false,
-                ]);
-            }
-        }
-
-        // This process is specific, because not for current resources.
-        if (!empty($processes['media_html'])) {
-            $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
-        }
-
-        // This is a post batch update, so the entity manager should be flushed.
-        /** @var \Doctrine\ORM\EntityManager $entityManager */
-        $entityManager = $services->get('Omeka\EntityManager');
-        $entityManager->flush();
-        $entityManager->clear();
 
         // These processes are specific, because they use a direct sql.
+
         if (!empty($processes['trim_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
             $trimValues = $plugins->get('trimValues');
@@ -1325,9 +1408,6 @@ class Module extends AbstractModule
         array $resourceIds,
         array $params
     ): void {
-        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
-        $apiOptions = ['initialize' => true, 'finalize' => true, 'responseContent' => 'resource'];
-
         $from = $params['from'];
         $to = $params['to'];
         $mode = $params['mode'];
@@ -1360,23 +1440,26 @@ class Module extends AbstractModule
             }
         }
 
+        /**
+         * @var \Omeka\Api\Adapter\MediaAdapter $mediaAdapter
+         * @var \Doctrine\ORM\EntityManager $entityManager
+         * @var \Doctrine\ORM\EntityRepository $repository
+         */
+        $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
+        $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
         foreach ($resourceIds as $resourceId) {
-            $resource = $adapter->findEntity(['id' => $resourceId]);
-            if (!$resource) {
+            $medias = $repository->findBy(['item' => $resourceId, 'ingester' => 'html']);
+            if (!count($medias)) {
                 continue;
             }
 
-            /** @var \Omeka\Api\Representation\ItemRepresentation $resource */
-            $resource = $adapter->getRepresentation($resource);
-
-            /** @var \Omeka\Api\Representation\MediaRepresentation[] $medias */
-            $medias = $resource->media();
+            /** @var \Omeka\Entity\Media $media */
             foreach ($medias as $media) {
-                if ($media->renderer() !== 'html') {
+                $mediaData = $media->getData();
+                if (!is_array($mediaData) || empty($mediaData['html'])) {
                     continue;
                 }
-
-                $html = $media->mediaData()['html'];
+                $html = $mediaData['html'];
                 $currentHtml = $html;
 
                 if ($remove) {
@@ -1399,19 +1482,18 @@ class Module extends AbstractModule
                 $html = $prepend . $html . $append;
 
                 // Force trimming values and check if a value is empty to remove it.
-                // Html is automatically purified.
                 $html = trim($html);
 
                 if ($currentHtml === $html) {
                     continue;
                 }
 
-                // TODO Clean the update of the html value of the media.
-                $data = json_decode(json_encode($media), true);
-                // $data['data']['html'] = $html;
-                // $data['o-cnt:chars'] = $html;
-                $data['o:media']['__index__']['html'] = $html;
-                $api->update('media', $media->id(), $data, [], $apiOptions);
+                // TODO Purify html if set. Reindex full text, etc.
+
+                $mediaData['html'] = $html;
+                $media->setData($mediaData);
+                $entityManager->persist($media);
+                // No flush here.
             }
         }
     }
@@ -1455,5 +1537,35 @@ class Module extends AbstractModule
         // Always put data types not organized in option groups before data
         // types organized within option groups.
         return array_merge($options, $optgroupOptions);
+    }
+
+    /**
+     * Get all property terms.
+     */
+    public function getPropertyTerms(): array
+    {
+        static $properties;
+        if (is_null($properties)) {
+            /** @var \Doctrine\DBAL\Connection $connection */
+            $connection = $this->getServiceLocator()->get('Omeka\Connection');
+            $qb = $connection->createQueryBuilder();
+            $qb
+                ->select([
+                    'CONCAT(vocabulary.prefix, ":", property.local_name) AS term',
+                    // Only the first select is needed, but some databases require
+                    // "order by" or "group by" value to be in the select.
+                    'vocabulary.id',
+                    'property.id',
+                ])
+                ->from('property', 'property')
+                ->innerJoin('property', 'vocabulary', 'vocabulary', 'property.vocabulary_id = vocabulary.id')
+                ->orderBy('vocabulary.id', 'asc')
+                ->addOrderBy('property.id', 'asc')
+                ->addGroupBy('property.id')
+            ;
+            $stmt = $connection->executeQuery($qb);
+            $properties = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        }
+        return $properties;
     }
 }

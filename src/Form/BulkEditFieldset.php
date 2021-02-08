@@ -48,7 +48,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to replace…', // @translate
+                    'label' => 'String to replace', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_from',
@@ -60,7 +60,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'to',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => '… by…', // @translate
+                    'label' => 'By', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_to',
@@ -72,7 +72,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'mode',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => '… using replacement mode', // @translate
+                    'label' => 'Replacement mode', // @translate
                     'value_options' => [
                         'raw' => 'Simple', // @translate
                         'raw_i' => 'Simple (case insensitive)', // @translate
@@ -127,7 +127,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'language',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Set a language…', // @translate
+                    'label' => 'Set a language', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_language',
@@ -140,7 +140,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'language_clear',
                 'type' => Element\Checkbox::class,
                 'options' => [
-                    'label' => '… or remove it…', // @translate
+                    'label' => 'Remove language', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_language_clear',
@@ -152,7 +152,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'properties',
                 'type' => PropertySelect::class,
                 'options' => [
-                    'label' => '… for properties', // @translate
+                    'label' => 'For properties', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
@@ -255,7 +255,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'visibility',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Set visibility…', // @translate
+                    'label' => 'Set visibility', // @translate
                     'value_options' => [
                         '1' => 'Public', // @translate
                         '0' => 'Not public', // @translate
@@ -273,7 +273,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'properties',
                 'type' => PropertySelect::class,
                 'options' => [
-                    'label' => '… for properties', // @translate
+                    'label' => 'For properties', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
@@ -724,7 +724,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to replace…', // @translate
+                    'label' => 'String to replace', // @translate
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_from',
@@ -736,7 +736,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'to',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => '… by…', // @translate
+                    'label' => 'By', // @translate
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_to',
@@ -748,7 +748,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'mode',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => '… using replacement mode', // @translate
+                    'label' => 'Replacement mode', // @translate
                     'value_options' => [
                         'raw' => 'Simple', // @translate
                         'raw_i' => 'Simple (case insensitive)', // @translate

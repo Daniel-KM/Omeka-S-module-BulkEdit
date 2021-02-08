@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace BulkEdit;
 
 return [
@@ -27,7 +28,7 @@ return [
     ],
     'js_translate_strings' => [
         'Advanced bulk edit', // @translate
-        'It’s not recommended to process Displace, Explode, or Convert at the same time.', // @translate
+        'The actions are processed in the order of the form. Be careful when mixing them.', // @translate
         'Cleaning', // @translate
         'Convert datatype', // @translate
         'Displace values', // @translate

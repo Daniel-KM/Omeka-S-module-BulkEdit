@@ -80,11 +80,30 @@ $('.batch-edit #content > form:first-of-type > fieldset')
     })
     .wrapAll('<div id="bulk-edit" class="section">');
 $('#bulk-edit')
-    .prepend('<legend>' + Omeka.jsTranslate('It’s not recommended to mix multiple processes at the same time.') + '</legend>');
+    .prepend('<legend>' + Omeka.jsTranslate('The actions are processed in the order of the form. Be careful when mixing them.') + '</legend>');
 
 // Hidden inputs that should not be after the inputs.
 $('.batch-edit #content > form:first-of-type input[type=hidden][name=set_value_visibility]').insertAfter($('.batch-edit #content > form:first-of-type input[name=csrf]'));
 $('.batch-edit #content > form:first-of-type input[type=hidden][name=value]').insertAfter($('.batch-edit #content > form:first-of-type input[name=csrf]'));
+
+// For better ux.
+$('#convert_literal_value, #convert_resource_properties, #convert_uri_label').closest('.field').hide();
+$('.batch-edit').on('change', '#convert_to', function() {
+    var val = $(this).val();
+    $('#convert_literal_value, #convert_resource_properties, #convert_uri_label').closest('.field').hide();
+    if (val === 'literal') {
+        $('#convert_literal_value').closest('.field').show();
+    } else if (val === 'resource') {
+        $('#convert_resource_properties').closest('.field').show();
+    } else if (val === 'uri') {
+        $('#convert_uri_label').closest('.field').show();
+    }
+});
+
+$('#mediahtml_remove').change(function() {
+    var fields = $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_prepend, #mediahtml_append').closest('.field');
+    this.checked ? fields.hide() : fields.show();
+});
 
 // From resource-form.js.
 $('input.value-language').on('keyup', function(e) {

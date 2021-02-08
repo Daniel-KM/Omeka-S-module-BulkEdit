@@ -56,11 +56,17 @@ class DeduplicateValues extends AbstractPlugin
         // For large base, a temporary table is prefered to speed process.
         $connection = $this->entityManager->getConnection();
 
+        // The query modifies the sql mode, so it should be reset.
+        $sqlMode = $connection->fetchColumn('SELECT @@SESSION.sql_mode;');
+
         $query = is_null($resourceIds)
             ? $this->prepareQuery()
             : $this->prepareQueryForResourceIds($resourceIds);
 
         $processed = $connection->exec($query);
+
+        $connection->exec("SET sql_mode = '$sqlMode';");
+
         $this->logger->info(sprintf('Deduplicated %d values.', $processed));
         return $processed;
     }
@@ -74,7 +80,7 @@ class DeduplicateValues extends AbstractPlugin
             $prefix = $suffix = '';
         }
         return <<<SQL
-SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY',''));
+SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
 DROP TABLE IF EXISTS `value_temporary`;
 CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
 AS
@@ -86,7 +92,6 @@ LEFT JOIN `value_temporary` AS `value_temporary`
     ON `value_temporary`.`id` = `v`.`id`
 WHERE `value_temporary`.`id` IS NULL;
 DROP TABLE IF EXISTS `value_temporary`;
-SET sql_mode=(SELECT CONCAT('ONLY_FULL_GROUP_BY,', @@sql_mode));
 SQL;
     }
 
@@ -100,7 +105,7 @@ SQL;
         }
         $idsString = implode(',', $resourceIds);
         return <<<SQL
-SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY',''));
+SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
 DROP TABLE IF EXISTS `value_temporary`;
 CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
 AS
@@ -114,7 +119,6 @@ DELETE `v` FROM `value` AS `v`
 WHERE `resource_id` IN ($idsString)
     AND `value_temporary`.`id` IS NULL;
 DROP TABLE IF EXISTS `value_temporary`;
-SET sql_mode=(SELECT CONCAT('ONLY_FULL_GROUP_BY,', @@sql_mode));
 SQL;
     }
 }

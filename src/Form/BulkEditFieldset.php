@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace BulkEdit\Form;
 
 use Laminas\Form\Element;
@@ -854,6 +855,67 @@ class BulkEditFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'cleaning_languages',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_language_codes',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Normalize or modify language codes', // @translate
+                    'info' => 'Normalize language codes from a code to another one, for example "fr" to "fra" or vice-versa. It allows to add or remove a code too.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_language_codes',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_language_codes_from',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'From code', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_language_codes_from',
+                    'placeholder' => 'fr',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_language_codes_to',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'To code', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_language_codes_to',
+                    'placeholder' => 'fra',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_language_codes_properties',
+                'type' => PropertySelect::class,
+                'options' => [
+                    'label' => 'For properties', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_language_codes_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'required' => false,
+                    'data-placeholder' => 'Select properties', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

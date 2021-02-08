@@ -108,6 +108,11 @@ class Module extends AbstractModule
         /** @var \Laminas\InputFilter\InputFilterInterface $inputFilter */
         $inputFilter = $event->getParam('inputFilter');
         $inputFilter = $inputFilter->get('bulkedit');
+        $inputFilter->get('cleaning')
+            ->add([
+                'name' => 'clean_language_codes_properties',
+                'required' => false,
+            ]);
         $inputFilter->get('replace')
             ->add([
                 'name' => 'mode',
@@ -369,6 +374,7 @@ class Module extends AbstractModule
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
+            'clean_language_codes' => null,
             'deduplicate_values' => null,
         ];
         $bulkedit = array_diff_key($data['bulkedit'], $postProcesses);
@@ -414,6 +420,7 @@ class Module extends AbstractModule
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
+            'clean_language_codes' => null,
             'deduplicate_values' => null,
         ];
         $processes = $this->prepareProcesses();
@@ -429,7 +436,6 @@ class Module extends AbstractModule
     protected function prepareProcesses($bulkedit = null)
     {
         static $processes;
-
         if (!is_null($processes)) {
             return $processes;
         }
@@ -450,6 +456,7 @@ class Module extends AbstractModule
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
+            'clean_language_codes' => null,
             'deduplicate_values' => null,
         ];
 
@@ -584,6 +591,16 @@ class Module extends AbstractModule
             ];
         }
 
+        // Direct processes.
+
+        if (!empty($bulkedit['cleaning']['clean_language_codes'])) {
+            $processes['clean_language_codes'] = [
+                'from' => $bulkedit['cleaning']['clean_language_codes_from'] ?? null,
+                'to' => $bulkedit['cleaning']['clean_language_codes_to'] ?? null,
+                'properties' => $bulkedit['cleaning']['clean_language_codes_properties'] ?? null,
+            ];
+        }
+
         $processes['trim_values'] = empty($bulkedit['cleaning']['trim_values']) ? null : true;
         $processes['specify_datatypes'] = empty($bulkedit['cleaning']['specify_datatypes']) ? null : true;
         $processes['clean_languages'] = empty($bulkedit['cleaning']['clean_languages']) ? null : true;
@@ -684,6 +701,16 @@ class Module extends AbstractModule
             /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguages $cleanLanguages */
             $cleanLanguages = $plugins->get('cleanLanguages');
             $cleanLanguages($resourceIds);
+        }
+        if (!empty($processes['clean_language_codes'])) {
+            /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguageCodes $cleanLanguages */
+            $cleanLanguageCodes = $plugins->get('cleanLanguageCodes');
+            $cleanLanguageCodes(
+                $resourceIds,
+                $processes['clean_language_codes']['from'] ?? null,
+                $processes['clean_language_codes']['to'] ?? null,
+                $processes['clean_language_codes']['properties'] ?? null
+            );
         }
         if (!empty($processes['deduplicate_values'])) {
             /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */

@@ -22,7 +22,7 @@ var bulkeditFieldsets = [
     'media_html',
 ];
 
-$('#cleaning_trim, #cleaning_datatypes, #cleaning_languages, #cleaning_deduplicate').closest('.field')
+$('#cleaning_trim, #cleaning_datatypes, #cleaning_languages, #cleaning_language_codes, #cleaning_language_codes_from, #cleaning_language_codes_to, #cleaning_language_codes_properties, #cleaning_deduplicate').closest('.field')
     .wrapAll('<fieldset id="cleaning" class="field-container">');
 $('#cleaning')
     .prepend('<legend>' + Omeka.jsTranslate('Cleaning') + '</legend>');
@@ -87,7 +87,12 @@ $('.batch-edit #content > form:first-of-type input[type=hidden][name=set_value_v
 $('.batch-edit #content > form:first-of-type input[type=hidden][name=value]').insertAfter($('.batch-edit #content > form:first-of-type input[name=csrf]'));
 
 // For better ux.
-$('#convert_literal_value, #convert_resource_properties, #convert_uri_label').closest('.field').hide();
+$('.batch-edit').on('change', '#cleaning_language_codes', function() {
+    var fields = $('#cleaning_language_codes_from, #cleaning_language_codes_to, #cleaning_language_codes_properties').closest('.field');
+    this.checked ? fields.show() : fields.hide();
+});
+$('#cleaning_language_codes').trigger('change');
+
 $('.batch-edit').on('change', '#convert_to', function() {
     var val = $(this).val();
     $('#convert_literal_value, #convert_resource_properties, #convert_uri_label').closest('.field').hide();
@@ -99,11 +104,13 @@ $('.batch-edit').on('change', '#convert_to', function() {
         $('#convert_uri_label').closest('.field').show();
     }
 });
+$('#convert_to').trigger('change');
 
-$('#mediahtml_remove').change(function() {
+$('.batch-edit').on('change', '#mediahtml_remove', function() {
     var fields = $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_prepend, #mediahtml_append').closest('.field');
     this.checked ? fields.hide() : fields.show();
 });
+$('#mediahtml_remove').trigger('change');
 
 // From resource-form.js.
 $('input.value-language').on('keyup', function(e) {

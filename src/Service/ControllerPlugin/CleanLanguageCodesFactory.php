@@ -2,15 +2,15 @@
 
 namespace BulkEdit\Service\ControllerPlugin;
 
-use BulkEdit\Mvc\Controller\Plugin\CleanLanguages;
+use BulkEdit\Mvc\Controller\Plugin\CleanLanguageCodes;
 use Interop\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
-class CleanLanguagesFactory implements FactoryInterface
+class CleanLanguageCodesFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $services, $requestedNamed, array $options = null)
     {
-        return new CleanLanguages(
+        return new CleanLanguageCodes(
             $services->get('Omeka\EntityManager'),
             $services->get('Omeka\Logger')
         );

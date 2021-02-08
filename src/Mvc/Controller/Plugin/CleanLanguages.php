@@ -63,7 +63,9 @@ SQL;
         }
 
         $processed = $connection->exec($sql);
-        $this->logger->info(sprintf('Updated empty language of %d values.', $processed));
+        if ($processed) {
+            $this->logger->info(sprintf('Updated empty language of %d values.', $processed));
+        }
         return $processed;
     }
 }

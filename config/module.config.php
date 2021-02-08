@@ -10,6 +10,7 @@ return [
     ],
     'controller_plugins' => [
         'factories' => [
+            'cleanLanguageCodes' => Service\ControllerPlugin\CleanLanguageCodesFactory::class,
             'cleanLanguages' => Service\ControllerPlugin\CleanLanguagesFactory::class,
             'deduplicateValues' => Service\ControllerPlugin\DeduplicateValuesFactory::class,
             'specifyDatatypes' => Service\ControllerPlugin\SpecifyDatatypesFactory::class,

@@ -19,6 +19,8 @@ Current processes are:
 - Set visibility of a property public or private
 - Update the media html of an item
 - Remove all trailing white spaces
+- Convert a value to another data type
+- Modify language codes
 - Remove duplicate values
 
 Furthermore, values are automatically trimmed and deduplicated when a resource
@@ -63,6 +65,16 @@ linked resources are saved in the database with the generic data type "resource"
 not with the specific "resourc:item", "resource:media, etc.
 This process is needed to clarify output of the facets with module [Search],
 lists from the module [Reference], and in some other places.
+
+### Clean languages
+
+Sometime, an empty language for a value is an empty string. This option makes it
+null.
+
+### Modify language codes
+
+This options allows to replace all "fr" or "fre" by "fra", or any other language
+code, or into an empty code. It can be limited to specific properties.
 
 ### Deduplicate property values
 

@@ -29,14 +29,15 @@ return [
     ],
     'js_translate_strings' => [
         'Advanced bulk edit', // @translate
-        'The actions are processed in the order of the form. Be careful when mixing them.', // @translate
         'Cleaning', // @translate
         'Convert datatype', // @translate
         'Displace values', // @translate
         'Explode values', // @translate
+        'Fill values', // @translate
         'Media HTML', // @translate
         'Order values', // @translate
         'Replace literal values', // @translate
+        'The actions are processed in the order of the form. Be careful when mixing them.', // @translate
         'Visibility of values', // @translate
     ],
     'bulkedit' => [

@@ -13,6 +13,7 @@ $(nav).insertAfter('.batch-edit #page-actions');
 var bulkeditFieldsets = [
     'cleaning',
     'replace',
+    'fill_values',
     'order_values',
     'properties_visibility',
     'displace',
@@ -31,6 +32,11 @@ $('#replace_from, #replace_to, #replace_mode, #replace_remove, #replace_prepend,
     .wrapAll('<fieldset id="replace" class="field-container">');
 $('#replace')
     .prepend('<legend>' + Omeka.jsTranslate('Replace literal values') + '</legend>');
+
+$('#fill_mode, #fill_properties, #fill_datatypes').closest('.field')
+    .wrapAll('<fieldset id="fill_values" class="field-container">');
+$('#fill_values')
+    .prepend('<legend>' + Omeka.jsTranslate('Fill values') + '</legend>');
 
 $('#order_languages, #order_properties').closest('.field')
     .wrapAll('<fieldset id="order_values" class="field-container">');

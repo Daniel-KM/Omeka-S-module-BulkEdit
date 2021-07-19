@@ -130,6 +130,19 @@ class Module extends AbstractModule
                 'name' => 'properties',
                 'required' => false,
             ]);
+        $inputFilter->get('fill_values')
+            ->add([
+                'name' => 'mode',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'properties',
+                'required' => false,
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'required' => false,
+            ]);
         $inputFilter->get('order_values')
             ->add([
                 'name' => 'properties',
@@ -446,6 +459,7 @@ class Module extends AbstractModule
 
         $processes = [
             'replace' => null,
+            'fill_values' => null,
             'order_values' => null,
             'properties_visibility' => null,
             'displace' => null,
@@ -489,6 +503,20 @@ class Module extends AbstractModule
                     'properties' => $params['properties'],
                 ];
             }
+        }
+
+        $params = $bulkedit['fill_values'] ?? [];
+        if (!empty($params['mode'])
+            && in_array($params['mode'], ['empty', 'all', 'remove'])
+            && !empty($params['properties'])
+        ) {
+            $processes['fill_values'] = [
+                'mode' => $params['mode'],
+                'properties' => $params['properties'],
+                'datatypes' => $params['datatypes'],
+            ];
+            // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
+            // $this->preFillValues($processes['fill_values']);
         }
 
         $params = $bulkedit['order_values'] ?? [];
@@ -651,6 +679,9 @@ class Module extends AbstractModule
         foreach ($processes as $process => $params) switch ($process) {
             case 'replace':
                 $this->updateValuesForResource($resource, $data, $toUpdate, $params);
+                break;
+            case 'fill_values':
+                $this->fillValuesForResource($resource, $data, $toUpdate, $params);
                 break;
             case 'order_values':
                 $this->orderValuesForResource($resource, $data, $toUpdate, $params);
@@ -875,6 +906,113 @@ class Module extends AbstractModule
                     $toUpdate = true;
                     unset($data[$property][$key]);
                 }
+            }
+        }
+    }
+
+    /**
+     * Update values for resources.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
+     * @param array $params
+     */
+    protected function fillValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        &$toUpdate,
+        array $params
+    ): void {
+        static $settings;
+
+        // TODO Only idref is managed.
+        // TODO Add a query for a single value in ValueSuggest (or dereferenceable).
+        $managedDatatypes = [
+            'valuesuggest:idref:all',
+            'valuesuggest:idref:person',
+            'valuesuggest:idref:corporation',
+            'valuesuggest:idref:conference',
+            'valuesuggest:idref:subject',
+            'valuesuggest:idref:rameau',
+            'valuesuggest:idref:fmesh',
+            'valuesuggest:idref:geo',
+            'valuesuggest:idref:family',
+            'valuesuggest:idref:title',
+            'valuesuggest:idref:authorTitle',
+            'valuesuggest:idref:trademark',
+            'valuesuggest:idref:ppn',
+            'valuesuggest:idref:library',
+        ];
+
+        if (is_null($settings)) {
+            $mode = $params['mode'];
+            $properties = $params['properties'] ?? [];
+            $datatypes = $params['datatypes'] ?? ['all'];
+
+            $processAllProperties = in_array('all', $properties);
+            $processAllDatatypes = in_array('all', $datatypes);
+
+            // Flat the list of datatypes.
+            $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
+            if ($processAllDatatypes) {
+                $datatypes = array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes);
+            } else {
+                $datatypes = array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
+            }
+
+            $settings = $params;
+            $settings['mode'] = $mode;
+            $settings['properties'] = $properties;
+            $settings['processAllProperties'] = $processAllProperties;
+            $settings['datatypes'] = $datatypes;
+            $settings['processAllDatatypes'] = $processAllDatatypes;
+        } else {
+            extract($settings);
+        }
+
+        // Note: this is the original values.
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($properties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        if ($mode === 'remove') {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    if (empty($value['@id']) || !in_array($value['type'], $managedDatatypes)) {
+                        continue;
+                    }
+                    $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
+                    if (!strlen((string) $vvalue)) {
+                        continue;
+                    }
+                    $toUpdate = true;
+                    unset($data[$property][$key]['@value']);
+                    unset($data[$property][$key]['o:label']);
+                }
+            }
+            return;
+        }
+
+        $onlyMissing = $mode !== 'all';
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                if (empty($value['@id']) || !in_array($value['type'], $managedDatatypes)) {
+                    continue;
+                }
+                $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
+                if ($onlyMissing && strlen((string) $vvalue)) {
+                    continue;
+                }
+                $vvalue = $this->fillLabelForUri($value['@id'], $value['type']);
+                if (is_null($vvalue)) {
+                    continue;
+                }
+                $toUpdate = true;
+                $data[$property][$key]['o:label'] = $vvalue;
             }
         }
     }
@@ -1594,5 +1732,147 @@ class Module extends AbstractModule
             $properties = $stmt->fetchAll(\PDO::FETCH_COLUMN);
         }
         return $properties;
+    }
+
+    protected function fillLabelForUri($uri, $datatype = null): ?string
+    {
+        static $filleds = [];
+        static $logger = null;
+
+        if (!$logger) {
+            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+        }
+
+        $managedDatatypes = [
+            'valuesuggest:idref:all',
+            'valuesuggest:idref:person' => [
+                '/record/datafield[@tag="900"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="901"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="902"]/subfield[@code="a"][1]',
+            ],
+            'valuesuggest:idref:corporation' => [
+                '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
+            ],
+            'valuesuggest:idref:conference' => [
+                '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
+            ],
+            'valuesuggest:idref:subject' => [
+                '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+            ],
+            'valuesuggest:idref:rameau' => [
+                '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+            ],
+            'valuesuggest:idref:fmesh',
+            'valuesuggest:idref:geo',
+            'valuesuggest:idref:family',
+            'valuesuggest:idref:title',
+            'valuesuggest:idref:authorTitle',
+            'valuesuggest:idref:trademark',
+            'valuesuggest:idref:ppn',
+            'valuesuggest:idref:library',
+        ];
+
+        if (!isset($managedDatatypes[$datatype])) {
+            return null;
+        }
+
+        $headers = [
+            'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/96.0',
+            'Content-Type' => 'application/xml',
+            'Accept-Encoding' => 'gzip, deflate',
+        ];
+
+        $uri = trim((string) $uri);
+        if (!$uri || mb_substr($uri, 0, 21) !== 'https://www.idref.fr/') {
+            return null;
+        }
+
+        if (array_key_exists($uri, $filleds)) {
+            return $filleds[$uri];
+        }
+
+        $url = mb_substr($uri, -4) === '.xml' ? $uri : $uri . '.xml';
+        try {
+            $response = \Laminas\Http\ClientStatic::get($url, [], $headers);
+        } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
+            $logger->err(new Message(
+                'Connection error when fetching url "%s": %s', // @translate
+                $url, $e
+            ));
+            return null;
+        }
+        if (!$response->isSuccess()) {
+            $logger->err(new Message(
+                'Connection issue when fetching url "%s": %s', // @translate
+                $url, $response->getReasonPhrase()
+            ));
+            return null;
+        }
+
+        $xml = $response->getBody();
+        if (!$xml) {
+            $logger->err(new Message(
+                'Output is not xml for url "%s".', // @translate
+                $url
+            ));
+            return null;
+        }
+
+        // $simpleData = new SimpleXMLElement($xml, LIBXML_BIGLINES | LIBXML_COMPACT | LIBXML_NOBLANKS
+        //     | /* LIBXML_NOCDATA | */ LIBXML_NOENT | LIBXML_PARSEHUGE);
+
+        libxml_use_internal_errors(true);
+        $doc = new \DOMDocument();
+        try {
+            $doc->loadXML($xml);
+        } catch (\Exception $e) {
+            $logger->err(new Message(
+                'Output is not xml for url "%s".', // @translate
+                $url
+            ));
+            return null;
+        }
+        if (!$doc) {
+            $logger->err(new Message(
+                'Output is not xml for url "%s".', // @translate
+                $url
+            ));
+            return null;
+        }
+
+        $xpath = new \DOMXPath($doc);
+
+        $queries = (array) $managedDatatypes[$datatype];
+        foreach ($queries as $query) {
+            $nodeList = $xpath->query($query);
+            if (!$nodeList || !$nodeList->length) {
+                continue;
+            }
+            $value = trim((string) $nodeList->item(0)->nodeValue);
+            if ($value === '') {
+                continue;
+            }
+
+            $logger->info(new Message(
+                'The label for uri "%s" is "%s".', // @translate
+                $uri, $value
+            ));
+
+            $filleds[$uri] = $value;
+            return $value;
+        }
+
+        $logger->err(new Message(
+            'The label for uri "%s" was not found.', // @translate
+            $uri
+        ));
+        $filleds[$uri] = null;
+        return null;
     }
 }

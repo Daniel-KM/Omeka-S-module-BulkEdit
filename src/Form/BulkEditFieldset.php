@@ -17,6 +17,7 @@ class BulkEditFieldset extends Fieldset
             ->setAttribute('data-collection-action', 'replace')
             ->appendFieldsetCleaning()
             ->appendFieldsetReplace()
+            ->appendFieldsetFillValues()
             ->appendFieldsetOrderValues()
             ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetDisplace()
@@ -170,6 +171,89 @@ class BulkEditFieldset extends Fieldset
                     'data-collection-action' => 'replace',
                 ],
             ]);
+        return $this;
+    }
+
+    protected function appendFieldsetFillValues()
+    {
+        $datatypes = $this->listDataTypesForSelect();
+        $datatypes = [
+            'all' => '[All datatypes]', // @translate
+        ] + $datatypes;
+
+        $this
+            ->add([
+                'name' => 'fill_values',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Fill values', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_values',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('fill_values');
+        $fieldset
+            ->add([
+                'name' => 'mode',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'Fill mode (only some valuesuggest:idref are supported currently, not uri)', // @translate
+                    'value_options' => [
+                        'empty' => 'Fill missing labels of uris', // @translate
+                        'all' => 'Reset and fill all labels of uris', // @translate
+                        'remove' => 'Remove labels of uris', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'fill_mode',
+                    // 'value' => 'empty',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'properties',
+                'type' => PropertySelect::class,
+                'options' => [
+                    'label' => 'For properties', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'fill_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'type' => Element\Select::class,
+                'options' => [
+                    'label' => 'Only datatypes (Value Suggest ones)', // @translate
+                    'value_options' => $datatypes,
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'fill_datatypes',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select datatypes', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+        ;
         return $this;
     }
 

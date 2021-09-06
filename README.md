@@ -17,7 +17,8 @@ Current processes are:
 - Order values by language (in particular for the title)
 - Displace values from a property to another one
 - Set visibility of a property public or private
-- Update the media html of an item
+- Update the media html via item or media
+- Update the media type (mime-type) of a media
 - Remove all trailing white spaces
 - Convert a value to another data type
 - Modify language codes
@@ -151,9 +152,15 @@ order of values first.
 Select the source datatype and the new datatype. Only some datatype are managed
 currently .
 
-### Update media html from item
+### Update media html from item or media
 
-Select the items and update media html, then update it like an item value.
+Select the items or medias and update media html, then update it like an item
+value.
+
+### Update media types (mime-types)
+
+Select the items or medias and set the existing and the new media type. They
+should be standard ones, like `application/xml` and `	application/tei+xml`.
 
 
 Warning

@@ -35,6 +35,7 @@ return [
         'Explode values', // @translate
         'Fill values', // @translate
         'Media HTML', // @translate
+        'Media types', // @translate
         'Order values', // @translate
         'Replace literal values', // @translate
         'The actions are processed in the order of the form. Be careful when mixing them.', // @translate

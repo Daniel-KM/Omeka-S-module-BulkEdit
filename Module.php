@@ -383,6 +383,7 @@ class Module extends AbstractModule
         $postProcesses = [
             // This process is different, because on another resource.
             'media_html' => null,
+            'media_type' => null,
             // Post processes.
             'trim_values' => null,
             'specify_datatypes' => null,
@@ -429,6 +430,7 @@ class Module extends AbstractModule
         $postProcesses = [
             // This process is different, because on another resource.
             // 'media_html' => null,
+            // 'media_type' => null,
             // Post processes.
             'trim_values' => null,
             'specify_datatypes' => null,
@@ -467,6 +469,7 @@ class Module extends AbstractModule
             'merge' => null,
             'convert' => null,
             'media_html' => null,
+            'media_type' => null,
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
@@ -600,8 +603,8 @@ class Module extends AbstractModule
         }
 
         $params = $bulkedit['media_html'] ?? [];
-        $from = $params['from'] ?? null;
-        $to = $params['to'] ?? null;
+        $from = $params['from'] ?? '';
+        $to = $params['to'] ?? '';
         $remove = isset($params['remove']) && (bool) $params['remove'];
         $prepend = isset($params['prepend']) ? ltrim($params['prepend']) : '';
         $append = isset($params['prepend']) ? rtrim($params['append']) : '';
@@ -618,6 +621,19 @@ class Module extends AbstractModule
                 'remove' => $remove,
                 'prepend' => $prepend,
                 'append' => $append,
+            ];
+        }
+
+        $params = $bulkedit['media_type'] ?? [];
+        $from = $params['from'] ?? '';
+        $to = $params['to'] ?? '';
+        if (mb_strlen(trim($from))
+            && mb_strlen(trim($to))
+            && preg_match('~^(application|audio|font|example|image|message|model|multipart|text|video|x-[\w-]+)/([\w+-]+)(;[\w-]+=[\w-]+){0,3}$~', strtolower(trim($to)))
+        ) {
+            $processes['media_type'] = [
+                'from' => strtolower(trim($from)),
+                'to' => strtolower(trim($to)),
             ];
         }
 
@@ -657,6 +673,9 @@ class Module extends AbstractModule
         // This process is specific, because not for current resources.
         if (!empty($processes['media_html'])) {
             $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
+        }
+        if (!empty($processes['media_type'])) {
+            $this->updateMediaTypeForResources($adapter, $resourceIds, $processes['media_type']);
         }
     }
 
@@ -1615,7 +1634,6 @@ class Module extends AbstractModule
         }
 
         /**
-         * @var \Omeka\Api\Adapter\MediaAdapter $mediaAdapter
          * @var \Doctrine\ORM\EntityManager $entityManager
          * @var \Doctrine\ORM\EntityRepository $repository
          */
@@ -1666,6 +1684,43 @@ class Module extends AbstractModule
 
                 $mediaData['html'] = $html;
                 $media->setData($mediaData);
+                $entityManager->persist($media);
+                // No flush here.
+            }
+        }
+    }
+
+    /**
+     * Update the media type of a media file from items.
+     *
+     * @param ItemAdapter $adapter
+     * @param array $resourceIds
+     * @param array $params
+     */
+    protected function updateMediaTypeForResources(
+        ItemAdapter$adapter,
+        array $resourceIds,
+        array $params
+    ): void {
+        // Already checked.
+        $from = $params['from'];
+        $to = $params['to'];
+
+        if ($from === $to) {
+            return;
+        }
+
+        /**
+         * @var \Doctrine\ORM\EntityManager $entityManager
+         * @var \Doctrine\ORM\EntityRepository $repository
+         */
+        $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
+        $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
+        foreach ($resourceIds as $resourceId) {
+            $medias = $repository->findBy(['item' => $resourceId, 'mediaType' => $from]);
+            /** @var \Omeka\Entity\Media $media */
+            foreach ($medias as $media) {
+                $media->setMediaType($to);
                 $entityManager->persist($media);
                 // No flush here.
             }

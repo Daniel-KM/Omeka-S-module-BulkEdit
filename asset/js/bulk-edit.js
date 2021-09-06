@@ -21,6 +21,7 @@ var bulkeditFieldsets = [
     'merge',
     'convert',
     'media_html',
+    'media_type',
 ];
 
 $('#cleaning_trim, #cleaning_datatypes, #cleaning_languages, #cleaning_language_codes, #cleaning_language_codes_from, #cleaning_language_codes_to, #cleaning_language_codes_properties, #cleaning_deduplicate').closest('.field')
@@ -73,6 +74,11 @@ $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_remove, #mediahtm
     .wrapAll('<fieldset id="media_html" class="field-container">');
 $('#media_html')
     .prepend('<legend>' + Omeka.jsTranslate('Media HTML') + '</legend>');
+
+$('#mediatype_from, #mediatype_to').closest('.field')
+    .wrapAll('<fieldset id="media_type" class="field-container">');
+$('#media_type')
+    .prepend('<legend>' + Omeka.jsTranslate('Media type (mime-type)') + '</legend>');
 
 $('.batch-edit #content > form:first-of-type > div, .batch-edit #content > form:first-of-type > fieldset')
     .filter(function () {

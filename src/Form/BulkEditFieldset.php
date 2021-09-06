@@ -25,7 +25,141 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetMerge()
             ->appendFieldsetConvert()
             ->appendFieldsetMediaHtml()
+            ->appendFieldsetMediaType()
         ;
+    }
+
+    protected function appendFieldsetCleaning()
+    {
+        $this
+            ->add([
+                'name' => 'cleaning',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Cleaning', // @translate
+                ],
+                'attributes' => [
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('cleaning');
+        $fieldset
+            ->add([
+                'name' => 'trim_values',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Trim property values', // @translate
+                    'info' => 'Remove initial and trailing whitespace of all values of all properties', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_trim',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'specify_datatypes',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Specify data type "resource" for linked resources', // @translate
+                    'info' => 'In some cases, linked resources are saved in the database with the generic data type "resource", not with the specific "resource:item", "resource:media, etc.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_datatypes',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_languages',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Clean languages (set null when language is empty)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_languages',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_language_codes',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Normalize or modify language codes', // @translate
+                    'info' => 'Normalize language codes from a code to another one, for example "fr" to "fra" or vice-versa. It allows to add or remove a code too.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_language_codes',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_language_codes_from',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'From code', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_language_codes_from',
+                    'placeholder' => 'fr',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_language_codes_to',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'To code', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_language_codes_to',
+                    'placeholder' => 'fra',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'clean_language_codes_properties',
+                'type' => PropertySelect::class,
+                'options' => [
+                    'label' => 'For properties', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_language_codes_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'required' => false,
+                    'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'deduplicate_values',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Deduplicate property values case insensitively', // @translate
+                    'info' => 'Deduplicate values of all properties, case INsensitively. Trimming values before is recommended, because values are checked strictly.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_deduplicate',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
     }
 
     protected function appendFieldsetReplace()
@@ -912,131 +1046,44 @@ class BulkEditFieldset extends Fieldset
         return $this;
     }
 
-    protected function appendFieldsetCleaning()
+    protected function appendFieldsetMediaType()
     {
         $this
             ->add([
-                'name' => 'cleaning',
+                'name' => 'media_type',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Cleaning', // @translate
+                    'label' => 'Media type (mime-type)', // @translate
                 ],
                 'attributes' => [
+                    'id' => 'media_html',
                     'class' => 'field-container',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
             ]);
-        $fieldset = $this->get('cleaning');
+        $fieldset = $this->get('media_type');
         $fieldset
             ->add([
-                'name' => 'trim_values',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Trim property values', // @translate
-                    'info' => 'Remove initial and trailing whitespace of all values of all properties', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleaning_trim',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'specify_datatypes',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Specify data type "resource" for linked resources', // @translate
-                    'info' => 'In some cases, linked resources are saved in the database with the generic data type "resource", not with the specific "resource:item", "resource:media, etc.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleaning_datatypes',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'clean_languages',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Clean languages (set null when language is empty)', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleaning_languages',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'clean_language_codes',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Normalize or modify language codes', // @translate
-                    'info' => 'Normalize language codes from a code to another one, for example "fr" to "fra" or vice-versa. It allows to add or remove a code too.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleaning_language_codes',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'clean_language_codes_from',
+                'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'From code', // @translate
+                    'label' => 'Media type to replace', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_language_codes_from',
-                    'placeholder' => 'fr',
+                    'id' => 'mediatype_from',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
             ])
             ->add([
-                'name' => 'clean_language_codes_to',
+                'name' => 'to',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'To code', // @translate
+                    'label' => 'By a valid media-type', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_language_codes_to',
-                    'placeholder' => 'fra',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'clean_language_codes_properties',
-                'type' => PropertySelect::class,
-                'options' => [
-                    'label' => 'For properties', // @translate
-                    'term_as_value' => true,
-                    'prepend_value_options' => [
-                        'all' => '[All properties]', // @translate
-                    ],
-                    'empty_option' => '',
-                    'used_terms' => true,
-                ],
-                'attributes' => [
-                    'id' => 'cleaning_language_codes_properties',
-                    'class' => 'chosen-select',
-                    'multiple' => true,
-                    'required' => false,
-                    'data-placeholder' => 'Select properties', // @translate
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'deduplicate_values',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Deduplicate property values case insensitively', // @translate
-                    'info' => 'Deduplicate values of all properties, case INsensitively. Trimming values before is recommended, because values are checked strictly.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'cleaning_deduplicate',
+                    'id' => 'mediatype_to',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

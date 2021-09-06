@@ -33,9 +33,10 @@ $('#replace_from, #replace_to, #replace_mode, #replace_remove, #replace_prepend,
 $('#replace')
     .prepend('<legend>' + Omeka.jsTranslate('Replace literal values') + '</legend>');
 
-$('#fill_mode, #fill_properties, #fill_datatypes, #fill_featured_subject').closest('.field')
+$('#fill_mode, #fill_properties, #fill_datatypes, #fill_language_code, #fill_featured_subject').closest('.field')
     .wrapAll('<fieldset id="fill_values" class="field-container">');
 $('#fill_values')
+    .prepend('<p>' + Omeka.jsTranslate('Fill a value from remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".') + '</p>')
     .prepend('<legend>' + Omeka.jsTranslate('Fill values') + '</legend>');
 
 $('#order_languages, #order_properties').closest('.field')

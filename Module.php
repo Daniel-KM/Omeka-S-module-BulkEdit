@@ -514,6 +514,7 @@ class Module extends AbstractModule
                 'mode' => $params['mode'],
                 'properties' => $params['properties'],
                 'datatypes' => $params['datatypes'],
+                'language_code' => $params['language_code'],
                 'featured_subject' => (bool) $params['featured_subject'],
             ];
             // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
@@ -927,9 +928,10 @@ class Module extends AbstractModule
     ): void {
         static $settings;
 
-        // TODO Only idref is managed.
+        // TODO Only geonames and idref are managed.
         // TODO Add a query for a single value in ValueSuggest (or dereferenceable).
         $managedDatatypes = [
+            'valuesuggest:geonames:geonames',
             'valuesuggest:idref:all',
             'valuesuggest:idref:person',
             'valuesuggest:idref:corporation',
@@ -951,6 +953,7 @@ class Module extends AbstractModule
             $properties = $params['properties'] ?? [];
             $datatypes = $params['datatypes'] ?? ['all'];
             $featuredSubject = !empty($params['featured_subject']);
+            $languageCode = $params['language_code'] ?? '';
 
             $processAllProperties = in_array('all', $properties);
             $processAllDatatypes = in_array('all', $datatypes);
@@ -961,13 +964,18 @@ class Module extends AbstractModule
                 ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes)
                 : array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
 
+            $fillLabelForUriOptions = [
+                'featured_subject' => $featuredSubject,
+                'language_code' => preg_replace('/[^a-zA-Z0-9_-]+/', '', $languageCode),
+            ];
+
             $settings = $params;
             $settings['mode'] = $mode;
             $settings['properties'] = $properties;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['datatypes'] = $datatypes;
             $settings['processAllDatatypes'] = $processAllDatatypes;
-            $settings['featuredSubject'] = $featuredSubject;
+            $settings['fillLabelForUriOptions'] = $fillLabelForUriOptions;
         } else {
             extract($settings);
         }
@@ -1008,7 +1016,7 @@ class Module extends AbstractModule
                 if ($onlyMissing && strlen((string) $vvalue)) {
                     continue;
                 }
-                $vvalue = $this->fillLabelForUri($value['@id'], $value['type'], $featuredSubject);
+                $vvalue = $this->fillLabelForUri($value['@id'], $value['type'], $fillLabelForUriOptions);
                 if (is_null($vvalue)) {
                     continue;
                 }
@@ -1735,7 +1743,7 @@ class Module extends AbstractModule
         return $properties;
     }
 
-    protected function fillLabelForUri($uri, $datatype = null, $featuredSubject = false): ?string
+    protected function fillLabelForUri($uri, $datatype = null, array $options = []): ?string
     {
         static $filleds = [];
         static $logger = null;
@@ -1744,29 +1752,62 @@ class Module extends AbstractModule
             $logger = $this->getServiceLocator()->get('Omeka\Logger');
         }
 
+        $featuredSubject = !empty($options['featured_subject']);
+        $languageCode = $options['language_code'] ?? '';
+
+        $baseurlIdref = [
+            'idref.fr/',
+        ];
+
         $managedDatatypes = [
+            'valuesuggest:geonames:geonames' => [
+                'base_url' => [
+                    'geonames.org/',
+                    'sws.geonames.org/',
+                ],
+                'path' => [
+                    '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $languageCode . '"][1]',
+                    '/rdf:RDF/gn:Feature/gn:name[1]',
+                    '/rdf:RDF/gn:Feature/gn:shortName[1]',
+                ],
+            ],
             'valuesuggest:idref:all' => null,
             'valuesuggest:idref:person' => [
-                '/record/datafield[@tag="900"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="901"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="902"]/subfield[@code="a"][1]',
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="900"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="901"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="902"]/subfield[@code="a"][1]',
+                ],
             ],
             'valuesuggest:idref:corporation' => [
-                '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
+                ],
             ],
             'valuesuggest:idref:conference' => [
-                '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
+                ],
             ],
             'valuesuggest:idref:subject' => [
-                '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+                ],
             ],
             'valuesuggest:idref:rameau' => [
-                '/record/datafield[@tag="950"]/subfield[@code="a"][1]',
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="950"]/subfield[@code="a"][1]',
+                ],
             ],
             'valuesuggest:idref:fmesh' => null,
             'valuesuggest:idref:geo' => null,
@@ -1783,7 +1824,7 @@ class Module extends AbstractModule
         }
 
         if ($featuredSubject && $datatype === 'valuesuggest:idref:rameau') {
-            $managedDatatypes['valuesuggest:idref:rameau'] = [
+            $managedDatatypes['valuesuggest:idref:rameau']['path'] = [
                 '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
                 '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
             ];
@@ -1796,7 +1837,20 @@ class Module extends AbstractModule
         ];
 
         $uri = trim((string) $uri);
-        if (!$uri || mb_substr($uri, 0, 21) !== 'https://www.idref.fr/') {
+        if (!$uri) {
+            return null;
+        }
+
+        $isManagedUrl = false;
+        foreach ($managedDatatypes[$datatype]['base_url'] as $baseUrl) {
+            foreach (['http://', 'https://', 'http://www.', 'https://www.'] as $prefix) {
+                if (mb_substr($uri, 0, strlen($prefix . $baseUrl)) === $prefix . $baseUrl) {
+                    $isManagedUrl = true;
+                    break 2;
+                }
+            }
+        }
+        if (!$isManagedUrl) {
             return null;
         }
 
@@ -1804,7 +1858,27 @@ class Module extends AbstractModule
             return $filleds[$uri];
         }
 
-        $url = mb_substr($uri, -4) === '.xml' ? $uri : $uri . '.xml';
+        switch ($datatype) {
+            case 'valuesuggest:geonames:geonames':
+                // Extract the id.
+                $id = preg_replace('~.*/(?<id>[0-9]+).*~m', '$1', $uri);
+                if (!$id) {
+                    $logger->err(new Message(
+                        'The label for uri "%s" was not found.', // @translate
+                        $uri
+                    ));
+                    $filleds[$uri] = null;
+                    return null;
+                }
+                $url = "https://sws.geonames.org/$id/about.rdf";
+                break;
+            case substr($datatype, 0, 18) === 'valuesuggest:idref':
+                $url = mb_substr($uri, -4) === '.xml' ? $uri : $uri . '.xml';
+                break;
+            default:
+                return null;
+        }
+
         try {
             $response = \Laminas\Http\ClientStatic::get($url, [], $headers);
         } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
@@ -1855,7 +1929,16 @@ class Module extends AbstractModule
 
         $xpath = new \DOMXPath($doc);
 
-        $queries = (array) $managedDatatypes[$datatype];
+        switch ($datatype) {
+            case 'valuesuggest:geonames:geonames':
+                $xpath->registerNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+                $xpath->registerNamespace('gn', 'http://www.geonames.org/ontology#');
+                break;
+            default:
+                break;
+        }
+
+        $queries = (array) $managedDatatypes[$datatype]['path'];
         foreach ($queries as $query) {
             $nodeList = $xpath->query($query);
             if (!$nodeList || !$nodeList->length) {

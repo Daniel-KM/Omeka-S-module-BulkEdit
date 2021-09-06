@@ -201,7 +201,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'mode',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Fill mode (only some valuesuggest:idref are supported currently, not uri)', // @translate
+                    'label' => 'Fill mode (only geonames and some idref currently, not uri)', // @translate
                     'value_options' => [
                         'empty' => 'Fill missing labels of uris', // @translate
                         'all' => 'Reset and fill all labels of uris', // @translate
@@ -249,6 +249,18 @@ class BulkEditFieldset extends Fieldset
                     'class' => 'chosen-select',
                     'multiple' => true,
                     'data-placeholder' => 'Select datatypes', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'language_code',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Language code (Geonames)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_language_code',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

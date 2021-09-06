@@ -14,6 +14,7 @@ use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
+use Omeka\Api\Adapter\MediaAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Stdlib\Message;
 
@@ -379,12 +380,12 @@ class Module extends AbstractModule
             return;
         }
 
-        // Some batch processes are done globally via a single sql.
+        // Some batch processes are done globally via a single sql or on another
+        // resource or cannot be done via api, so remove them from the standard
+        // process.
         $postProcesses = [
-            // This process is different, because on another resource.
             'media_html' => null,
             'media_type' => null,
-            // Post processes.
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
@@ -427,17 +428,22 @@ class Module extends AbstractModule
             return;
         }
 
-        $postProcesses = [
-            // This process is different, because on another resource.
-            // 'media_html' => null,
-            // 'media_type' => null,
-            // Post processes.
+        if ($request->getResource() === 'media') {
+            $postProcesses = [
+                'media_html' => null,
+                'media_type' => null,
+            ];
+        } else {
+            $postProcesses = [];
+        }
+
+        $postProcesses = array_merge($postProcesses, [
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
             'clean_language_codes' => null,
             'deduplicate_values' => null,
-        ];
+        ]);
         $processes = $this->prepareProcesses();
         $bulkedit = array_intersect_key($processes, $postProcesses);
         if (!count($bulkedit)) {
@@ -445,7 +451,7 @@ class Module extends AbstractModule
         }
 
         $adapter = $event->getTarget();
-        $this->updateValues($adapter, $ids, $bulkedit);
+        $this->updateViaSql($adapter, $ids, $bulkedit);
     }
 
     protected function prepareProcesses($bulkedit = null)
@@ -671,11 +677,13 @@ class Module extends AbstractModule
         array $processes
     ): void {
         // This process is specific, because not for current resources.
-        if (!empty($processes['media_html'])) {
-            $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
-        }
-        if (!empty($processes['media_type'])) {
-            $this->updateMediaTypeForResources($adapter, $resourceIds, $processes['media_type']);
+        if ($adapter instanceof ItemAdapter) {
+            if (!empty($processes['media_html'])) {
+                $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
+            }
+            if (!empty($processes['media_type'])) {
+                $this->updateMediaTypeForResources($adapter, $resourceIds, $processes['media_type']);
+            }
         }
     }
 
@@ -729,7 +737,7 @@ class Module extends AbstractModule
         return $data;
     }
 
-    protected function updateValues(
+    protected function updateViaSql(
         AbstractResourceEntityAdapter$adapter,
         array $resourceIds,
         array $processes
@@ -739,35 +747,45 @@ class Module extends AbstractModule
 
         // These processes are specific, because they use a direct sql.
 
-        if (!empty($processes['trim_values'])) {
-            /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
-            $trimValues = $plugins->get('trimValues');
-            $trimValues($resourceIds);
-        }
-        if (!empty($processes['specify_datatypes'])) {
-            /** @var \BulkEdit\Mvc\Controller\Plugin\SpecifyDatatypes $specifyDatatypes */
-            $specifyDatatypes = $plugins->get('specifyDatatypes');
-            $specifyDatatypes($resourceIds);
-        }
-        if (!empty($processes['clean_languages'])) {
-            /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguages $cleanLanguages */
-            $cleanLanguages = $plugins->get('cleanLanguages');
-            $cleanLanguages($resourceIds);
-        }
-        if (!empty($processes['clean_language_codes'])) {
-            /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguageCodes $cleanLanguages */
-            $cleanLanguageCodes = $plugins->get('cleanLanguageCodes');
-            $cleanLanguageCodes(
-                $resourceIds,
-                $processes['clean_language_codes']['from'] ?? null,
-                $processes['clean_language_codes']['to'] ?? null,
-                $processes['clean_language_codes']['properties'] ?? null
-            );
-        }
-        if (!empty($processes['deduplicate_values'])) {
-            /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
-            $deduplicateValues = $plugins->get('deduplicateValues');
-            $deduplicateValues($resourceIds);
+        foreach (array_filter($processes) as $process => $params) switch ($process) {
+            case 'trim_values':
+                /** @var \BulkEdit\Mvc\Controller\Plugin\TrimValues $trimValues */
+                $trimValues = $plugins->get('trimValues');
+                $trimValues($resourceIds);
+                break;
+            case 'specify_datatypes':
+                /** @var \BulkEdit\Mvc\Controller\Plugin\SpecifyDatatypes $specifyDatatypes */
+                $specifyDatatypes = $plugins->get('specifyDatatypes');
+                $specifyDatatypes($resourceIds);
+                break;
+            case 'clean_languages':
+                /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguages $cleanLanguages */
+                $cleanLanguages = $plugins->get('cleanLanguages');
+                $cleanLanguages($resourceIds);
+                break;
+            case 'clean_language_codes':
+                /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguageCodes $cleanLanguages */
+                $cleanLanguageCodes = $plugins->get('cleanLanguageCodes');
+                $cleanLanguageCodes(
+                    $resourceIds,
+                    $params['from'] ?? null,
+                    $params['to'] ?? null,
+                    $params['properties'] ?? null
+                );
+                break;
+            case 'deduplicate_values':
+                /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
+                $deduplicateValues = $plugins->get('deduplicateValues');
+                $deduplicateValues($resourceIds);
+                break;
+            case 'media_html':
+                $this->updateMediaHtmlForResources($adapter, $resourceIds, $params);
+                break;
+            case 'media_type':
+                $this->updateMediaTypeForResources($adapter, $resourceIds, $params);
+                break;
+            default:
+                break;
         }
     }
 
@@ -1591,13 +1609,9 @@ class Module extends AbstractModule
 
     /**
      * Update the html of a media of type html from items.
-     *
-     * @param ItemAdapter $adapter
-     * @param array $resourceIds
-     * @param array $params
      */
     protected function updateMediaHtmlForResources(
-        ItemAdapter$adapter,
+        AbstractResourceEntityAdapter $adapter,
         array $resourceIds,
         array $params
     ): void {
@@ -1633,6 +1647,8 @@ class Module extends AbstractModule
             }
         }
 
+        $isMediaIds = $adapter instanceof MediaAdapter;
+
         /**
          * @var \Doctrine\ORM\EntityManager $entityManager
          * @var \Doctrine\ORM\EntityRepository $repository
@@ -1640,7 +1656,9 @@ class Module extends AbstractModule
         $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
         foreach ($resourceIds as $resourceId) {
-            $medias = $repository->findBy(['item' => $resourceId, 'ingester' => 'html']);
+            $medias = $isMediaIds
+                ? $repository->findBy(['id' => $resourceId, 'ingester' => 'html'])
+                : $repository->findBy(['item' => $resourceId, 'ingester' => 'html']);
             if (!count($medias)) {
                 continue;
             }
@@ -1692,13 +1710,9 @@ class Module extends AbstractModule
 
     /**
      * Update the media type of a media file from items.
-     *
-     * @param ItemAdapter $adapter
-     * @param array $resourceIds
-     * @param array $params
      */
     protected function updateMediaTypeForResources(
-        ItemAdapter$adapter,
+        AbstractResourceEntityAdapter $adapter,
         array $resourceIds,
         array $params
     ): void {
@@ -1710,6 +1724,8 @@ class Module extends AbstractModule
             return;
         }
 
+        $isMediaIds = $adapter instanceof MediaAdapter;
+
         /**
          * @var \Doctrine\ORM\EntityManager $entityManager
          * @var \Doctrine\ORM\EntityRepository $repository
@@ -1717,7 +1733,9 @@ class Module extends AbstractModule
         $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
         foreach ($resourceIds as $resourceId) {
-            $medias = $repository->findBy(['item' => $resourceId, 'mediaType' => $from]);
+            $medias = $isMediaIds
+                ? $repository->findBy(['id' => $resourceId, 'mediaType' => $from])
+                : $repository->findBy(['item' => $resourceId, 'mediaType' => $from]);
             /** @var \Omeka\Entity\Media $media */
             foreach ($medias as $media) {
                 $media->setMediaType($to);

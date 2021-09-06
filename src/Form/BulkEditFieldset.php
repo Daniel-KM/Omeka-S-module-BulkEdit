@@ -2,9 +2,11 @@
 
 namespace BulkEdit\Form;
 
+use BulkEdit\Form\Element\OptionalRadio;
+use BulkEdit\Form\Element\OptionalSelect;
+use BulkEdit\Form\Element\OptionalPropertySelect;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
-use Omeka\Form\Element\PropertySelect;
 
 class BulkEditFieldset extends Fieldset
 {
@@ -125,7 +127,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'clean_language_codes_properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -206,7 +208,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'mode',
-                'type' => Element\Radio::class,
+                'type' => OptionalRadio::class,
                 'options' => [
                     'label' => 'Replacement mode', // @translate
                     'value_options' => [
@@ -286,7 +288,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -333,7 +335,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => Element\Radio::class,
+                'type' => OptionalRadio::class,
                 'options' => [
                     'label' => 'Fill mode (only geonames and some idref currently, not uri)', // @translate
                     'value_options' => [
@@ -351,7 +353,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -372,7 +374,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => Element\Select::class,
+                'type' => OptionalSelect::class,
                 'options' => [
                     'label' => 'Only datatypes (Value Suggest ones)', // @translate
                     'value_options' => $datatypes,
@@ -448,7 +450,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties to order', // @translate
                     'term_as_value' => true,
@@ -496,7 +498,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'visibility',
-                'type' => Element\Radio::class,
+                'type' => OptionalRadio::class,
                 'options' => [
                     'label' => 'Set visibility', // @translate
                     'value_options' => [
@@ -514,7 +516,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -535,7 +537,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => Element\Select::class,
+                'type' => OptionalSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'value_options' => $datatypes,
@@ -604,7 +606,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'from',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'From properties', // @translate
                     'term_as_value' => true,
@@ -622,7 +624,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'to',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'To property', // @translate
                     'term_as_value' => true,
@@ -639,7 +641,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => Element\Select::class,
+                'type' => OptionalSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'value_options' => $datatypes,
@@ -669,7 +671,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'visibility',
-                'type' => Element\Radio::class,
+                'type' => OptionalRadio::class,
                 'options' => [
                     'label' => 'Only visibility', // @translate
                     'value_options' => [
@@ -721,7 +723,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties', // @translate
                     'term_as_value' => true,
@@ -786,7 +788,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties', // @translate
                     'term_as_value' => true,
@@ -826,7 +828,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'from',
-                'type' => Element\Select::class,
+                'type' => OptionalSelect::class,
                 'options' => [
                     'label' => 'From datatype', // @translate
                     'info' => 'Some combinations are not managed.', // @translate
@@ -848,7 +850,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'to',
-                'type' => Element\Select::class,
+                'type' => OptionalSelect::class,
                 'options' => [
                     'label' => 'To datatype', // @translate
                     'info' => 'Warning: When converted to uri, the format is not checked.', // @translate
@@ -870,7 +872,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -888,7 +890,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'literal_value',
-                'type' => Element\Select::class,
+                'type' => OptionalSelect::class,
                 'options' => [
                     'label' => 'Convert to literal: Content', // @translate
                     'value_options' => [
@@ -910,7 +912,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'resource_properties',
-                'type' => PropertySelect::class,
+                'type' => OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Convert to resource: Properties where to search the identifier', // @translate
                     'term_as_value' => true,
@@ -989,7 +991,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'mode',
-                'type' => Element\Radio::class,
+                'type' => OptionalRadio::class,
                 'options' => [
                     'label' => 'Replacement mode', // @translate
                     'value_options' => [

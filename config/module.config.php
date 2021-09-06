@@ -4,8 +4,13 @@ namespace BulkEdit;
 
 return [
     'form_elements' => [
+        'invokables' => [
+            Form\Element\OptionalRadio::class => Form\Element\OptionalRadio::class,
+            Form\Element\OptionalSelect::class => Form\Element\OptionalSelect::class,
+        ],
         'factories' => [
             Form\BulkEditFieldset::class => Service\Form\BulkEditFieldsetFactory::class,
+            Form\Element\OptionalPropertySelect::class => Service\Form\Element\OptionalPropertySelectFactory::class,
         ],
     ],
     'controller_plugins' => [

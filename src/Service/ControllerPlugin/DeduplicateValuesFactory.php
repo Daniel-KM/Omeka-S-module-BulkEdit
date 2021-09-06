@@ -28,7 +28,7 @@ class DeduplicateValuesFactory implements FactoryInterface
         // bypassed by Any_value().
         $sql = 'SELECT ANY_VALUE(id) FROM user LIMIT 1;';
         try {
-            $connection->query($sql)->fetchColumn();
+            $connection->executeQuery($sql)->fetchColumn();
             return true;
         } catch (\Exception $e) {
             return false;

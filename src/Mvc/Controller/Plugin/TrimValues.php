@@ -127,7 +127,7 @@ SQL;
         $connection = $this->entityManager->getConnection();
 
         $sql = 'SHOW VARIABLES LIKE "version";';
-        $stmt = $connection->query($sql);
+        $stmt = $connection->executeQuery($sql);
         $version = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
         $version = reset($version);
 
@@ -146,7 +146,7 @@ SQL;
         }
 
         $sql = 'SHOW VARIABLES LIKE "innodb_version";';
-        $stmt = $connection->query($sql);
+        $stmt = $connection->executeQuery($sql);
         $version = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
         $version = reset($version);
         $isInnoDb = !empty($version);

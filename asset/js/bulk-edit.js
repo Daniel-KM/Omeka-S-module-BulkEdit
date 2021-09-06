@@ -33,7 +33,7 @@ $('#replace_from, #replace_to, #replace_mode, #replace_remove, #replace_prepend,
 $('#replace')
     .prepend('<legend>' + Omeka.jsTranslate('Replace literal values') + '</legend>');
 
-$('#fill_mode, #fill_properties, #fill_datatypes').closest('.field')
+$('#fill_mode, #fill_properties, #fill_datatypes, #fill_featured_subject').closest('.field')
     .wrapAll('<fieldset id="fill_values" class="field-container">');
 $('#fill_values')
     .prepend('<legend>' + Omeka.jsTranslate('Fill values') + '</legend>');

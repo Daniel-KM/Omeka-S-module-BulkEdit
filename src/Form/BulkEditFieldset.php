@@ -253,6 +253,18 @@ class BulkEditFieldset extends Fieldset
                     'data-collection-action' => 'replace',
                 ],
             ])
+            ->add([
+                'name' => 'featured_subject',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Use featured subject (Rameau)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_featured_subject',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
         ;
         return $this;
     }

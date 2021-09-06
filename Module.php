@@ -514,6 +514,7 @@ class Module extends AbstractModule
                 'mode' => $params['mode'],
                 'properties' => $params['properties'],
                 'datatypes' => $params['datatypes'],
+                'featured_subject' => (bool) $params['featured_subject'],
             ];
             // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
             // $this->preFillValues($processes['fill_values']);
@@ -949,17 +950,16 @@ class Module extends AbstractModule
             $mode = $params['mode'];
             $properties = $params['properties'] ?? [];
             $datatypes = $params['datatypes'] ?? ['all'];
+            $featuredSubject = !empty($params['featured_subject']);
 
             $processAllProperties = in_array('all', $properties);
             $processAllDatatypes = in_array('all', $datatypes);
 
             // Flat the list of datatypes.
             $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
-            if ($processAllDatatypes) {
-                $datatypes = array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes);
-            } else {
-                $datatypes = array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
-            }
+            $datatypes = $processAllDatatypes
+                ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes)
+                : array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
 
             $settings = $params;
             $settings['mode'] = $mode;
@@ -967,6 +967,7 @@ class Module extends AbstractModule
             $settings['processAllProperties'] = $processAllProperties;
             $settings['datatypes'] = $datatypes;
             $settings['processAllDatatypes'] = $processAllDatatypes;
+            $settings['featuredSubject'] = $featuredSubject;
         } else {
             extract($settings);
         }
@@ -1007,7 +1008,7 @@ class Module extends AbstractModule
                 if ($onlyMissing && strlen((string) $vvalue)) {
                     continue;
                 }
-                $vvalue = $this->fillLabelForUri($value['@id'], $value['type']);
+                $vvalue = $this->fillLabelForUri($value['@id'], $value['type'], $featuredSubject);
                 if (is_null($vvalue)) {
                     continue;
                 }
@@ -1734,7 +1735,7 @@ class Module extends AbstractModule
         return $properties;
     }
 
-    protected function fillLabelForUri($uri, $datatype = null): ?string
+    protected function fillLabelForUri($uri, $datatype = null, $featuredSubject = false): ?string
     {
         static $filleds = [];
         static $logger = null;
@@ -1744,7 +1745,7 @@ class Module extends AbstractModule
         }
 
         $managedDatatypes = [
-            'valuesuggest:idref:all',
+            'valuesuggest:idref:all' => null,
             'valuesuggest:idref:person' => [
                 '/record/datafield[@tag="900"]/subfield[@code="a"][1]',
                 '/record/datafield[@tag="901"]/subfield[@code="a"][1]',
@@ -1765,21 +1766,27 @@ class Module extends AbstractModule
                 '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
             ],
             'valuesuggest:idref:rameau' => [
-                '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="950"]/subfield[@code="a"][1]',
             ],
-            'valuesuggest:idref:fmesh',
-            'valuesuggest:idref:geo',
-            'valuesuggest:idref:family',
-            'valuesuggest:idref:title',
-            'valuesuggest:idref:authorTitle',
-            'valuesuggest:idref:trademark',
-            'valuesuggest:idref:ppn',
-            'valuesuggest:idref:library',
+            'valuesuggest:idref:fmesh' => null,
+            'valuesuggest:idref:geo' => null,
+            'valuesuggest:idref:family' => null,
+            'valuesuggest:idref:title' => null,
+            'valuesuggest:idref:authorTitle' => null,
+            'valuesuggest:idref:trademark' => null,
+            'valuesuggest:idref:ppn' => null,
+            'valuesuggest:idref:library' => null,
         ];
 
         if (!isset($managedDatatypes[$datatype])) {
             return null;
+        }
+
+        if ($featuredSubject && $datatype === 'valuesuggest:idref:rameau') {
+            $managedDatatypes['valuesuggest:idref:rameau'] = [
+                '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+            ];
         }
 
         $headers = [

@@ -513,7 +513,7 @@ class Module extends AbstractModule
         $to = $params['to'] ?? '';
         if (mb_strlen(trim($from))
             && mb_strlen(trim($to))
-            && preg_match('~^(application|audio|font|example|image|message|model|multipart|text|video|x-[\w-]+)/([\w+-]+)(;[\w-]+=[\w-]+){0,3}$~', strtolower(trim($to)))
+            && preg_match('~^(application|audio|font|example|image|message|model|multipart|text|video|x-[\w-]+)/([\w\.+-]+)(;[\w\.+-]+=[\w\.+-]+){0,3}$~', strtolower(trim($to)))
         ) {
             $processes['media_type'] = [
                 'from' => strtolower(trim($from)),

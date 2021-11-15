@@ -129,8 +129,11 @@ class Module extends AbstractModule
             }
             foreach ($values as &$value) {
                 if (isset($value['@value'])) {
-                    $v = $trimUnicode($value['@value']);
-                    $value['@value'] = mb_strlen($v) ? $v : null;
+                    // Some datatypes may have an array for value.
+                    if (is_string($value['@value'])) {
+                        $v = $trimUnicode($value['@value']);
+                        $value['@value'] = mb_strlen($v) ? $v : null;
+                    }
                 }
                 if (isset($value['@id'])) {
                     $v = $trimUnicode($value['@id']);
@@ -159,7 +162,12 @@ class Module extends AbstractModule
         ];
         foreach ($data as $term => &$values) {
             // Process properties only.
-            if (!is_string($term) || mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
+            if (empty($values)
+                || !is_array($values)
+                || empty($term)
+                || !is_string($term)
+                || !$this->isPropertyTerm($term)
+            ) {
                 continue;
             }
             $first = reset($values);
@@ -167,15 +175,16 @@ class Module extends AbstractModule
                 continue;
             }
             foreach ($values as &$value) {
-                if ($value['type'] === 'resource' || strpos($value['type'], 'resource') === 0) {
-                    try {
-                        $linkedResource = $api->read('resources', ['id' => $value['value_resource_id']], ['initialize' => false, 'finalize' => false])->getContent();
-                        $linkedResourceName = $linkedResource->resourceName();
-                        if (isset($resourceNameToTypes[$linkedResourceName])) {
-                            $value['type'] = $resourceNameToTypes[$linkedResourceName];
-                        }
-                    } catch (\Exception $e) {
+                if (substr((string) $value['type'], 0, 8) !== 'resource') {
+                    continue;
+                }
+                try {
+                    $linkedResource = $api->read('resources', ['id' => $value['value_resource_id']], ['initialize' => false, 'finalize' => false])->getContent();
+                    $linkedResourceName = $linkedResource->resourceName();
+                    if (isset($resourceNameToTypes[$linkedResourceName])) {
+                        $value['type'] = $resourceNameToTypes[$linkedResourceName];
                     }
+                } catch (\Exception $e) {
                 }
             }
         }
@@ -575,8 +584,8 @@ class Module extends AbstractModule
         $data = json_decode(json_encode($resource), true);
         // Keep only properties values: a batch edit is partial and Bulk Edit
         // manages only properties.
-        $properties = $this->getPropertyTerms();
-        $data = array_intersect_key($data, array_flip($properties));
+        $properties = $this->getPropertyIds();
+        $data = array_intersect_key($data, $properties);
 
         // Keep data that may have been added during batch pre-process,
         $data = array_replace($data, $dataToUpdate);
@@ -1665,32 +1674,45 @@ class Module extends AbstractModule
     }
 
     /**
-     * Get all property terms.
+     * Check if a string or a id is a managed term.
      */
-    public function getPropertyTerms(): array
+    public function isPropertyTerm($term): bool
+    {
+        $ids = $this->getPropertyIds();
+        return isset($ids[$term]);
+    }
+
+    /**
+     * Get all property ids by term.
+     *
+     * @return array Associative array of ids by term.
+     */
+    public function getPropertyIds(): array
     {
         static $properties;
-        if (is_null($properties)) {
-            /** @var \Doctrine\DBAL\Connection $connection */
-            $connection = $this->getServiceLocator()->get('Omeka\Connection');
-            $qb = $connection->createQueryBuilder();
-            $qb
-                ->select([
-                    'CONCAT(vocabulary.prefix, ":", property.local_name) AS term',
-                    // Only the first select is needed, but some databases require
-                    // "order by" or "group by" value to be in the select.
-                    'vocabulary.id',
-                    'property.id',
-                ])
-                ->from('property', 'property')
-                ->innerJoin('property', 'vocabulary', 'vocabulary', 'property.vocabulary_id = vocabulary.id')
-                ->orderBy('vocabulary.id', 'asc')
-                ->addOrderBy('property.id', 'asc')
-                ->addGroupBy('property.id')
-            ;
-            $stmt = $connection->executeQuery($qb);
-            $properties = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        if (isset($properties)) {
+            return $properties;
         }
+
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $this->getServiceLocator()->get('Omeka\Connection');
+        $qb = $connection->createQueryBuilder();
+        $qb
+            ->select(
+                'DISTINCT CONCAT(vocabulary.prefix, ":", property.local_name) AS term',
+                'property.id AS id',
+                // Only the two first selects are needed, but some databases
+                // require "order by" or "group by" value to be in the select.
+                'vocabulary.id',
+                'property.id'
+            )
+            ->from('property', 'property')
+            ->innerJoin('property', 'vocabulary', 'vocabulary', 'property.vocabulary_id = vocabulary.id')
+            ->orderBy('vocabulary.id', 'asc')
+            ->addOrderBy('property.id', 'asc')
+            ->addGroupBy('property.id')
+        ;
+        $properties = array_map('intval', $connection->executeQuery($qb)->fetchAllKeyValue());
         return $properties;
     }
 

@@ -75,6 +75,7 @@ class DeduplicateValues extends AbstractPlugin
 
     protected function prepareQuery()
     {
+        // TODO Remove "Any_value", but it cannot be replaced by "Min".
         if ($this->supportAnyValue) {
             $prefix = 'ANY_VALUE(';
             $suffix = ')';

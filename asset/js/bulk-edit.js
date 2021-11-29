@@ -65,7 +65,7 @@ $('#merge_properties').closest('.field')
 $('#merge')
     .prepend('<legend>' + Omeka.jsTranslate('Merge values as uri and label') + '</legend>');
 
-$('#convert_from, #convert_to, #convert_properties, #convert_literal_value, #convert_resource_properties, #convert_uri_extract_label, #convert_uri_label').closest('.field')
+$('#convert_from, #convert_to, #convert_properties, #convert_literal_value, #convert_resource_properties, #convert_uri_extract_label, #convert_uri_label, #convert_contains').closest('.field')
     .wrapAll('<fieldset id="convert" class="field-container">');
 $('#convert')
     .prepend('<legend>' + Omeka.jsTranslate('Convert datatype') + '</legend>');

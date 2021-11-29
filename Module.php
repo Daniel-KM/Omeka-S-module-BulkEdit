@@ -494,6 +494,7 @@ class Module extends AbstractModule
                     'resource_properties' => $params['resource_properties'],
                     'uri_extract_label' => !empty($params['uri_extract_label']),
                     'uri_label' => $params['uri_label'],
+                    'contains' => $params['contains'],
                 ];
             }
         }
@@ -1029,7 +1030,7 @@ class Module extends AbstractModule
             $properties = $params['properties'];
             $datatypes = $params['datatypes'];
             $languages = $params['languages'];
-            $contains = $params['contains'];
+            $contains = (string) $params['contains'];
 
             $checkDatatype = !empty($datatypes) && !in_array('all', $datatypes);
             $checkLanguage = !empty($languages);
@@ -1101,7 +1102,7 @@ class Module extends AbstractModule
             $datatypes = $params['datatypes'];
             $languages = $params['languages'];
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
-            $contains = $params['contains'];
+            $contains = (string) $params['contains'];
 
             $to = array_search($toProperty, $fromProperties);
             if ($to !== false) {
@@ -1200,7 +1201,7 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $properties = $params['properties'];
             $separator = $params['separator'];
-            $contains = $params['contains'];
+            $contains = (string) $params['contains'];
 
             if (empty($properties) || !mb_strlen($separator)) {
                 return;
@@ -1384,6 +1385,9 @@ class Module extends AbstractModule
             $resourceProperties = $params['resource_properties'];
             $uriExtractLabel = !empty($params['uri_extract_label']);
             $uriLabel = mb_strlen($params['uri_label']) ? $params['uri_label'] : null;
+            $contains = (string) $params['contains'];
+
+            $checkContains = (bool) mb_strlen($contains);
 
             $settings = $params;
             $settings['api'] = $api;
@@ -1395,6 +1399,7 @@ class Module extends AbstractModule
             $settings['resourceProperties'] = $resourceProperties;
             $settings['uriExtractLabel'] = $uriExtractLabel;
             $settings['uriLabel'] = $uriLabel;
+            $settings['checkContains'] = $checkContains;
         } else {
             extract($settings);
         }
@@ -1434,6 +1439,14 @@ class Module extends AbstractModule
             foreach ($data[$property] as $key => $value) {
                 if ($value['type'] !== $fromDatatype) {
                     continue;
+                }
+                if ($checkContains) {
+                    if ($from === 'literal' && strpos($value['@value'], $contains) === false) {
+                        continue;
+                    }
+                    if ($from === 'uri' && strpos($value['@id'], $contains) === false) {
+                        continue;
+                    }
                 }
                 switch ($fromTo) {
                     case 'literal => resource':

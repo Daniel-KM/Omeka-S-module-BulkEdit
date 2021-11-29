@@ -954,6 +954,18 @@ class BulkEditFieldset extends Fieldset
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
+            ])
+            ->add([
+                'name' => 'contains',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only containing', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'convert_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
             ]);
 
         return $this;

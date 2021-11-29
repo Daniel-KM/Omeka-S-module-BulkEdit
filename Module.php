@@ -532,7 +532,10 @@ class Module extends AbstractModule
 
         // Direct processes.
 
-        if (!empty($bulkedit['cleaning']['clean_language_codes'])) {
+        if (!empty($bulkedit['cleaning']['clean_language_codes'])
+            // A property or "all" is required to avoid to fill all properties.
+            && !empty($bulkedit['cleaning']['clean_language_codes_properties'])
+        ) {
             $processes['clean_language_codes'] = [
                 'from' => $bulkedit['cleaning']['clean_language_codes_from'] ?? null,
                 'to' => $bulkedit['cleaning']['clean_language_codes_to'] ?? null,

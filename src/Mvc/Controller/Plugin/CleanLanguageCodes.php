@@ -53,13 +53,19 @@ class CleanLanguageCodes extends AbstractPlugin
         // The entity manager may be used directly, but it is simpler with sql.
         $connection = $this->entityManager->getConnection();
 
-        $quotedFrom = $connection->quote($from);
-        $quotedTo = empty($to) ? 'NULL' : $connection->quote($to);
+        $quotedFrom = empty($from)
+            ? '"" OR `v`.`lang` IS NULL'
+            : $connection->quote($from);
+        $quotedTo = empty($to)
+            ? 'NULL'
+            : $connection->quote($to);
 
         $sql = <<<SQL
 UPDATE `value` AS `v`
-SET `v`.`lang` = $quotedTo
-WHERE `v`.`lang` = $quotedFrom
+SET
+    `v`.`lang` = $quotedTo
+WHERE
+    `v`.`lang` = $quotedFrom
 SQL;
 
         $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);

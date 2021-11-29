@@ -932,6 +932,18 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'uri_extract_label',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Convert to uri: extract label after uri', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'convert_uri_extract_label',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'uri_label',
                 'type' => Element\Text::class,
                 'options' => [

@@ -483,13 +483,16 @@ class Module extends AbstractModule
         if (!empty($params['from']) && !empty($params['to']) && !empty($params['properties'])) {
             $from = $params['from'];
             $to = $params['to'];
-            if ($from !== $to) {
+            if ($from !== $to
+                || ($from === 'uri' && (!empty($params['uri_extract_label']) || !empty($params['uri_label'])))
+            ) {
                 $processes['convert'] = [
                     'from' => $from,
                     'to' => $to,
                     'properties' => $params['properties'],
                     'literal_value' => $params['literal_value'],
                     'resource_properties' => $params['resource_properties'],
+                    'uri_extract_label' => !empty($params['uri_extract_label']),
                     'uri_label' => $params['uri_label'],
                 ];
             }
@@ -1379,6 +1382,7 @@ class Module extends AbstractModule
             $properties = $params['properties'];
             $literalValue = $params['literal_value'];
             $resourceProperties = $params['resource_properties'];
+            $uriExtractLabel = !empty($params['uri_extract_label']);
             $uriLabel = mb_strlen($params['uri_label']) ? $params['uri_label'] : null;
 
             $settings = $params;
@@ -1389,6 +1393,7 @@ class Module extends AbstractModule
             $settings['properties'] = $properties;
             $settings['literalValue'] = $literalValue;
             $settings['resourceProperties'] = $resourceProperties;
+            $settings['uriExtractLabel'] = $uriExtractLabel;
             $settings['uriLabel'] = $uriLabel;
         } else {
             extract($settings);
@@ -1440,7 +1445,20 @@ class Module extends AbstractModule
                         break;
 
                     case 'literal => uri':
-                        $value = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel];
+                    case 'uri => uri':
+                        if ($fromTo === 'uri => uri') {
+                            $source = $value['@id'];
+                        } else {
+                            $source = $value['@value'];
+                        }
+                        if ($uriExtractLabel) {
+                            [$uri, $label] = explode(' ', $source . ' ', 2);
+                            $label = trim($label);
+                            $label = strlen($label) ? $label : $uriLabel;
+                            $value = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $uri, 'o:label' => $label];
+                        } else {
+                            $value = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $source, 'o:label' => $uriLabel];
+                        }
                         break;
 
                     case 'resource => literal':

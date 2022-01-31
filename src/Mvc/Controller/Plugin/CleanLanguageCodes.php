@@ -89,7 +89,7 @@ SQL;
             }
         }
 
-        $processed = $connection->exec($sql);
+        $processed = $connection->executeStatement($sql);
         if ($processed) {
             $this->logger->info(sprintf('Updated language from "%s" to "%s" of %d values.', $from, $to, $processed));
         }
@@ -115,7 +115,9 @@ SQL;
         $qb
             ->select(
                 'CONCAT(vocabulary.prefix, ":", property.local_name) AS term',
-                'property.id AS id'
+                'property.id AS id',
+                // Required with only_full_group_by.
+                'vocabulary.id'
             )
             ->from('property', 'property')
             ->innerJoin('property', 'vocabulary', 'vocabulary', 'property.vocabulary_id = vocabulary.id')

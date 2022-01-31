@@ -124,7 +124,7 @@ class Module extends AbstractModule
                 continue;
             }
             $first = reset($values);
-            if (empty($first['property_id'])) {
+            if (!is_array($first) || empty($first['property_id'])) {
                 continue;
             }
             foreach ($values as &$value) {

@@ -153,7 +153,8 @@ class Module extends AbstractModule
         unset($values);
 
         // Specifying.
-        $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+        /** @var \Omeka\Api\Manager $api */
+        $api = $this->getServiceLocator()->get('Omeka\ApiManager');
         $resourceNameToTypes = [
             'items' => 'resource:item',
             'media' => 'resource:media',
@@ -179,8 +180,8 @@ class Module extends AbstractModule
                     continue;
                 }
                 try {
-                    $linkedResource = $api->read('resources', ['id' => $value['value_resource_id']], ['initialize' => false, 'finalize' => false])->getContent();
-                    $linkedResourceName = $linkedResource->resourceName();
+                    $linkedResource = $api->read('resources', ['id' => $value['value_resource_id']], [], ['initialize' => false, 'finalize' => false])->getContent();
+                    $linkedResourceName = $linkedResource->getResourceName();
                     if (isset($resourceNameToTypes[$linkedResourceName])) {
                         $value['type'] = $resourceNameToTypes[$linkedResourceName];
                     }

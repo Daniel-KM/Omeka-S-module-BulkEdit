@@ -85,6 +85,13 @@ class Module extends AbstractModule
             'form.add_elements',
             [$this, 'formAddElementsResourceBatchUpdateForm']
         );
+
+        // Main settings.
+        $sharedEventManager->attach(
+            \Omeka\Form\SettingForm::class,
+            'form.add_elements',
+            [$this, 'handleMainSettings']
+        );
     }
 
     public function formAddElementsResourceBatchUpdateForm(Event $event): void
@@ -109,6 +116,9 @@ class Module extends AbstractModule
      */
     public function handleResourceProcessPre(Event $event): void
     {
+        $settings = $this->getServiceLocator()->get('Omeka\Settings');
+        $deduplicationOnSave = (bool) $settings->get('bulkedit_deduplicate_on_save');
+
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $request->getContent();
@@ -191,31 +201,34 @@ class Module extends AbstractModule
         }
         unset($values);
 
+
         // Deduplicating.
-        foreach ($data as $term => &$values) {
-            // Process properties only.
-            if (!is_string($term) || mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
-                continue;
-            }
-            $first = reset($values);
-            if (empty($first['property_id'])) {
-                continue;
-            }
-            // Reorder all keys of all the values to simplify strict check.
-            foreach ($values as &$value) {
-                ksort($value);
-            }
-            unset($value);
-            $test = [];
-            foreach ($values as $key => $value) {
-                if (in_array($value, $test, true)) {
-                    unset($values[$key]);
-                } else {
-                    $test[$key] = $value;
+        if ($deduplicationOnSave) {
+            foreach ($data as $term => &$values) {
+                // Process properties only.
+                if (!is_string($term) || mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
+                    continue;
+                }
+                $first = reset($values);
+                if (empty($first['property_id'])) {
+                    continue;
+                }
+                // Reorder all keys of all the values to simplify strict check.
+                foreach ($values as &$value) {
+                    ksort($value);
+                }
+                unset($value);
+                $test = [];
+                foreach ($values as $key => $value) {
+                    if (in_array($value, $test, true)) {
+                        unset($values[$key]);
+                    } else {
+                        $test[$key] = $value;
+                    }
                 }
             }
+            unset($values);
         }
-        unset($values);
 
         $request->setContent($data);
     }

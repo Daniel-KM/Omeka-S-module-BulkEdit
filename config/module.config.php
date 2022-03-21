@@ -7,6 +7,7 @@ return [
         'invokables' => [
             Form\Element\OptionalRadio::class => Form\Element\OptionalRadio::class,
             Form\Element\OptionalSelect::class => Form\Element\OptionalSelect::class,
+            Form\SettingsFieldset::class => Form\SettingsFieldset::class,
         ],
         'factories' => [
             Form\BulkEditFieldset::class => Service\Form\BulkEditFieldsetFactory::class,
@@ -47,5 +48,8 @@ return [
         'Visibility of values', // @translate
     ],
     'bulkedit' => [
+        'settings' => [
+            'bulkedit_deduplicate_on_save' => false,
+        ],
     ],
 ];

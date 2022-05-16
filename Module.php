@@ -1086,7 +1086,7 @@ class Module extends AbstractModule
                 if ($checkLanguage && !in_array($value['@language'], $languages)) {
                     continue;
                 }
-                if ($checkContains && strpos($value['@value'], $contains) === false) {
+                if ($checkContains && strpos((string) $value['@value'], $contains) === false) {
                     continue;
                 }
                 $toUpdate = true;

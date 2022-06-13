@@ -731,7 +731,7 @@ class Module extends AbstractModule
                     case 'regex':
                         // Check the validity of the regex.
                         // TODO Add the check of the validity of the regex in the form.
-                        $isValidRegex = @preg_match($from, null) !== false;
+                        $isValidRegex = @preg_match($from, '') !== false;
                         if (!$isValidRegex) {
                             $from = '';
                         }
@@ -1564,7 +1564,7 @@ class Module extends AbstractModule
                 case 'regex':
                     // Check the validity of the regex.
                     // TODO Add the check of the validity of the regex in the form.
-                    $isValidRegex = @preg_match($from, null) !== false;
+                    $isValidRegex = @preg_match($from, '') !== false;
                     if (!$isValidRegex) {
                         $from = '';
                     }

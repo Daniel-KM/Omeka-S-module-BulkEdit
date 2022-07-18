@@ -2,9 +2,7 @@
 
 namespace BulkEdit\Form;
 
-use BulkEdit\Form\Element\OptionalRadio;
-use BulkEdit\Form\Element\OptionalSelect;
-use BulkEdit\Form\Element\OptionalPropertySelect;
+use BulkEdit\Form\Element as BulkEditElement;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
 
@@ -19,13 +17,13 @@ class BulkEditFieldset extends Fieldset
             ->setAttribute('data-collection-action', 'replace')
             ->appendFieldsetCleaning()
             ->appendFieldsetReplace()
-            ->appendFieldsetFillValues()
             ->appendFieldsetOrderValues()
             ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetDisplace()
             ->appendFieldsetExplode()
             ->appendFieldsetMerge()
             ->appendFieldsetConvert()
+            ->appendFieldsetFillValues()
             ->appendFieldsetMediaHtml()
             ->appendFieldsetMediaType()
         ;
@@ -56,7 +54,7 @@ class BulkEditFieldset extends Fieldset
                     'info' => 'Remove initial and trailing whitespace of all values of all properties', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_trim',
+                    'id' => 'cleaning_trim_values',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -69,7 +67,7 @@ class BulkEditFieldset extends Fieldset
                     'info' => 'In some cases, linked resources are saved in the database with the generic data type "resource", not with the specific "resource:item", "resource:media, etc.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_datatypes',
+                    'id' => 'cleaning_specify_datatypes',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -81,7 +79,7 @@ class BulkEditFieldset extends Fieldset
                     'label' => 'Clean languages (set null when language is empty)', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_languages',
+                    'id' => 'cleaning_clean_languages',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -94,7 +92,7 @@ class BulkEditFieldset extends Fieldset
                     'info' => 'Normalize language codes from a code to another one, for example "fr" to "fra" or vice-versa. It allows to add or remove a code too.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_language_codes',
+                    'id' => 'cleaning_clean_language_codes',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -106,7 +104,7 @@ class BulkEditFieldset extends Fieldset
                     'label' => 'From code', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_language_codes_from',
+                    'id' => 'cleaning_clean_language_codes_from',
                     'placeholder' => 'fr',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -119,7 +117,7 @@ class BulkEditFieldset extends Fieldset
                     'label' => 'To code', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_language_codes_to',
+                    'id' => 'cleaning_clean_language_codes_to',
                     'placeholder' => 'fra',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -127,7 +125,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'clean_language_codes_properties',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -138,7 +136,7 @@ class BulkEditFieldset extends Fieldset
                     'used_terms' => true,
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_language_codes_properties',
+                    'id' => 'cleaning_clean_language_codes_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
                     'required' => false,
@@ -155,7 +153,7 @@ class BulkEditFieldset extends Fieldset
                     'info' => 'Deduplicate values of all properties, case INsensitively. Trimming values before is recommended, because values are checked strictly.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'cleaning_deduplicate',
+                    'id' => 'cleaning_clean_deduplicate_values',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -208,7 +206,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'mode',
-                'type' => OptionalRadio::class,
+                'type' => BulkEditElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Replacement mode', // @translate
                     'value_options' => [
@@ -288,7 +286,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -307,113 +305,6 @@ class BulkEditFieldset extends Fieldset
                     'data-collection-action' => 'replace',
                 ],
             ]);
-        return $this;
-    }
-
-    protected function appendFieldsetFillValues()
-    {
-        $datatypes = $this->listDataTypesForSelect();
-        $datatypes = [
-            'all' => '[All datatypes]', // @translate
-        ] + $datatypes;
-
-        $this
-            ->add([
-                'name' => 'fill_values',
-                'type' => Fieldset::class,
-                'options' => [
-                    'label' => 'Fill values', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'fill_values',
-                    'class' => 'field-container',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ]);
-        $fieldset = $this->get('fill_values');
-        $fieldset
-            ->add([
-                'name' => 'mode',
-                'type' => OptionalRadio::class,
-                'options' => [
-                    'label' => 'Fill mode (only geonames and some idref currently, not uri)', // @translate
-                    'value_options' => [
-                        'empty' => 'Fill missing labels of uris', // @translate
-                        'all' => 'Reset and fill all labels of uris', // @translate
-                        'remove' => 'Remove labels of uris', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'fill_mode',
-                    // 'value' => 'empty',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'properties',
-                'type' => OptionalPropertySelect::class,
-                'options' => [
-                    'label' => 'For properties', // @translate
-                    'term_as_value' => true,
-                    'prepend_value_options' => [
-                        'all' => '[All properties]', // @translate
-                    ],
-                    'empty_option' => '',
-                    'used_terms' => true,
-                ],
-                'attributes' => [
-                    'id' => 'fill_properties',
-                    'class' => 'chosen-select',
-                    'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'datatypes',
-                'type' => OptionalSelect::class,
-                'options' => [
-                    'label' => 'Only datatypes (Value Suggest ones)', // @translate
-                    'value_options' => $datatypes,
-                    'empty_option' => '',
-                ],
-                'attributes' => [
-                    'id' => 'fill_datatypes',
-                    'class' => 'chosen-select',
-                    'multiple' => true,
-                    'data-placeholder' => 'Select datatypes', // @translate
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'language_code',
-                'type' => Element\Text::class,
-                'options' => [
-                    'label' => 'Language code (Geonames)', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'fill_language_code',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'featured_subject',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Use featured subject (Rameau)', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'fill_featured_subject',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-        ;
         return $this;
     }
 
@@ -450,7 +341,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties to order', // @translate
                     'term_as_value' => true,
@@ -498,7 +389,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'visibility',
-                'type' => OptionalRadio::class,
+                'type' => BulkEditElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Set visibility', // @translate
                     'value_options' => [
@@ -516,7 +407,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -537,7 +428,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => OptionalSelect::class,
+                'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'value_options' => $datatypes,
@@ -606,7 +497,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'from',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'From properties', // @translate
                     'term_as_value' => true,
@@ -624,7 +515,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'to',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'To property', // @translate
                     'term_as_value' => true,
@@ -641,7 +532,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => OptionalSelect::class,
+                'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'value_options' => $datatypes,
@@ -671,7 +562,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'visibility',
-                'type' => OptionalRadio::class,
+                'type' => BulkEditElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Only visibility', // @translate
                     'value_options' => [
@@ -723,7 +614,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'properties',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties', // @translate
                     'term_as_value' => true,
@@ -788,7 +679,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'properties',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties', // @translate
                     'term_as_value' => true,
@@ -828,7 +719,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'from',
-                'type' => OptionalSelect::class,
+                'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'From datatype', // @translate
                     'info' => 'Some combinations are not managed.', // @translate
@@ -850,7 +741,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'to',
-                'type' => OptionalSelect::class,
+                'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'To datatype', // @translate
                     'info' => 'Warning: When converted to uri, the format is not checked.', // @translate
@@ -872,7 +763,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'properties',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -890,7 +781,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'literal_value',
-                'type' => OptionalSelect::class,
+                'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Convert to literal: Content', // @translate
                     'value_options' => [
@@ -912,7 +803,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'resource_properties',
-                'type' => OptionalPropertySelect::class,
+                'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Convert to resource: Properties where to search the identifier', // @translate
                     'term_as_value' => true,
@@ -971,6 +862,113 @@ class BulkEditFieldset extends Fieldset
         return $this;
     }
 
+    protected function appendFieldsetFillValues()
+    {
+        $datatypes = $this->listDataTypesForSelect();
+        $datatypes = [
+            'all' => '[All datatypes]', // @translate
+        ] + $datatypes;
+
+        $this
+            ->add([
+                'name' => 'fill_values',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Fill labels for Value Suggest', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_values',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('fill_values');
+        $fieldset
+            ->add([
+                'name' => 'mode',
+                'type' => BulkEditElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Fill mode (only geonames and some idref currently, not uri)', // @translate
+                    'value_options' => [
+                        'empty' => 'Fill missing labels of uris', // @translate
+                        'all' => 'Reset and fill all labels of uris', // @translate
+                        'remove' => 'Remove labels of uris', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'fill_mode',
+                    // 'value' => 'empty',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'properties',
+                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'options' => [
+                    'label' => 'For properties', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'fill_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'type' => BulkEditElement\OptionalSelect::class,
+                'options' => [
+                    'label' => 'Only datatypes (Value Suggest ones)', // @translate
+                    'value_options' => $datatypes,
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'fill_datatypes',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select datatypes', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'language_code',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Language code (Geonames)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_language_code',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'featured_subject',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Use featured subject (Rameau)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_featured_subject',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+        ;
+        return $this;
+    }
+
     protected function appendFieldsetMediaHtml()
     {
         $this
@@ -1015,7 +1013,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'mode',
-                'type' => OptionalRadio::class,
+                'type' => BulkEditElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Replacement mode', // @translate
                     'value_options' => [

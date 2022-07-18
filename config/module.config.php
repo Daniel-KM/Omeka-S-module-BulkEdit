@@ -3,6 +3,15 @@
 namespace BulkEdit;
 
 return [
+    'controller_plugins' => [
+        'factories' => [
+            'cleanLanguageCodes' => Service\ControllerPlugin\CleanLanguageCodesFactory::class,
+            'cleanLanguages' => Service\ControllerPlugin\CleanLanguagesFactory::class,
+            'deduplicateValues' => Service\ControllerPlugin\DeduplicateValuesFactory::class,
+            'specifyDatatypes' => Service\ControllerPlugin\SpecifyDatatypesFactory::class,
+            'trimValues' => Service\ControllerPlugin\TrimValuesFactory::class,
+        ],
+    ],
     'form_elements' => [
         'invokables' => [
             Form\Element\OptionalRadio::class => Form\Element\OptionalRadio::class,
@@ -12,15 +21,6 @@ return [
         'factories' => [
             Form\BulkEditFieldset::class => Service\Form\BulkEditFieldsetFactory::class,
             Form\Element\OptionalPropertySelect::class => Service\Form\Element\OptionalPropertySelectFactory::class,
-        ],
-    ],
-    'controller_plugins' => [
-        'factories' => [
-            'cleanLanguageCodes' => Service\ControllerPlugin\CleanLanguageCodesFactory::class,
-            'cleanLanguages' => Service\ControllerPlugin\CleanLanguagesFactory::class,
-            'deduplicateValues' => Service\ControllerPlugin\DeduplicateValuesFactory::class,
-            'specifyDatatypes' => Service\ControllerPlugin\SpecifyDatatypesFactory::class,
-            'trimValues' => Service\ControllerPlugin\TrimValuesFactory::class,
         ],
     ],
     'translator' => [

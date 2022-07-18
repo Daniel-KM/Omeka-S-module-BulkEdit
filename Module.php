@@ -23,7 +23,7 @@ use Omeka\Stdlib\Message;
  *
  * Improve the bulk edit process with new features.
  *
- * @copyright Daniel Berthereau, 2018-2021
+ * @copyright Daniel Berthereau, 2018-2022
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 class Module extends AbstractModule
@@ -36,8 +36,10 @@ class Module extends AbstractModule
             \Omeka\Api\Adapter\ItemAdapter::class,
             \Omeka\Api\Adapter\ItemSetAdapter::class,
             \Omeka\Api\Adapter\MediaAdapter::class,
+            \Annotate\Api\Adapter\AnnotationAdapter::class,
         ];
         foreach ($adapters as $adapter) {
+            // Trim, specify resource type, deduplicate on save.
             $sharedEventManager->attach(
                 $adapter,
                 'api.create.pre',
@@ -75,6 +77,7 @@ class Module extends AbstractModule
             [$this, 'handleResourceBatchUpdatePre']
         );
 
+        // Extend the batch edit form via js.
         $sharedEventManager->attach(
             '*',
             'view.batch_edit.before',
@@ -186,21 +189,17 @@ class Module extends AbstractModule
                 continue;
             }
             foreach ($values as &$value) {
-                if (substr((string) $value['type'], 0, 8) !== 'resource') {
-                    continue;
-                }
-                try {
-                    $linkedResource = $api->read('resources', ['id' => $value['value_resource_id']], [], ['initialize' => false, 'finalize' => false])->getContent();
-                    $linkedResourceName = $linkedResource->getResourceName();
-                    if (isset($resourceNameToTypes[$linkedResourceName])) {
-                        $value['type'] = $resourceNameToTypes[$linkedResourceName];
+                if (($value['type'] ?? null) === 'resource') {
+                    try {
+                        $linkedResourceName = $api->read('resources', ['id' => $value['value_resource_id']], [], ['initialize' => false, 'finalize' => false])
+                            ->getContent()->getResourceName();
+                        $value['type'] = $resourceNameToTypes[$linkedResourceName] ?? $value['type'];
+                    } catch (\Exception $e) {
                     }
-                } catch (\Exception $e) {
                 }
             }
         }
         unset($values);
-
 
         // Deduplicating.
         if ($deduplicationOnSave) {
@@ -883,6 +882,7 @@ class Module extends AbstractModule
             'valuesuggest:idref:conference',
             'valuesuggest:idref:subject',
             'valuesuggest:idref:rameau',
+            /* // No mapping currently.
             'valuesuggest:idref:fmesh',
             'valuesuggest:idref:geo',
             'valuesuggest:idref:family',
@@ -891,6 +891,7 @@ class Module extends AbstractModule
             'valuesuggest:idref:trademark',
             'valuesuggest:idref:ppn',
             'valuesuggest:idref:library',
+            */
         ];
 
         if (is_null($settings)) {
@@ -1389,8 +1390,10 @@ class Module extends AbstractModule
     ): void {
         static $settings;
         if (is_null($settings)) {
-            $plugins = $this->getServiceLocator()->get('ControllerPluginManager');
+            $services = $this->getServiceLocator();
+            $plugins = $services->get('ControllerPluginManager');
             $api = $plugins->get('api');
+            $logger = $services->get('Omeka\Logger');
             $findResourcesFromIdentifiers = $plugins->has('findResourcesFromIdentifiers') ? $plugins->get('findResourcesFromIdentifiers') : null;
             $fromDatatype = $params['from'];
             $toDatatype = $params['to'];
@@ -1405,6 +1408,7 @@ class Module extends AbstractModule
 
             $settings = $params;
             $settings['api'] = $api;
+            $settings['logger'] = $logger;
             $settings['findResourcesFromIdentifiers'] = $findResourcesFromIdentifiers;
             $settings['fromDatatype'] = $fromDatatype;
             $settings['toDatatype'] = $toDatatype;
@@ -1425,7 +1429,9 @@ class Module extends AbstractModule
             return;
         }
 
+        // Check if the resource has properties to process.
         // Note: this is the original values.
+        // TODO To convert all properties is not managed currently. Does is mean something?
         $properties = array_intersect($properties, array_keys($resource->values()));
         if (empty($properties)) {
             return;
@@ -1434,14 +1440,16 @@ class Module extends AbstractModule
         $fromTo = $fromDatatype . ' => ' . $toDatatype;
         if ($fromTo === 'literal => resource') {
             if (!$findResourcesFromIdentifiers) {
-                $this->getServiceLocator()->get('Omeka\Logger')->warn(new Message(
-                    'Conversion from data type "%s" to "%s" requires the module Bulk Import.', // @translate
-                    'literal', 'resource'));
+                $logger->warn(new Message(
+                    'Conversion from data type "%1$s" to "%2$s" requires the module Bulk Import.', // @translate
+                    'literal', 'resource'
+                ));
                 return;
             }
             if (empty($resourceProperties)) {
-                $this->getServiceLocator()->get('Omeka\Logger')->warn(new Message(
-                    'To convert into the data type "resource", the properties where to find the identifier should be set.' // @translate
+                $logger->warn(new Message(
+                    'To convert into the data type "%s", the properties where to find the identifier should be set.', // @translate
+                    $toDatatype
                 ));
                 return;
             }
@@ -1462,13 +1470,14 @@ class Module extends AbstractModule
                         continue;
                     }
                 }
+                $newValue = null;
                 switch ($fromTo) {
                     case 'literal => resource':
                         $valueResourceId = $findResourcesFromIdentifiers($value['@value'], $resourceProperties);
                         if (!$valueResourceId) {
                             continue 2;
                         }
-                        $value = ['property_id' => $value['property_id'], 'type' => 'resource', '@language' => null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
+                        $newValue = ['property_id' => $value['property_id'], 'type' => 'resource', '@language' => null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
                         break;
 
                     case 'literal => uri':
@@ -1482,9 +1491,9 @@ class Module extends AbstractModule
                             [$uri, $label] = explode(' ', $source . ' ', 2);
                             $label = trim($label);
                             $label = strlen($label) ? $label : $uriLabel;
-                            $value = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $uri, 'o:label' => $label];
+                            $newValue = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $uri, 'o:label' => $label];
                         } else {
-                            $value = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $source, 'o:label' => $uriLabel];
+                            $newValue = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $source, 'o:label' => $uriLabel];
                         }
                         break;
 
@@ -1498,46 +1507,47 @@ class Module extends AbstractModule
                             }
                             $label = $label->displayTitle();
                         }
-                        $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
+                        $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
                         break;
 
                     case 'resource => uri':
-                        $this->getServiceLocator()->get('Omeka\Logger')->warn(new Message(
-                            'Conversion from data type "%s" to "%s" is not managed.', // @translate
-                                'resource', 'uri'));
+                        // Unmanaged.
                         return;
 
                     case 'uri => literal':
-                        $currentUri = &$value['@id'];
-                        $currentLabel = &$value['o:label'];
                         switch ($literalValue) {
                             case 'label_uri':
-                                $label = strlen($currentLabel) ? $currentLabel . ' (' . $currentUri . ')' : $currentUri;
-                                $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                $label = strlen($value['o:label']) ? $value['o:label'] . ' (' . $value['@id'] . ')' : $value['@id'];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri_label':
-                                $label = strlen($currentLabel) ? $currentUri . ' (' . $currentLabel . ')' : $currentUri;
-                                $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                $label = strlen($value['o:label']) ? $value['@id'] . ' (' . $value['o:label'] . ')' : $value['@id'];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri':
-                                $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $currentUri, '@id' => null, 'o:label' => null];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $value['@id'], '@id' => null, 'o:label' => null];
                                 break;
                             case 'label':
-                                if (!strlen($currentLabel)) {
+                                if (!strlen($value['o:label'])) {
                                     continue 3;
                                 }
-                                $value = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $currentLabel, '@id' => null, 'o:label' => null];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $value['o:label'], '@id' => null, 'o:label' => null];
+                                break;
+                            default:
                                 break;
                         }
                         break;
 
                     case 'uri => resource':
-                        $this->getServiceLocator()->get('Omeka\Logger')->warn(new Message(
-                            'Conversion from data type "%s" to "%s" is not managed.', // @translate
-                                'uri', 'resource'));
+                        // Unmanaged.
+                        return;
+
+                    default:
                         return;
                 }
-                $data[$property][$key] = $value;
+                if ($newValue) {
+                    $data[$property][$key] = $newValue;
+                }
             }
         }
     }
@@ -1724,7 +1734,7 @@ class Module extends AbstractModule
     /**
      * Check if a string or a id is a managed term.
      */
-    public function isPropertyTerm($term): bool
+    protected function isPropertyTerm($term): bool
     {
         $ids = $this->getPropertyIds();
         return isset($ids[$term]);
@@ -1735,7 +1745,7 @@ class Module extends AbstractModule
      *
      * @return array Associative array of ids by term.
      */
-    public function getPropertyIds(): array
+    protected function getPropertyIds(): array
     {
         static $properties;
         if (isset($properties)) {
@@ -1904,14 +1914,14 @@ class Module extends AbstractModule
             $response = \Laminas\Http\ClientStatic::get($url, [], $headers);
         } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
             $logger->err(new Message(
-                'Connection error when fetching url "%s": %s', // @translate
+                'Connection error when fetching url "%1$s": %2$s', // @translate
                 $url, $e
             ));
             return null;
         }
         if (!$response->isSuccess()) {
             $logger->err(new Message(
-                'Connection issue when fetching url "%s": %s', // @translate
+                'Connection issue when fetching url "%1$s": %2$s', // @translate
                 $url, $response->getReasonPhrase()
             ));
             return null;
@@ -1971,7 +1981,7 @@ class Module extends AbstractModule
             }
 
             $logger->info(new Message(
-                'The label for uri "%s" is "%s".', // @translate
+                'The label for uri "%1$s" is "%2$s".', // @translate
                 $uri, $value
             ));
 

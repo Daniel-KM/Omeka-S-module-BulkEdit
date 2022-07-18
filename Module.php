@@ -1414,6 +1414,9 @@ class Module extends AbstractModule
             $fromToMain = $fromDatatypeMain . ' => ' . $toDatatypeMain;
             $fromTo = $fromDatatype . ' => ' . $toDatatype;
 
+            $toDatatypeItem = $toDatatype === 'resource:item'
+                || (substr($toDatatype, 0, 11) === 'customvocab' && $toDatatypeMain === 'resource');
+
             // TODO Use a more conventional way to get base url (domain + base path)?
             $uriBasePath = dirname($resource->apiUrl(), 3) . '/';
 
@@ -1442,6 +1445,7 @@ class Module extends AbstractModule
             $settings['toDatatypeAdapter'] = $toDatatypeAdapter;
             $settings['fromDatatypeMain'] = $fromDatatypeMain;
             $settings['toDatatypeMain'] = $toDatatypeMain;
+            $settings['toDatatypeItem'] = $toDatatypeItem;
             $settings['fromToMain'] = $fromToMain;
             $settings['fromTo'] = $fromTo;
             $settings['properties'] = $properties;
@@ -1499,7 +1503,13 @@ class Module extends AbstractModule
             return;
         }
 
-        $resourceFromId = function ($id, $property) use ($api, $resource, $logger): ?AbstractResourceEntityRepresentation {
+        $datatypeToValueKeys = [
+            'literal' => '@value',
+            'resource' => 'value_resource_id',
+            'uri' => '@id',
+        ];
+
+        $resourceFromId = function ($id, $property) use ($resource, $api, $logger): ?AbstractResourceEntityRepresentation {
             try {
                 return $api->read('resources', $id, ['initialize' => false, 'finalize' => false])->getContent();
             } catch (\Exception $e) {
@@ -1511,11 +1521,39 @@ class Module extends AbstractModule
             }
         };
 
-        $datatypeToValueKeys = [
-            'literal' => '@value',
-            'resource' => 'value_resource_id',
-            'uri' => '@id',
-        ];
+        $checkResourceNameAndToDatatype = function ($vr, $valueResourceName, $property) use ($resource, $toDatatype, $toDatatypeItem, $logger) {
+            $resourceControllerNames = [
+                'resource' => 'resources',
+                'resources' => 'resources',
+                'item' => 'items',
+                'items' => 'items',
+                'item-set' => 'item_sets',
+                'item_sets' => 'item_sets',
+                'media' => 'media',
+                'annotation' => 'annotations',
+                'annotations' => 'annotations',
+            ];
+            if (!$vr) {
+                return false;
+            }
+            $vrResourceName = $vr->resourceName();
+            if ($valueResourceName && $resourceControllerNames[$valueResourceName] !== $vrResourceName) {
+                $logger->warn(new Message(
+                    'For resource #%1$s, property "%2$s", the linked resource #%3$s is not a %4$s, but a %5$s.', // @translate
+                    $resource->id(), $property, $vr->id(), $resourceControllerNames[$valueResourceName], $vrResourceName
+                ));
+                return false;
+            }
+            if (($toDatatypeItem && $vrResourceName !== 'items')
+                || ($toDatatype === 'resource:itemset' && $vrResourceName !== 'item_sets')
+                || ($toDatatype === 'resource:media' && $vrResourceName !== 'media')
+                || ($toDatatype === 'resource:annotation' && $vrResourceName !== 'annotations')
+                || ($toDatatype === 'annotation' && $vrResourceName !== 'annotations')
+            ) {
+                return false;
+            }
+            return true;
+        };
 
         foreach ($properties as $property) {
             foreach ($data[$property] as $key => $value) {
@@ -1552,6 +1590,10 @@ class Module extends AbstractModule
                                     ));
                                     continue 3;
                                 }
+                                $vr = $api->read('resources', ['id' => $valueResourceId])->getContent();
+                                if (!$checkResourceNameAndToDatatype($vr, null, $property)) {
+                                    continue 3;
+                                }
                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
                                 break;
                             case 'uri':
@@ -1573,24 +1615,24 @@ class Module extends AbstractModule
                         if (!isset($value['value_resource_id'])) {
                             continue 2;
                         }
+                        /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $vr */
+                        $vr = $resourceFromId($value['value_resource_id'], $property);
+                        if (!$vr) {
+                            continue 2;
+                        }
                         switch ($toDatatypeMain) {
                             case 'resource':
                                 // For custom vocab or specific resource type.
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
-                                break;
-                            case 'literal':
-                                $vr = $resourceFromId($value['value_resource_id'], $property);
-                                if (!$vr) {
+                                if (!$checkResourceNameAndToDatatype($vr, null, $property)) {
                                     continue 3;
                                 }
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $value['value_resource_id']];
+                                break;
+                            case 'literal':
                                 $label = isset($value['display_title']) && strlen($value['display_title']) ? $value['display_title'] : $vr->displayTitle();
                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri':
-                                $vr = $resourceFromId($value['value_resource_id'], $property);
-                                if (!$vr) {
-                                    continue 3;
-                                }
                                 $uri = $uriBaseResource . ($uriIsApi ? $vr->resourceName() : $vr->getControllerName()) . '/' . $value['value_resource_id'];
                                 $label = $uriLabel ?? (isset($value['display_title']) && strlen($value['display_title']) ? $value['display_title'] : $vr->displayTitle());
                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $uri, 'o:label' => $label];
@@ -1643,12 +1685,15 @@ class Module extends AbstractModule
                                 if (!is_numeric($valueResourceId)
                                     || !in_array($valueResourceName, ['resource', 'item', 'item-set', 'media', 'annotation', 'resources', 'items', 'item_sets', 'annotations'])
                                     || substr($value['@id'], 0, strlen($uriBasePath)) !== $uriBasePath
-                                    || !$resourceFromId($valueResourceId, $property)
+                                    || !($vr = $resourceFromId($valueResourceId, $property))
                                 ) {
                                     $logger->info(new Message(
                                         'For resource #%1$s, property "%2$s", the value "%3$s" is not a resource url.', // @translate
                                         $resource->id(), $property, $value['@value']
                                     ));
+                                    continue 3;
+                                }
+                                if (!$checkResourceNameAndToDatatype($vr, $valueResourceName, $property)) {
                                     continue 3;
                                 }
                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];

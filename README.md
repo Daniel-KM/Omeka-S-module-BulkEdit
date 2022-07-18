@@ -163,6 +163,13 @@ Select the items or medias and set the existing and the new media type. They
 should be standard ones, like `application/xml` and `	application/tei+xml`.
 
 
+TODO
+----
+
+- [ ] Add conversion for custom vocab.
+- [ ] Move hard-coded xml xpath into form.
+
+
 Warning
 -------
 

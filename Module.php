@@ -1449,6 +1449,7 @@ class Module extends AbstractModule
             $settings['resourceProperties'] = $resourceProperties;
             $settings['uriExtractLabel'] = $uriExtractLabel;
             $settings['uriLabel'] = $uriLabel;
+            $settings['uriBasePath'] = $uriBasePath;
             $settings['uriBaseResource'] = $uriBaseResource;
             $settings['uriIsApi'] = $uriIsApi;
             $settings['checkContains'] = $checkContains;
@@ -1496,12 +1497,6 @@ class Module extends AbstractModule
                 $fromDatatype, $toDatatype
             ));
             return;
-        } elseif ($fromToMain === 'uri => resource') {
-            $logger->warn(new Message(
-                'The conversion from data type "%1$s" to "%2$s" is not managed currently.', // @translate
-                $fromDatatype, $toDatatype
-            ));
-            return;
         }
 
         $resourceFromId = function ($id, $property) use ($api, $resource, $logger): ?AbstractResourceEntityRepresentation {
@@ -1521,8 +1516,6 @@ class Module extends AbstractModule
             'resource' => 'value_resource_id',
             'uri' => '@id',
         ];
-
-        $toUpdate = true;
 
         foreach ($properties as $property) {
             foreach ($data[$property] as $key => $value) {
@@ -1645,8 +1638,21 @@ class Module extends AbstractModule
                                 }
                                 break;
                             case 'resource':
-                                // Unmanaged.
-                                return;
+                                $valueResourceId = basename($value['@id']);
+                                $valueResourceName = basename(dirname($value['@id']));
+                                if (!is_numeric($valueResourceId)
+                                    || !in_array($valueResourceName, ['resource', 'item', 'item-set', 'media', 'annotation', 'resources', 'items', 'item_sets', 'annotations'])
+                                    || substr($value['@id'], 0, strlen($uriBasePath)) !== $uriBasePath
+                                    || !$resourceFromId($valueResourceId, $property)
+                                ) {
+                                    $logger->info(new Message(
+                                        'For resource #%1$s, property "%2$s", the value "%3$s" is not a resource url.', // @translate
+                                        $resource->id(), $property, $value['@value']
+                                    ));
+                                    continue 3;
+                                }
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
+                                break;
                             default:
                                 return;
                         }
@@ -1664,6 +1670,7 @@ class Module extends AbstractModule
                         ));
                         continue;
                     }
+                    $toUpdate = true;
                     $data[$property][$key] = $newValue;
                 }
             }

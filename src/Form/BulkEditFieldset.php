@@ -707,15 +707,9 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'from',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => BulkEditElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'From datatype', // @translate
-                    'info' => 'Some combinations are not managed.', // @translate
-                    'value_options' => [
-                        'literal' => 'Literal', // @translate
-                        'resource' => 'Resource', // @translate
-                        'uri' => 'Uri', // @translate
-                    ],
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -729,14 +723,9 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'to',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => BulkEditElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'To datatype', // @translate
-                    'value_options' => [
-                        'literal' => 'Literal', // @translate
-                        'resource' => 'Resource', // @translate
-                        'uri' => 'Uri', // @translate
-                    ],
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -774,8 +763,9 @@ class BulkEditFieldset extends Fieldset
                     'value_options' => [
                         'label_uri' => 'Label and uri', // @translate
                         'uri_label' => 'Uri and label', // @translate
-                        'uri' => 'Uri only', // @translate
+                        'label_or_uri' => 'Label if present, else uri', // @translate
                         'label' => 'Label only', // @translate
+                        'uri' => 'Uri only', // @translate
                     ],
                     'empty_option' => '',
                 ],

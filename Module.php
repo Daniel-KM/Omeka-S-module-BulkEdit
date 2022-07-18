@@ -490,23 +490,21 @@ class Module extends AbstractModule
         }
 
         $params = $bulkedit['convert'] ?? [];
-        if (!empty($params['from']) && !empty($params['to']) && !empty($params['properties'])) {
-            $from = $params['from'];
-            $to = $params['to'];
-            if ($from !== $to
-                || ($from === 'uri' && (!empty($params['uri_extract_label']) || !empty($params['uri_label'])))
-            ) {
-                $processes['convert'] = [
-                    'from' => $from,
-                    'to' => $to,
-                    'properties' => $params['properties'],
-                    'literal_value' => $params['literal_value'],
-                    'resource_properties' => $params['resource_properties'],
-                    'uri_extract_label' => !empty($params['uri_extract_label']),
-                    'uri_label' => $params['uri_label'],
-                    'contains' => $params['contains'],
-                ];
-            }
+        if (!empty($params['from'])
+            && !empty($params['to'])
+            && !empty($params['properties'])
+            && $params['from'] !== $params['to']
+        ) {
+            $processes['convert'] = [
+                'from' => $params['from'],
+                'to' => $params['to'],
+                'properties' => $params['properties'],
+                'literal_value' => $params['literal_value'],
+                'resource_properties' => $params['resource_properties'],
+                'uri_extract_label' => !empty($params['uri_extract_label']),
+                'uri_label' => $params['uri_label'],
+                'contains' => $params['contains'],
+            ];
         }
 
         $params = $bulkedit['media_html'] ?? [];
@@ -1398,7 +1396,8 @@ class Module extends AbstractModule
             $literalValue = $params['literal_value'];
             $resourceProperties = $params['resource_properties'];
             $uriExtractLabel = !empty($params['uri_extract_label']);
-            $uriLabel = mb_strlen($params['uri_label']) ? $params['uri_label'] : null;
+            $uriLabel = strlen($params['uri_label']) ? $params['uri_label'] : null;
+
             $contains = (string) $params['contains'];
 
             $checkContains = (bool) mb_strlen($contains);
@@ -1408,6 +1407,12 @@ class Module extends AbstractModule
                 ? $services->get('Omeka\DataTypeManager')->get($toDatatype)
                 : null;
 
+            $fromDatatypeMain = $this->mainDataType($fromDatatype);
+            $toDatatypeMain = $this->mainDataType($toDatatype);
+
+            $fromToMain = $fromDatatypeMain . ' => ' . $toDatatypeMain;
+            $fromTo = $fromDatatype . ' => ' . $toDatatype;
+
             $settings = $params;
             $settings['api'] = $api;
             $settings['logger'] = $logger;
@@ -1415,6 +1420,10 @@ class Module extends AbstractModule
             $settings['fromDatatype'] = $fromDatatype;
             $settings['toDatatype'] = $toDatatype;
             $settings['toDatatypeAdapter'] = $toDatatypeAdapter;
+            $settings['fromDatatypeMain'] = $fromDatatypeMain;
+            $settings['toDatatypeMain'] = $toDatatypeMain;
+            $settings['fromToMain'] = $fromToMain;
+            $settings['fromTo'] = $fromTo;
             $settings['properties'] = $properties;
             $settings['literalValue'] = $literalValue;
             $settings['resourceProperties'] = $resourceProperties;
@@ -1425,10 +1434,7 @@ class Module extends AbstractModule
             extract($settings);
         }
 
-        if (($fromDatatype === $toDatatype)
-            || !in_array($fromDatatype, ['literal', 'resource', 'uri'])
-            || !in_array($toDatatype, ['literal', 'resource', 'uri'])
-        ) {
+        if ($fromDatatype === $toDatatype) {
             return;
         }
 
@@ -1440,11 +1446,17 @@ class Module extends AbstractModule
             return;
         }
 
-        $fromTo = $fromDatatype . ' => ' . $toDatatype;
-        if ($fromTo === 'literal => resource') {
+        if (!$fromDatatypeMain || !$toDatatypeMain || !$toDatatypeAdapter) {
+            $logger->warn(new Message(
+                'A conversion requires valid "from" datatype and "to" datatype.' // @translate
+            ));
+            return;
+        }
+
+        if ($fromToMain === 'literal => resource') {
             if (!$findResourcesFromIdentifiers) {
                 $logger->warn(new Message(
-                    'Conversion from data type "%1$s" to "%2$s" requires the module Bulk Import.', // @translate
+                    'A conversion from data type "%1$s" to "%2$s" requires the module Bulk Import.', // @translate
                     'literal', 'resource'
                 ));
                 return;
@@ -1456,6 +1468,18 @@ class Module extends AbstractModule
                 ));
                 return;
             }
+        } elseif ($fromToMain === 'resource => uri') {
+            $logger->warn(new Message(
+                'The conversion from data type "%1$s" to "%2$s" is not managed currently.', // @translate
+                $fromDatatype, $toDatatype
+            ));
+            return;
+        } elseif ($fromToMain === 'uri => resource') {
+            $logger->warn(new Message(
+                'The conversion from data type "%1$s" to "%2$s" is not managed currently.', // @translate
+                $fromDatatype, $toDatatype
+            ));
+            return;
         }
 
         $datatypeToValueKeys = [
@@ -1468,101 +1492,143 @@ class Module extends AbstractModule
 
         foreach ($properties as $property) {
             foreach ($data[$property] as $key => $value) {
-                if ($value['type'] !== $fromDatatype) {
+                if ($value['type'] !== $fromDatatype
+                    || $value['type'] === $toDatatype
+                ) {
                     continue;
                 }
                 if ($checkContains) {
-                    if ($fromDatatype === 'literal' && strpos($value['@value'], $contains) === false) {
+                    if ($fromDatatype === 'literal' && mb_strpos($value['@value'], $contains) === false) {
                         continue;
                     }
-                    if ($fromDatatype === 'uri' && strpos($value['@id'], $contains) === false) {
+                    if ($fromDatatype === 'uri' && mb_strpos($value['@id'], $contains) === false) {
                         continue;
                     }
                 }
                 $newValue = null;
-                switch ($fromTo) {
-                    case 'literal => resource':
-                        $valueResourceId = $findResourcesFromIdentifiers($value['@value'], $resourceProperties);
-                        if (!$valueResourceId) {
+                switch ($fromDatatypeMain) {
+                    case 'literal':
+                        if (!isset($value['@value'])) {
                             continue 2;
                         }
-                        $newValue = ['property_id' => $value['property_id'], 'type' => 'resource', '@language' => null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
-                        break;
-
-                    case 'literal => uri':
-                    case 'uri => uri':
-                        if ($fromTo === 'uri => uri') {
-                            $source = $value['@id'];
-                        } else {
-                            $source = $value['@value'];
-                        }
-                        if ($uriExtractLabel) {
-                            [$uri, $label] = explode(' ', $source . ' ', 2);
-                            $label = trim($label);
-                            $label = strlen($label) ? $label : $uriLabel;
-                            $newValue = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $uri, 'o:label' => $label];
-                        } else {
-                            $newValue = ['property_id' => $value['property_id'], 'type' => 'uri', '@language' => null, '@value' => null, '@id' => $source, 'o:label' => $uriLabel];
-                        }
-                        break;
-
-                    case 'resource => literal':
-                        if (isset($value['display_title']) && strlen($value['display_title'])) {
-                            $label = $value['display_title'];
-                        } else {
-                            try {
-                                $label = $api->read('resources', $value['value_resource_id'], ['initialize' => false, 'finalize' => false])->getContent();
-                                if (!$label) {
-                                    continue 2;
-                                }
-                            } catch (\Exception $e) {
-                                continue 2;
-                            }
-                            $label = $label->displayTitle();
-                        }
-                        $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
-                        break;
-
-                    case 'resource => uri':
-                        // Unmanaged.
-                        return;
-
-                    case 'uri => literal':
-                        switch ($literalValue) {
-                            case 'label_uri':
-                                $label = strlen($value['o:label']) ? $value['o:label'] . ' (' . $value['@id'] . ')' : $value['@id'];
-                                $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
+                        switch ($toDatatypeMain) {
+                            case 'literal':
+                                // For custom vocab or specific data type.
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => (string) $value['@value'], '@id' => null, 'o:label' => null];
                                 break;
-                            case 'uri_label':
-                                $label = strlen($value['o:label']) ? $value['@id'] . ' (' . $value['o:label'] . ')' : $value['@id'];
-                                $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $label, '@id' => null, 'o:label' => null];
-                                break;
-                            case 'uri':
-                                $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $value['@id'], '@id' => null, 'o:label' => null];
-                                break;
-                            case 'label':
-                                if (!strlen($value['o:label'])) {
+                            case 'resource':
+                                $valueResourceId = $findResourcesFromIdentifiers($value['@value'], $resourceProperties);
+                                if (!$valueResourceId) {
+                                    $logger->info(new Message(
+                                        'No linked resource found with properties %1$s for resource #%1$s, property "%2$s", identifier "%3$s"', // @translate
+                                        $resourceProperties, $resource->id(), $property, $value['@value']
+                                    ));
                                     continue 3;
                                 }
-                                $newValue = ['property_id' => $value['property_id'], 'type' => 'literal', '@language' => null, '@value' => $value['o:label'], '@id' => null, 'o:label' => null];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
+                                break;
+                            case 'uri':
+                                if ($uriExtractLabel) {
+                                    [$uri, $label] = explode(' ', $value['@value'] . ' ', 2);
+                                    $label = trim($label);
+                                    $label = strlen($label) ? $label : $uriLabel;
+                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $uri, 'o:label' => $label];
+                                } else {
+                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel];
+                                }
                                 break;
                             default:
-                                break;
+                                return;
                         }
                         break;
 
-                    case 'uri => resource':
-                        // Unmanaged.
-                        return;
+                    case 'resource':
+                        if (!isset($value['value_resource_id'])) {
+                            continue 2;
+                        }
+                        switch ($toDatatypeMain) {
+                            case 'resource':
+                                // For custom vocab or specific resource type.
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
+                                break;
+                            case 'literal':
+                                if (isset($value['display_title']) && strlen($value['display_title'])) {
+                                    $label = $value['display_title'];
+                                } else {
+                                    try {
+                                        $label = $api->read('resources', $value['value_resource_id'], ['initialize' => false, 'finalize' => false])->getContent()->displayTitle();
+                                    } catch (\Exception $e) {
+                                        $logger->info(new Message(
+                                            'No linked resource found for resource #%1$s, property "%2$s", value resource "%3$s"', // @translate
+                                            $resource->id(), $property, $value['value_resource_id']
+                                        ));
+                                        continue 3;
+                                    }
+                                }
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                break;
+                            case 'uri':
+                                // Unmanaged.
+                                return;
+                            default:
+                                return;
+                        }
+                        break;
+
+                    case 'uri':
+                        if (!isset($value['@id'])) {
+                            continue 2;
+                        }
+                        switch ($toDatatypeMain) {
+                            case 'uri':
+                                // For custom vocab or value suggest.
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => $value['o:label'] ?? null];
+                                break;
+                            case 'literal':
+                                switch ($literalValue) {
+                                    case 'label_uri':
+                                        $label = isset($value['o:label']) && strlen($value['o:label']) ? $value['o:label'] . ' (' . $value['@id'] . ')' : $value['@id'];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                        break;
+                                    case 'uri_label':
+                                        $label = isset($value['o:label']) && strlen($value['o:label']) ? $value['@id'] . ' (' . $value['o:label'] . ')' : $value['@id'];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                        break;
+                                    case 'label_or_uri':
+                                        $label = isset($value['o:label']) && strlen($value['o:label']) ? $value['o:label'] : $value['@id'];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                        break;
+                                    case 'label':
+                                        if (!isset($value['o:label']) || !strlen($value['o:label'])) {
+                                            continue 4;
+                                        }
+                                        $label = $value['o:label'];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                        break;
+                                    case 'uri':
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $value['@id'], '@id' => null, 'o:label' => null];
+                                        break;
+                                    default:
+                                        return;
+                                }
+                                break;
+                            case 'resource':
+                                // Unmanaged.
+                                return;
+                            default:
+                                return;
+                        }
+                        break;
 
                     default:
                         return;
                 }
+
                 if ($newValue) {
                     if (!$toDatatypeAdapter->isValid($newValue)) {
                         $logger->notice(new Message(
                             'Conversion from data type "%1$s" to "%2$s" is not possible in resource #%3$d for value: %4$s', // @translate
-                            $fromDatatype, $toDatatype, $resource->id(), $value[$datatypeToValueKeys[$fromDatatype]]
+                            $fromDatatype, $toDatatype, $resource->id(), $value[$datatypeToValueKeys[$fromDatatypeMain]]
                         ));
                         continue;
                     }
@@ -1708,6 +1774,52 @@ class Module extends AbstractModule
                 // No flush here.
             }
         }
+    }
+
+    /**
+     * Get main datatype ("literal", "resource" or "uri") from any data type.
+     */
+    protected function mainDataType(?string $dataType): ?string
+    {
+        if (empty($dataType)) {
+            return null;
+        }
+        $dataType = strtolower($dataType);
+        if (in_array($dataType, ['literal', 'uri'])) {
+            return $dataType;
+        }
+        if (substr($dataType, 0, 8) === 'resource') {
+            return 'resource';
+        }
+        if (
+            // Module DataTypeGeometry.
+            substr($dataType, 0, 8) === 'geometry'
+            || in_array($dataType, [
+                // Module DataTypePlace.
+                'place',
+                // Module DataTypeRdf.
+                'html',
+                'xml',
+                'boolean',
+                // Specific module.
+                'email',
+            ])
+            // Module NumericDataTypes.
+            || substr($dataType, 0, 7) === 'numeric'
+        ) {
+            return 'literal';
+        }
+        // Module ValueSuggest.
+        if (substr($dataType, 0, 12) === 'valuesuggest'
+            || substr($dataType, 0, 15) === 'valuesuggestall'
+        ) {
+            return 'uri';
+        }
+        if (substr($dataType, 0, 11) === 'customvocab') {
+            // CustomVocab v1.7 is not yet released, so use a specific helper.
+            return $this->getServiceLocator()->get('ViewHelperManager')->get('customVocabBaseType')(substr($dataType, 12));
+        }
+        return null;
     }
 
     /**

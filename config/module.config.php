@@ -12,6 +12,12 @@ return [
             'trimValues' => Service\ControllerPlugin\TrimValuesFactory::class,
         ],
     ],
+    'view_helpers' => [
+        'factories' => [
+            // Copy from AdvancedResourceTemplate. Copy in BulkExport and BulkEdit. Used in Contribute.
+            'customVocabBaseType' => Service\ViewHelper\CustomVocabBaseTypeFactory::class,
+        ],
+    ],
     'form_elements' => [
         'invokables' => [
             Form\Element\OptionalRadio::class => Form\Element\OptionalRadio::class,

@@ -503,6 +503,7 @@ class Module extends AbstractModule
                 'resource_properties' => $params['resource_properties'],
                 'uri_extract_label' => !empty($params['uri_extract_label']),
                 'uri_label' => $params['uri_label'],
+                'uri_base_site' => $params['uri_base_site'],
                 'contains' => $params['contains'],
             ];
         }
@@ -1413,6 +1414,25 @@ class Module extends AbstractModule
             $fromToMain = $fromDatatypeMain . ' => ' . $toDatatypeMain;
             $fromTo = $fromDatatype . ' => ' . $toDatatype;
 
+            // TODO Use a more conventional way to get base url (domain + base path)?
+            $uriBasePath = dirname($resource->apiUrl(), 3) . '/';
+
+            $uriBaseResource = null;
+            $uriBaseSite = empty($params['uri_base_site']) ? null : $params['uri_base_site'];
+            $uriIsApi = $uriBaseSite === 'api';
+            if ($uriBaseSite) {
+                if ($uriIsApi) {
+                    $uriBaseResource = $uriBasePath . 'api/';
+                } else {
+                    $siteSlug = is_numeric($uriBaseSite)
+                        ? $api->searchOne('sites', ['id' => $uriBaseSite], ['initialize' => false, 'returnScalar' => 'slug'])->getContent()
+                        : $uriBaseSite;
+                    if ($siteSlug) {
+                        $uriBaseResource = $uriBasePath . 's/' . $siteSlug . '/';
+                    }
+                }
+            }
+
             $settings = $params;
             $settings['api'] = $api;
             $settings['logger'] = $logger;
@@ -1429,6 +1449,8 @@ class Module extends AbstractModule
             $settings['resourceProperties'] = $resourceProperties;
             $settings['uriExtractLabel'] = $uriExtractLabel;
             $settings['uriLabel'] = $uriLabel;
+            $settings['uriBaseResource'] = $uriBaseResource;
+            $settings['uriIsApi'] = $uriIsApi;
             $settings['checkContains'] = $checkContains;
         } else {
             extract($settings);
@@ -1468,9 +1490,9 @@ class Module extends AbstractModule
                 ));
                 return;
             }
-        } elseif ($fromToMain === 'resource => uri') {
+        } elseif ($fromToMain === 'resource => uri' && !$uriBaseResource) {
             $logger->warn(new Message(
-                'The conversion from data type "%1$s" to "%2$s" is not managed currently.', // @translate
+                'The conversion from data type "%1$s" to "%2$s" requires a site or api to create the url.', // @translate
                 $fromDatatype, $toDatatype
             ));
             return;
@@ -1481,6 +1503,18 @@ class Module extends AbstractModule
             ));
             return;
         }
+
+        $resourceFromId = function ($id, $property) use ($api, $resource, $logger): ?AbstractResourceEntityRepresentation {
+            try {
+                return $api->read('resources', $id, ['initialize' => false, 'finalize' => false])->getContent();
+            } catch (\Exception $e) {
+                $logger->info(new Message(
+                    'No linked resource found for resource #%1$s, property "%2$s", value resource #%3$s.', // @translate
+                    $resource->id(), $property, $id
+                ));
+                return null;
+            }
+        };
 
         $datatypeToValueKeys = [
             'literal' => '@value',
@@ -1552,24 +1586,22 @@ class Module extends AbstractModule
                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
                                 break;
                             case 'literal':
-                                if (isset($value['display_title']) && strlen($value['display_title'])) {
-                                    $label = $value['display_title'];
-                                } else {
-                                    try {
-                                        $label = $api->read('resources', $value['value_resource_id'], ['initialize' => false, 'finalize' => false])->getContent()->displayTitle();
-                                    } catch (\Exception $e) {
-                                        $logger->info(new Message(
-                                            'No linked resource found for resource #%1$s, property "%2$s", value resource "%3$s"', // @translate
-                                            $resource->id(), $property, $value['value_resource_id']
-                                        ));
-                                        continue 3;
-                                    }
+                                $vr = $resourceFromId($value['value_resource_id'], $property);
+                                if (!$vr) {
+                                    continue 3;
                                 }
+                                $label = isset($value['display_title']) && strlen($value['display_title']) ? $value['display_title'] : $vr->displayTitle();
                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri':
-                                // Unmanaged.
-                                return;
+                                $vr = $resourceFromId($value['value_resource_id'], $property);
+                                if (!$vr) {
+                                    continue 3;
+                                }
+                                $uri = $uriBaseResource . ($uriIsApi ? $vr->resourceName() : $vr->getControllerName()) . '/' . $value['value_resource_id'];
+                                $label = $uriLabel ?? (isset($value['display_title']) && strlen($value['display_title']) ? $value['display_title'] : $vr->displayTitle());
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $uri, 'o:label' => $label];
+                                break;
                             default:
                                 return;
                         }

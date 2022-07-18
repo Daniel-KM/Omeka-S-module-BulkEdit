@@ -5,6 +5,7 @@ namespace BulkEdit\Form;
 use BulkEdit\Form\Element as BulkEditElement;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
+use Omeka\Form\Element as OmekaElement;
 
 class BulkEditFieldset extends Fieldset
 {
@@ -819,6 +820,25 @@ class BulkEditFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'convert_uri_label',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'uri_base_site',
+                'type' => OmekaElement\SiteSelect::class,
+                'options' => [
+                    'label' => 'Convert to uri: Site to use as base url', // @translate
+                    // 'disable_group_by_owner' => true,
+                    'prepend_value_options' => [
+                        'api' => 'Api url', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'convert_uri_base_site',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-placeholder' => 'Select a site', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

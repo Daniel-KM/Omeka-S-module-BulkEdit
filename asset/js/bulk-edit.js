@@ -108,7 +108,7 @@ $('#cleaning_language_codes').trigger('change');
 
 $('.batch-edit').on('change', '#convert_to', function() {
     var val = $(this).val();
-    $('#convert_literal_value, #convert_resource_properties, #convert_uri_extract_label, #convert_uri_label').closest('.field').hide();
+    $('#convert_literal_value, #convert_resource_properties, #convert_uri_extract_label, #convert_uri_label, #convert_uri_base_site').closest('.field').hide();
     if (val === 'literal') {
         $('#convert_literal_value').closest('.field').show();
     } else if (val === 'resource') {
@@ -116,6 +116,7 @@ $('.batch-edit').on('change', '#convert_to', function() {
     } else if (val === 'uri') {
         $('#convert_uri_extract_label').closest('.field').show();
         $('#convert_uri_label').closest('.field').show();
+        $('#convert_uri_base_site').closest('.field').show();
     }
 });
 $('#convert_to').trigger('change');

@@ -21,6 +21,11 @@ return [
         'factories' => [
             Form\BulkEditFieldset::class => Service\Form\BulkEditFieldsetFactory::class,
             Form\Element\OptionalPropertySelect::class => Service\Form\Element\OptionalPropertySelectFactory::class,
+            Form\Element\DataTypeSelect::class => Service\Form\Element\DataTypeSelectFactory::class,
+        ],
+        'aliases' => [
+            // Use aliases to keep core keys.
+            'Omeka\Form\Element\DataTypeSelect' => Form\Element\DataTypeSelect::class,
         ],
     ],
     'translator' => [

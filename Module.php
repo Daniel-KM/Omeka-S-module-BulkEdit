@@ -101,8 +101,20 @@ class Module extends AbstractModule
     {
         /** @var \Omeka\Form\ResourceBatchUpdateForm $form */
         $form = $event->getTarget();
-        $fieldset = $this->getServiceLocator()->get('FormElementManager')
-            ->get(BulkEditFieldset::class);
+        $services = $this->getServiceLocator();
+        $formElementManager = $services->get('FormElementManager');
+        /** @var \BulkEdit\Form\BulkEditFieldset $fieldset */
+        $fieldset = $formElementManager->get(BulkEditFieldset::class);
+
+        // Append some infos about datatypes for js.
+        $dataTypeManager = $services->get('Omeka\DataTypeManager');
+        $datatypes = [];
+        foreach ($dataTypeManager->getRegisteredNames() as $datatype) {
+            $datatypes[$datatype] = $this->mainDataType($datatype);
+        }
+        $fieldset->get('convert')->get('from')
+            ->setAttribute('data-datatypes', json_encode($datatypes, 320));
+
         $form->add($fieldset);
     }
 
@@ -1417,6 +1429,8 @@ class Module extends AbstractModule
             $toDatatypeItem = $toDatatype === 'resource:item'
                 || (substr($toDatatype, 0, 11) === 'customvocab' && $toDatatypeMain === 'resource');
 
+            $processAllProperties = in_array('all', $properties);
+
             // TODO Use a more conventional way to get base url (domain + base path)?
             $uriBasePath = dirname($resource->apiUrl(), 3) . '/';
 
@@ -1449,6 +1463,7 @@ class Module extends AbstractModule
             $settings['fromToMain'] = $fromToMain;
             $settings['fromTo'] = $fromTo;
             $settings['properties'] = $properties;
+            $settings['processAllProperties'] = $processAllProperties;
             $settings['literalValue'] = $literalValue;
             $settings['resourceProperties'] = $resourceProperties;
             $settings['uriExtractLabel'] = $uriExtractLabel;
@@ -1467,8 +1482,9 @@ class Module extends AbstractModule
 
         // Check if the resource has properties to process.
         // Note: this is the original values.
-        // TODO To convert all properties is not managed currently. Does is mean something?
-        $properties = array_intersect($properties, array_keys($resource->values()));
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($properties, array_keys($resource->values()));
         if (empty($properties)) {
             return;
         }

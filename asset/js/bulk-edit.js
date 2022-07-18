@@ -44,7 +44,7 @@ $(document).ready(function() {
     // For better ux.
 
     $('#bulk-edit')
-        .prepend('<legend>' + Omeka.jsTranslate('The actions are processed in the order of the form. Be careful when mixing them.') + '</legend>');
+        .prepend('<p>' + Omeka.jsTranslate('The actions are processed in the order of the form. Be careful when mixing them.') + '</p>');
 
     $('#fill_values > .collapsible')
         .prepend('<p>' + Omeka.jsTranslate('Fill a value from remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".') + '</p>')
@@ -56,16 +56,33 @@ $(document).ready(function() {
     $('#cleaning_clean_language_codes').trigger('change');
 
     $('.batch-edit').on('change', '#convert_to', function() {
-        const val = $(this).val();
-        $('#convert_literal_value, #convert_resource_properties, #convert_uri_extract_label, #convert_uri_label, #convert_uri_base_site').closest('.field').hide();
-        if (val === 'literal') {
-            $('#convert_literal_value').closest('.field').show();
-        } else if (val === 'resource') {
-            $('#convert_resource_properties').closest('.field').show();
-        } else if (val === 'uri') {
-            $('#convert_uri_extract_label').closest('.field').show();
-            $('#convert_uri_label').closest('.field').show();
-            $('#convert_uri_base_site').closest('.field').show();
+        const datatypes = $('#convert_from').data('datatypes');
+        const datatypeTo = $(this).val();
+        $('#bulk-edit #convert [data-info-datatype]').closest('.field').hide();
+        if (!datatypes[datatypeTo]) {
+            return;
+        }
+        $('#bulk-edit #convert [data-info-datatype=' + datatypes[datatypeTo] + ']').closest('.field').show();
+        const datatypeFrom = $('#convert_from').val();
+        if (!datatypes[datatypeFrom]) {
+            return;
+        }
+        if (datatypes[datatypeTo] === 'literal' && datatypes[datatypeFrom] !== 'uri') {
+            $('#convert_literal_value').closest('.field').hide();
+        }
+        if (datatypes[datatypeTo] === 'resource' && datatypes[datatypeFrom] !== 'literal') {
+            $('#convert_resource_properties').closest('.field').hide();
+        }
+        if (datatypes[datatypeTo] === 'uri') {
+            if (datatypes[datatypeFrom] !== 'literal') {
+                $('#convert_uri_extract_label').closest('.field').hide();
+            }
+            if (datatypes[datatypeFrom] !== 'resource') {
+                $('#convert_uri_base_site').closest('.field').hide();
+            }
+            if (datatypes[datatypeFrom] === 'uri') {
+                $('#convert_uri_extract_label').closest('.field').hide();
+            }
         }
     });
     $('#convert_to').trigger('change');

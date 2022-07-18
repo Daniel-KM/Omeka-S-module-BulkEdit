@@ -767,6 +767,9 @@ class BulkEditFieldset extends Fieldset
                     'term_as_value' => true,
                     'empty_option' => '',
                     'used_terms' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
                 ],
                 'attributes' => [
                     'id' => 'convert_properties',
@@ -795,6 +798,7 @@ class BulkEditFieldset extends Fieldset
                     'id' => 'convert_literal_value',
                     'class' => 'chosen-select',
                     'multiple' => false,
+                    'data-info-datatype' => 'literal',
                     'data-placeholder' => 'Select option', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -816,6 +820,7 @@ class BulkEditFieldset extends Fieldset
                     'id' => 'convert_resource_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
+                    'data-info-datatype' => 'resource',
                     'data-placeholder' => 'Select properties', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -829,6 +834,7 @@ class BulkEditFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'convert_uri_extract_label',
+                    'data-info-datatype' => 'uri',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -841,6 +847,7 @@ class BulkEditFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'convert_uri_label',
+                    'data-info-datatype' => 'uri',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -859,6 +866,7 @@ class BulkEditFieldset extends Fieldset
                     'id' => 'convert_uri_base_site',
                     'class' => 'chosen-select',
                     'multiple' => false,
+                    'data-info-datatype' => 'uri',
                     'data-placeholder' => 'Select a site', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -939,10 +947,19 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => BulkEditElement\DataTypeSelect::class,
+                // 'type' => BulkEditElement\DataTypeSelect::class,
+                'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Only datatypes (Value Suggest ones)', // @translate
+                    'label' => 'Only datatypes', // @translate
                     'empty_option' => '[All datatypes]', // @translate
+                    'value_options' => [
+                        'valuesuggest:geonames:geonames' => 'Geonames',
+                        'valuesuggest:idref:person' => 'IdRef Personnes',
+                        'valuesuggest:idref:corporation' => 'IdRef Organisations',
+                        'valuesuggest:idref:conference' => 'IdRef Conférences',
+                        'valuesuggest:idref:subject' => 'IdRef Sujets',
+                        'valuesuggest:idref:rameau' => 'IdRef Sujets Rameau',
+                    ],
                 ],
                 'attributes' => [
                     'id' => 'fill_datatypes',

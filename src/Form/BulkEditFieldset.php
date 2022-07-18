@@ -744,7 +744,6 @@ class BulkEditFieldset extends Fieldset
                 'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'To datatype', // @translate
-                    'info' => 'Warning: When converted to uri, the format is not checked.', // @translate
                     'value_options' => [
                         'literal' => 'Literal', // @translate
                         'resource' => 'Resource', // @translate

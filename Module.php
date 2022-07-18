@@ -1406,12 +1406,18 @@ class Module extends AbstractModule
 
             $checkContains = (bool) mb_strlen($contains);
 
+            /** @var \Omeka\DataType\DataTypeInterface $toDatatypeAdapter */
+            $toDatatypeAdapter = $services->get('Omeka\DataTypeManager')->has($toDatatype)
+                ? $services->get('Omeka\DataTypeManager')->get($toDatatype)
+                : null;
+
             $settings = $params;
             $settings['api'] = $api;
             $settings['logger'] = $logger;
             $settings['findResourcesFromIdentifiers'] = $findResourcesFromIdentifiers;
             $settings['fromDatatype'] = $fromDatatype;
             $settings['toDatatype'] = $toDatatype;
+            $settings['toDatatypeAdapter'] = $toDatatypeAdapter;
             $settings['properties'] = $properties;
             $settings['literalValue'] = $literalValue;
             $settings['resourceProperties'] = $resourceProperties;
@@ -1454,6 +1460,12 @@ class Module extends AbstractModule
                 return;
             }
         }
+
+        $datatypeToValueKeys = [
+            'literal' => '@value',
+            'resource' => 'value_resource_id',
+            'uri' => '@id',
+        ];
 
         $toUpdate = true;
 
@@ -1550,6 +1562,13 @@ class Module extends AbstractModule
                         return;
                 }
                 if ($newValue) {
+                    if (!$toDatatypeAdapter->isValid($newValue)) {
+                        $logger->notice(new Message(
+                            'Conversion from data type "%1$s" to "%2$s" is not possible in resource #%3$d for value: %4$s', // @translate
+                            $fromDatatype, $toDatatype, $resource->id(), $value[$datatypeToValueKeys[$fromDatatype]]
+                        ));
+                        continue;
+                    }
                     $data[$property][$key] = $newValue;
                 }
             }

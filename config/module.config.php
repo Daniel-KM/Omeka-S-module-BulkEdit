@@ -45,18 +45,12 @@ return [
         ],
     ],
     'js_translate_strings' => [
+        'Batch edit', // @translate
         'Advanced bulk edit', // @translate
-        'Cleaning', // @translate
-        'Convert datatype', // @translate
-        'Displace values', // @translate
-        'Explode values', // @translate
-        'Fill values', // @translate
-        'Media HTML', // @translate
-        'Media types', // @translate
-        'Order values', // @translate
-        'Replace literal values', // @translate
+        'Expand', // @translate
+        'Collapse', // @translate
         'The actions are processed in the order of the form. Be careful when mixing them.', // @translate
-        'Visibility of values', // @translate
+        'Fill a value from remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".', // @translate
     ],
     'bulkedit' => [
         'settings' => [

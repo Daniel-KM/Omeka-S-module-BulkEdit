@@ -28,6 +28,27 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetMediaHtml()
             ->appendFieldsetMediaType()
         ;
+
+        // Omeka doesn't display fieldsets, so add them via a hidden input
+        // managed by js.
+        $fieldsets = [];
+        foreach ($this->getFieldsets() as $fieldset) {
+            $name = $fieldset->getName();
+            $fieldsets[$fieldset->getName()] = $fieldset->getLabel();
+            foreach ($fieldset->getElements() as $element) {
+                $element->setAttribute('data-bulkedit-fieldset', $name);
+            }
+        }
+        $this
+            ->add([
+                'name' => 'bulkedit-fieldsets',
+                'type' => Element\Hidden::class,
+                'attributes' => [
+                    'id' => 'bulkedit-fieldsets',
+                    'data-bulkedit-fieldsets' => json_encode($fieldsets, 320),
+                ],
+            ])
+        ;
     }
 
     protected function appendFieldsetCleaning()

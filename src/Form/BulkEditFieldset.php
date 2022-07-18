@@ -366,11 +366,6 @@ class BulkEditFieldset extends Fieldset
 
     protected function appendFieldsetPropertiesVisibility()
     {
-        $datatypes = $this->listDataTypesForSelect();
-        $datatypes = [
-            'all' => '[All datatypes]', // @translate
-        ] + $datatypes;
-
         $this
             ->add([
                 'name' => 'properties_visibility',
@@ -428,17 +423,16 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => BulkEditElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
-                    'value_options' => $datatypes,
-                    'empty_option' => '',
+                    'empty_option' => '[All datatypes]', // @translate
                 ],
                 'attributes' => [
                     'id' => 'propvis_datatypes',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select datatypes', // @translate
+                    'data-placeholder' => 'Select datatypes…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -474,11 +468,6 @@ class BulkEditFieldset extends Fieldset
 
     protected function appendFieldsetDisplace()
     {
-        $datatypes = $this->listDataTypesForSelect();
-        $datatypes = [
-            'all' => '[All datatypes]', // @translate
-        ] + $datatypes;
-
         $this
             ->add([
                 'name' => 'displace',
@@ -532,17 +521,16 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => BulkEditElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
-                    'value_options' => $datatypes,
-                    'empty_option' => '',
+                    'empty_option' => '[All datatypes]', // @translate
                 ],
                 'attributes' => [
                     'id' => 'displace_datatypes',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select datatypes', // @translate
+                    'data-placeholder' => 'Select datatypes…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -863,11 +851,6 @@ class BulkEditFieldset extends Fieldset
 
     protected function appendFieldsetFillValues()
     {
-        $datatypes = $this->listDataTypesForSelect();
-        $datatypes = [
-            'all' => '[All datatypes]', // @translate
-        ] + $datatypes;
-
         $this
             ->add([
                 'name' => 'fill_values',
@@ -925,17 +908,16 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => BulkEditElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'Only datatypes (Value Suggest ones)', // @translate
-                    'value_options' => $datatypes,
-                    'empty_option' => '',
+                    'empty_option' => '[All datatypes]', // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_datatypes',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select datatypes', // @translate
+                    'data-placeholder' => 'Select datatypes…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1113,13 +1095,5 @@ class BulkEditFieldset extends Fieldset
             ]);
 
         return $this;
-    }
-
-    /**
-     * @return array
-     */
-    protected function listDataTypesForSelect()
-    {
-        return $this->getOption('listDataTypesForSelect') ?: [];
     }
 }

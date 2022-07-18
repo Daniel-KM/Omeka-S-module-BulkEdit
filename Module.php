@@ -101,11 +101,8 @@ class Module extends AbstractModule
     {
         /** @var \Omeka\Form\ResourceBatchUpdateForm $form */
         $form = $event->getTarget();
-        $options = [
-            'listDataTypesForSelect' => $this->listDataTypesForSelect(),
-        ];
         $fieldset = $this->getServiceLocator()->get('FormElementManager')
-            ->get(BulkEditFieldset::class, $options);
+            ->get(BulkEditFieldset::class);
         $form->add($fieldset);
     }
 
@@ -897,12 +894,12 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $mode = $params['mode'];
             $properties = $params['properties'] ?? [];
-            $datatypes = $params['datatypes'] ?? ['all'];
+            $datatypes = isset($params['datatypes']) ? array_filter($params['datatypes']) : [];
             $featuredSubject = !empty($params['featured_subject']);
             $languageCode = $params['language_code'] ?? '';
 
             $processAllProperties = in_array('all', $properties);
-            $processAllDatatypes = in_array('all', $datatypes);
+            $processAllDatatypes = empty($datatypes);
 
             // Flat the list of datatypes.
             $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
@@ -1043,11 +1040,11 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $visibility = (int) (bool) $params['visibility'];
             $properties = $params['properties'];
-            $datatypes = $params['datatypes'];
+            $datatypes = array_filter($params['datatypes']);
             $languages = $params['languages'];
             $contains = (string) $params['contains'];
 
-            $checkDatatype = !empty($datatypes) && !in_array('all', $datatypes);
+            $checkDatatype = !empty($datatypes);
             $checkLanguage = !empty($languages);
             $checkContains = (bool) mb_strlen($contains);
 
@@ -1114,7 +1111,7 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $fromProperties = $params['from'];
             $toProperty = $params['to'];
-            $datatypes = $params['datatypes'];
+            $datatypes = array_filter($params['datatypes']);
             $languages = $params['languages'];
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $contains = (string) $params['contains'];
@@ -1129,7 +1126,7 @@ class Module extends AbstractModule
             }
 
             $processAllProperties = in_array('all', $fromProperties);
-            $checkDatatype = !empty($datatypes) && !in_array('all', $datatypes);
+            $checkDatatype = !empty($datatypes);
             $checkLanguage = !empty($languages);
             $checkVisibility = !is_null($visibility);
             $checkContains = (bool) mb_strlen($contains);
@@ -1711,47 +1708,6 @@ class Module extends AbstractModule
                 // No flush here.
             }
         }
-    }
-
-    /**
-     * List datatypes for options.
-     *
-     * @see \Omeka\View\Helper\DataType::getSelect()
-     *
-     * @return array
-     */
-    protected function listDataTypesForSelect()
-    {
-        $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
-        $dataTypes = $dataTypeManager->getRegisteredNames();
-
-        $options = [];
-        $optgroupOptions = [];
-        foreach ($dataTypes as $dataTypeName) {
-            $dataType = $dataTypeManager->get($dataTypeName);
-            $label = $dataType->getLabel();
-            if ($optgroupLabel = $dataType->getOptgroupLabel()) {
-                // Hash the optgroup key to avoid collisions when merging with
-                // data types without an optgroup.
-                $optgroupKey = md5($optgroupLabel);
-                // Put resource data types before ones added by modules.
-                $optionsVal = in_array($dataTypeName, ['resource', 'resource:item', 'resource:itemset', 'resource:media'])
-                    ? 'options'
-                    : 'optgroupOptions';
-                if (!isset(${$optionsVal}[$optgroupKey])) {
-                    ${$optionsVal}[$optgroupKey] = [
-                        'label' => $optgroupLabel,
-                        'options' => [],
-                    ];
-                }
-                ${$optionsVal}[$optgroupKey]['options'][$dataTypeName] = $label;
-            } else {
-                $options[$dataTypeName] = $label;
-            }
-        }
-        // Always put data types not organized in option groups before data
-        // types organized within option groups.
-        return array_merge($options, $optgroupOptions);
     }
 
     /**

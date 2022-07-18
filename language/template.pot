@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-06 00:00+0000\n"
+"POT-Creation-Date: 2022-07-18 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/Generic/AbstractModule.php:66
+#: src/Generic/AbstractModule.php:66 src/Generic/AbstractModule.php:740
 #, php-format
 msgid "This module requires the module \"%s\"."
 msgstr ""
@@ -31,392 +31,472 @@ msgstr ""
 msgid "This module has resources that cannot be installed."
 msgstr ""
 
-#: src/Generic/AbstractModule.php:725
+#: src/Generic/AbstractModule.php:87
+msgid ""
+"This module cannot install its tables, because they exist already. Try to "
+"remove them first."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:328
+#, php-format
+msgid "The module removed tables \"%s\" from a previous broken install."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:735
+#, php-format
+msgid "This module requires the module \"%1$s\", version %2$s or above."
+msgstr ""
+
+#: src/Generic/AbstractModule.php:832
 #, php-format
 msgid ""
 "The module \"%s\" was automatically deactivated because the dependencies are "
 "unavailable."
 msgstr ""
 
-#: Module.php:545
+#: data/scripts/upgrade.php:31
+msgid ""
+"A new option was added to deduplicate values on save. It can be disabled in "
+"the main settings."
+msgstr ""
+
+#: Module.php:584
 #, php-format
 msgid ""
 "Cleaned params used for bulk edit:\n"
 "%s"
 msgstr ""
 
-#: Module.php:1402
-#, php-format
-msgid ""
-"Conversion from data type \"%s\" to \"%s\" requires the module Bulk Import."
+#: Module.php:1500
+msgid "A conversion requires valid \"from\" datatype and \"to\" datatype."
 msgstr ""
 
-#: Module.php:1408
+#: Module.php:1508
+#, php-format
 msgid ""
-"To convert into the data type \"resource\", the properties where to find the "
+"A conversion from data type \"%1$s\" to \"%2$s\" requires the module Bulk "
+"Import."
+msgstr ""
+
+#: Module.php:1515
+#, php-format
+msgid ""
+"To convert into the data type \"%s\", the properties where to find the "
 "identifier should be set."
 msgstr ""
 
-#: Module.php:1449 Module.php:1479
+#: Module.php:1522
 #, php-format
-msgid "Conversion from data type \"%s\" to \"%s\" is not managed."
+msgid ""
+"The conversion from data type \"%1$s\" to \"%2$s\" requires a site or api to "
+"create the url."
 msgstr ""
 
-#: Module.php:1818 Module.php:1913
+#: Module.php:1539
+#, php-format
+msgid ""
+"No linked resource found for resource #%1$s, property \"%2$s\", value "
+"resource #%3$s."
+msgstr ""
+
+#: Module.php:1564
+#, php-format
+msgid ""
+"For resource #%1$s, property \"%2$s\", the linked resource #%3$s is not a "
+"%4$s, but a %5$s."
+msgstr ""
+
+#: Module.php:1619
+#, php-format
+msgid ""
+"No linked resource found with properties %1$s for resource #%1$s, property "
+"\"%2$s\", identifier \"%3$s\""
+msgstr ""
+
+#: Module.php:1722
+#, php-format
+msgid ""
+"For resource #%1$s, property \"%2$s\", the value \"%3$s\" is not a resource "
+"url."
+msgstr ""
+
+#: Module.php:1744
+#, php-format
+msgid ""
+"Conversion from data type \"%1$s\" to \"%2$s\" is not possible in resource "
+"#%3$d for value: %4$s"
+msgstr ""
+
+#: Module.php:2108 Module.php:2203
 #, php-format
 msgid "The label for uri \"%s\" was not found."
 msgstr ""
 
-#: Module.php:1837
+#: Module.php:2127
 #, php-format
-msgid "Connection error when fetching url \"%s\": %s"
+msgid "Connection error when fetching url \"%1$s\": %2$s"
 msgstr ""
 
-#: Module.php:1844
+#: Module.php:2134
 #, php-format
-msgid "Connection issue when fetching url \"%s\": %s"
+msgid "Connection issue when fetching url \"%1$s\": %2$s"
 msgstr ""
 
-#: Module.php:1853 Module.php:1868 Module.php:1875
+#: Module.php:2143 Module.php:2158 Module.php:2165
 #, php-format
 msgid "Output is not xml for url \"%s\"."
 msgstr ""
 
-#: Module.php:1904
+#: Module.php:2194
 #, php-format
-msgid "The label for uri \"%s\" is \"%s\"."
+msgid "The label for uri \"%1$s\" is \"%2$s\"."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:41 config/module.config.php:37
+#: src/Form/BulkEditFieldset.php:61
 msgid "Cleaning"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:55
+#: src/Form/BulkEditFieldset.php:75
 msgid "Trim property values"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:56
+#: src/Form/BulkEditFieldset.php:76
 msgid "Remove initial and trailing whitespace of all values of all properties"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:68
+#: src/Form/BulkEditFieldset.php:88
 msgid "Specify data type \"resource\" for linked resources"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:69
+#: src/Form/BulkEditFieldset.php:89
 msgid ""
 "In some cases, linked resources are saved in the database with the generic "
 "data type \"resource\", not with the specific \"resource:item\", \"resource:"
 "media, etc."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:81
+#: src/Form/BulkEditFieldset.php:101
 msgid "Clean languages (set null when language is empty)"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:93
+#: src/Form/BulkEditFieldset.php:113
 msgid "Normalize or modify language codes"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:94
+#: src/Form/BulkEditFieldset.php:114
 msgid ""
 "Normalize language codes from a code to another one, for example \"fr\" to "
 "\"fra\" or vice-versa. It allows to add or remove a code too."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:106
+#: src/Form/BulkEditFieldset.php:126
 msgid "From code"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:119
+#: src/Form/BulkEditFieldset.php:139
 msgid "To code"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:132 src/Form/BulkEditFieldset.php:293
-#: src/Form/BulkEditFieldset.php:358 src/Form/BulkEditFieldset.php:521
-#: src/Form/BulkEditFieldset.php:877
+#: src/Form/BulkEditFieldset.php:152 src/Form/BulkEditFieldset.php:313
+#: src/Form/BulkEditFieldset.php:429 src/Form/BulkEditFieldset.php:766
+#: src/Form/BulkEditFieldset.php:957
 msgid "For properties"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:135 src/Form/BulkEditFieldset.php:296
-#: src/Form/BulkEditFieldset.php:361 src/Form/BulkEditFieldset.php:458
-#: src/Form/BulkEditFieldset.php:524
+#: src/Form/BulkEditFieldset.php:155 src/Form/BulkEditFieldset.php:316
+#: src/Form/BulkEditFieldset.php:371 src/Form/BulkEditFieldset.php:432
+#: src/Form/BulkEditFieldset.php:771 src/Form/BulkEditFieldset.php:960
 msgid "[All properties]"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:154
+#: src/Form/BulkEditFieldset.php:174
 msgid "Deduplicate property values case insensitively"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:155
+#: src/Form/BulkEditFieldset.php:175
 msgid ""
 "Deduplicate values of all properties, case INsensitively. Trimming values "
 "before is recommended, because values are checked strictly."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:174 config/module.config.php:45
+#: src/Form/BulkEditFieldset.php:194
 msgid "Replace literal values"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:189 src/Form/BulkEditFieldset.php:972
+#: src/Form/BulkEditFieldset.php:209 src/Form/BulkEditFieldset.php:1049
 msgid "String to replace"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:201 src/Form/BulkEditFieldset.php:984
+#: src/Form/BulkEditFieldset.php:221 src/Form/BulkEditFieldset.php:1061
 msgid "By"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:213 src/Form/BulkEditFieldset.php:996
+#: src/Form/BulkEditFieldset.php:233 src/Form/BulkEditFieldset.php:1073
 msgid "Replacement mode"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:215 src/Form/BulkEditFieldset.php:998
+#: src/Form/BulkEditFieldset.php:235 src/Form/BulkEditFieldset.php:1075
 msgid "Simple"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:216 src/Form/BulkEditFieldset.php:999
+#: src/Form/BulkEditFieldset.php:236 src/Form/BulkEditFieldset.php:1076
 msgid "Simple (case insensitive)"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:217 src/Form/BulkEditFieldset.php:1000
+#: src/Form/BulkEditFieldset.php:237 src/Form/BulkEditFieldset.php:1077
 msgid "Simple and html entities"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:218 src/Form/BulkEditFieldset.php:1001
+#: src/Form/BulkEditFieldset.php:238 src/Form/BulkEditFieldset.php:1078
 msgid "Regex (full pattern)"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:232 src/Form/BulkEditFieldset.php:1015
+#: src/Form/BulkEditFieldset.php:252 src/Form/BulkEditFieldset.php:1092
 msgid "Remove string"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:244 src/Form/BulkEditFieldset.php:1027
+#: src/Form/BulkEditFieldset.php:264 src/Form/BulkEditFieldset.php:1104
 msgid "String to prepend"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:256 src/Form/BulkEditFieldset.php:1039
+#: src/Form/BulkEditFieldset.php:276 src/Form/BulkEditFieldset.php:1116
 msgid "String to append"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:268
+#: src/Form/BulkEditFieldset.php:288
 msgid "Set a language"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:281
+#: src/Form/BulkEditFieldset.php:301
 msgid "Remove language"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:317 src/Form/BulkEditFieldset.php:480
-#: src/Form/BulkEditFieldset.php:588
-msgid "[All datatypes]"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:325 config/module.config.php:41
-msgid "Fill values"
-msgstr ""
-
 #: src/Form/BulkEditFieldset.php:340
-msgid "Fill mode (only geonames and some idref currently, not uri)"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:342
-msgid "Fill missing labels of uris"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:343
-msgid "Reset and fill all labels of uris"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:344
-msgid "Remove labels of uris"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:379
-msgid "Only datatypes (Value Suggest ones)"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:387 src/Form/BulkEditFieldset.php:550
-#: src/Form/BulkEditFieldset.php:654
-msgid "Select datatypes"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:396
-msgid "Language code (Geonames)"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:408
-msgid "Use featured subject (Rameau)"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:427
 msgid "Values order"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:442
+#: src/Form/BulkEditFieldset.php:355
 msgid "Order by language"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:443
+#: src/Form/BulkEditFieldset.php:356
 msgid "List the language you want to order before other values."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:455
+#: src/Form/BulkEditFieldset.php:368
 msgid "Properties to order"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:542 src/Form/BulkEditFieldset.php:646
+#: src/Form/BulkEditFieldset.php:450 src/Form/BulkEditFieldset.php:548
+#: src/Form/BulkEditFieldset.php:979
 msgid "Only datatypes"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:559 src/Form/BulkEditFieldset.php:663
+#: src/Form/BulkEditFieldset.php:451 src/Form/BulkEditFieldset.php:549
+#: src/Form/BulkEditFieldset.php:980
+msgid "[All datatypes]"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:457 src/Form/BulkEditFieldset.php:555
+#: src/Form/BulkEditFieldset.php:994
+msgid "Select datatypes…"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:466 src/Form/BulkEditFieldset.php:564
 msgid "Only languages"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:572 src/Form/BulkEditFieldset.php:694
-#: src/Form/BulkEditFieldset.php:758
+#: src/Form/BulkEditFieldset.php:479 src/Form/BulkEditFieldset.php:595
+#: src/Form/BulkEditFieldset.php:659 src/Form/BulkEditFieldset.php:905
 msgid "Only containing"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:596 config/module.config.php:39
+#: src/Form/BulkEditFieldset.php:498
 msgid "Displace values"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:611
+#: src/Form/BulkEditFieldset.php:513
 msgid "From properties"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:629
+#: src/Form/BulkEditFieldset.php:531
 msgid "To property"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:676
+#: src/Form/BulkEditFieldset.php:577
 msgid "Only visibility"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:680
+#: src/Form/BulkEditFieldset.php:581
 msgid "Any"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:713 config/module.config.php:40
+#: src/Form/BulkEditFieldset.php:614
 msgid "Explode values"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:746
+#: src/Form/BulkEditFieldset.php:647
 msgid "Separator"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:777
+#: src/Form/BulkEditFieldset.php:678
 msgid "Merge values as uri and label"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:778
+#: src/Form/BulkEditFieldset.php:679
 msgid ""
 "The values are merged two by two, whatever order and initial datatype. The "
 "number of values must be even and clean."
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:818 config/module.config.php:38
+#: src/Form/BulkEditFieldset.php:719
 msgid "Convert datatype"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:833
+#: src/Form/BulkEditFieldset.php:734
 msgid "From datatype"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:834
-msgid "Some combinations are not managed."
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:836 src/Form/BulkEditFieldset.php:858
-msgid "Literal"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:838 src/Form/BulkEditFieldset.php:860
-msgid "Uri"
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:846 src/Form/BulkEditFieldset.php:868
+#: src/Form/BulkEditFieldset.php:741 src/Form/BulkEditFieldset.php:757
 msgid "Select datatype"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:855
+#: src/Form/BulkEditFieldset.php:750
 msgid "To datatype"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:856
-msgid "Warning: When converted to uri, the format is not checked."
-msgstr ""
-
-#: src/Form/BulkEditFieldset.php:895
+#: src/Form/BulkEditFieldset.php:787
 msgid "Convert to literal: Content"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:897
+#: src/Form/BulkEditFieldset.php:789
 msgid "Label and uri"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:898
+#: src/Form/BulkEditFieldset.php:790
 msgid "Uri and label"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:899
-msgid "Uri only"
+#: src/Form/BulkEditFieldset.php:791
+msgid "Label if present, else uri"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:900
+#: src/Form/BulkEditFieldset.php:792
 msgid "Label only"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:908
+#: src/Form/BulkEditFieldset.php:793
+msgid "Uri only"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:802
 msgid "Select option"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:917
+#: src/Form/BulkEditFieldset.php:811
+msgid "Convert to literal: keep only text from html/xml"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:824
+msgid "Convert to html/xml: only html/xml-looking strings"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:837
 msgid "Convert to resource: Properties where to search the identifier"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:920
+#: src/Form/BulkEditFieldset.php:840
 msgid "Omeka internal id"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:938
+#: src/Form/BulkEditFieldset.php:859
+msgid "Convert to uri: extract label after uri"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:872
 msgid "Convert to uri: Label of uri"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:957 config/module.config.php:42
+#: src/Form/BulkEditFieldset.php:885
+msgid "Convert to uri: Site to use as base url"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:888
+msgid "Api url"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:896
+msgid "Select a site"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:924
+msgid "Fill labels for Value Suggest"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:939
+msgid "Fill mode"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:941
+msgid "Fill missing labels of uris"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:942
+msgid "Reset and fill all labels of uris"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:943
+msgid "Remove labels of uris"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:1003
+msgid "Language code (Geonames)"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:1015
+msgid "Use featured subject (Rameau)"
+msgstr ""
+
+#: src/Form/BulkEditFieldset.php:1034
 msgid "Media HTML"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:1058
+#: src/Form/BulkEditFieldset.php:1135
 msgid "Media type (mime-type)"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:1073
+#: src/Form/BulkEditFieldset.php:1150
 msgid "Media type to replace"
 msgstr ""
 
-#: src/Form/BulkEditFieldset.php:1085
+#: src/Form/BulkEditFieldset.php:1162
 msgid "By a valid media-type"
 msgstr ""
 
-#: config/module.config.php:36
+#: src/Form/SettingsFieldset.php:10
+msgid "Bulk Edit"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:19
+msgid "Deduplicate values on save"
+msgstr ""
+
+#: config/module.config.php:48
+msgid "Batch edit"
+msgstr ""
+
+#: config/module.config.php:49
 msgid "Advanced bulk edit"
 msgstr ""
 
-#: config/module.config.php:43
-msgid "Media types"
-msgstr ""
-
-#: config/module.config.php:44
-msgid "Order values"
-msgstr ""
-
-#: config/module.config.php:46
+#: config/module.config.php:52
 msgid ""
 "The actions are processed in the order of the form. Be careful when mixing "
 "them."
 msgstr ""
 
-#: config/module.config.php:47
-msgid "Visibility of values"
+#: config/module.config.php:53
+msgid ""
+"Fill a value from remote data can be slow, so it is recommended to process "
+"it in background with \"batch edit all\", not \"batch edit selected\"."
 msgstr ""

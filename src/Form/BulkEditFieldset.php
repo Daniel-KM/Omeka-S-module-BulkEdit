@@ -936,7 +936,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'mode',
                 'type' => BulkEditElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Fill mode (only geonames and some idref currently, not uri)', // @translate
+                    'label' => 'Fill mode', // @translate
                     'value_options' => [
                         'empty' => 'Fill missing labels of uris', // @translate
                         'all' => 'Reset and fill all labels of uris', // @translate
@@ -982,7 +982,7 @@ class BulkEditFieldset extends Fieldset
                         'valuesuggest:geonames:geonames' => 'Geonames',
                         'valuesuggest:idref:person' => 'IdRef Personnes',
                         'valuesuggest:idref:corporation' => 'IdRef Organisations',
-                        'valuesuggest:idref:conference' => 'IdRef Conférences',
+                        'valuesuggest:idref:conference' => 'IdRef Congrès',
                         'valuesuggest:idref:subject' => 'IdRef Sujets',
                         'valuesuggest:idref:rameau' => 'IdRef Sujets Rameau',
                     ],

@@ -512,6 +512,8 @@ class Module extends AbstractModule
                 'to' => $params['to'],
                 'properties' => $params['properties'],
                 'literal_value' => $params['literal_value'],
+                'literal_extract_html_text' => $params['literal_extract_html_text'],
+                'literal_html_only_tagged_string' => $params['literal_html_only_tagged_string'],
                 'resource_properties' => $params['resource_properties'],
                 'uri_extract_label' => !empty($params['uri_extract_label']),
                 'uri_label' => $params['uri_label'],
@@ -1407,6 +1409,8 @@ class Module extends AbstractModule
             $toDatatype = $params['to'];
             $properties = $params['properties'];
             $literalValue = $params['literal_value'];
+            $literalExtractHtmlText = !empty($params['literal_extract_html_text']);
+            $literalHtmlOnlyTaggedString = !empty($params['literal_html_only_tagged_string']);
             $resourceProperties = $params['resource_properties'];
             $uriExtractLabel = !empty($params['uri_extract_label']);
             $uriLabel = strlen($params['uri_label']) ? $params['uri_label'] : null;
@@ -1465,6 +1469,8 @@ class Module extends AbstractModule
             $settings['properties'] = $properties;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['literalValue'] = $literalValue;
+            $settings['literalExtractHtmlText'] = $literalExtractHtmlText;
+            $settings['literalHtmlOnlyTaggedString'] = $literalHtmlOnlyTaggedString;
             $settings['resourceProperties'] = $resourceProperties;
             $settings['uriExtractLabel'] = $uriExtractLabel;
             $settings['uriLabel'] = $uriLabel;
@@ -1591,6 +1597,15 @@ class Module extends AbstractModule
                     case 'literal':
                         if (!isset($value['@value'])) {
                             continue 2;
+                        }
+                        if ($literalHtmlOnlyTaggedString
+                            && in_array($toDatatype, ['html', 'xml'])
+                            && (substr(trim((string) $value['@value']), 0, 1) !== '<' || substr(trim((string) $value['@value']), -1) !== '>')
+                        ) {
+                            continue 2;
+                        }
+                        if ($literalExtractHtmlText && in_array($fromDatatype, ['html', 'xml'])) {
+                            $value['@value'] = strip_tags($value['@value']);
                         }
                         switch ($toDatatypeMain) {
                             case 'literal':

@@ -55,20 +55,30 @@ $(document).ready(function() {
     });
     $('#cleaning_clean_language_codes').trigger('change');
 
-    $('.batch-edit').on('change', '#convert_to', function() {
+    $('.batch-edit').on('change', '#convert_from, #convert_to', function() {
         const datatypes = $('#convert_from').data('datatypes');
-        const datatypeTo = $(this).val();
+        const datatypeFrom = $('#convert_from').val();
+        const datatypeTo = $('#convert_to').val();
         $('#bulk-edit #convert [data-info-datatype]').closest('.field').hide();
         if (!datatypes[datatypeTo]) {
             return;
         }
         $('#bulk-edit #convert [data-info-datatype=' + datatypes[datatypeTo] + ']').closest('.field').show();
-        const datatypeFrom = $('#convert_from').val();
         if (!datatypes[datatypeFrom]) {
             return;
         }
-        if (datatypes[datatypeTo] === 'literal' && datatypes[datatypeFrom] !== 'uri') {
-            $('#convert_literal_value').closest('.field').hide();
+        if (datatypes[datatypeTo] === 'literal') {
+            if (datatypes[datatypeFrom] !== 'uri') {
+                $('#convert_literal_value').closest('.field').hide();
+            }
+            $('#convert_literal_extract_html_text').closest('.field').hide();
+            $('#convert_literal_html_only_tagged_string').closest('.field').hide();
+            if (datatypeFrom === 'html' || datatypeFrom === 'xml') {
+                $('#convert_literal_extract_html_text').closest('.field').show();
+            }
+            if (datatypes[datatypeTo] === 'literal' && (datatypeTo === 'html' || datatypeTo === 'xml')) {
+                $('#convert_literal_html_only_tagged_string').closest('.field').show();
+            }
         }
         if (datatypes[datatypeTo] === 'resource' && datatypes[datatypeFrom] !== 'literal') {
             $('#convert_resource_properties').closest('.field').hide();
@@ -85,7 +95,7 @@ $(document).ready(function() {
             }
         }
     });
-    $('#convert_to').trigger('change');
+    $('#convert_from, #convert_to').trigger('change');
 
     $('.batch-edit').on('change', '#mediahtml_remove', function() {
         const fields = $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_prepend, #mediahtml_append').closest('.field');

@@ -805,6 +805,32 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'literal_extract_html_text',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Convert to literal: keep only text from html/xml', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'convert_literal_extract_html_text',
+                    'data-info-datatype' => 'literal',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'literal_html_only_tagged_string',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Convert to html/xml: only html/xml-looking strings', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'convert_literal_html_only_tagged_string',
+                    'data-info-datatype' => 'literal',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'resource_properties',
                 'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [

@@ -1,8 +1,25 @@
-.inputs input[type="text"].value-language.active {
-    background-color: #fff;
-    padding: 6px;
-}
-
-.batch-edit .field-container > legend {
-    font-size: 16px;
+@media screen {
+    .inputs input[type=text].value-language.active {
+        background-color: #fff;
+        padding: 6px;
+    }
+    #bulk-edit > legend {
+        position: inherit;
+    }
+    #bulk-edit > fieldset {
+        margin-bottom: 6px;
+    }
+    #bulk-edit fieldset > a {
+        font-size: 16px;
+    }
+    #bulk-edit fieldset > a::after {
+        margin-left: 12px;
+    }
+    #bulk-edit fieldset > a > legend {
+        font-size: 16px;
+        display: inline-block;
+    }
+    #bulk-edit fieldset > a.collapse + .collapsible {
+        overflow: inherit;
+    }
 }

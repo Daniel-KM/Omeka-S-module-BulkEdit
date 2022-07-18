@@ -15,9 +15,11 @@ $(document).ready(function() {
     $('#bulkedit-fieldsets').remove();
     Object.entries(bulkeditFieldsets).forEach(([fieldsetName, fieldsetLabel]) => {
         $('[data-bulkedit-fieldset=' + fieldsetName + ']').closest('.field')
-            .wrapAll('<fieldset id="' + fieldsetName + '" class="field-container">');
+            .wrapAll('<fieldset id="' + fieldsetName + '" class="field-container"><div class="collapsible">');
         $('#' + fieldsetName)
-            .prepend('<legend>' + fieldsetLabel + '</legend>');
+            .prepend('<a href="#" class="expand" aria-label="' + Omeka.jsTranslate('Expand') + '" title="' + Omeka.jsTranslate('Expand') + '">'
+                + '<legend>' + fieldsetLabel + '</legend>'
+                + '</a>');
     });
 
     // Wrap core form and bulk edit form with a section.
@@ -44,8 +46,8 @@ $(document).ready(function() {
     $('#bulk-edit')
         .prepend('<legend>' + Omeka.jsTranslate('The actions are processed in the order of the form. Be careful when mixing them.') + '</legend>');
 
-    $('#fill_values legend')
-        .after('<p>' + Omeka.jsTranslate('Fill a value from remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".') + '</p>')
+    $('#fill_values > .collapsible')
+        .prepend('<p>' + Omeka.jsTranslate('Fill a value from remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".') + '</p>')
 
     $('.batch-edit').on('change', '#cleaning_clean_language_codes', function() {
         const fields = $('#cleaning_clean_language_codes_from, #cleaning_clean_language_codes_to, #cleaning_clean_language_codes_properties').closest('.field');

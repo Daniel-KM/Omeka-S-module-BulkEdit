@@ -1769,6 +1769,7 @@ class Module extends AbstractModule
             'idref.fr/',
         ];
 
+        // TODO Move these hard-coded mappings into the form.
         $managedDatatypes = [
             'valuesuggest:geonames:geonames' => [
                 'base_url' => [
@@ -1837,11 +1838,14 @@ class Module extends AbstractModule
             $managedDatatypes['valuesuggest:idref:rameau']['path'] = [
                 '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
                 '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+                // If featured subject is missing, use the current subject.
+                '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="950"]/subfield[@code="a"][1]',
             ];
         }
 
         $headers = [
-            'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/96.0',
+            'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
             'Content-Type' => 'application/xml',
             'Accept-Encoding' => 'gzip, deflate',
         ];

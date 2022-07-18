@@ -1463,10 +1463,10 @@ class Module extends AbstractModule
                     continue;
                 }
                 if ($checkContains) {
-                    if ($from === 'literal' && strpos($value['@value'], $contains) === false) {
+                    if ($fromDatatype === 'literal' && strpos($value['@value'], $contains) === false) {
                         continue;
                     }
-                    if ($from === 'uri' && strpos($value['@id'], $contains) === false) {
+                    if ($fromDatatype === 'uri' && strpos($value['@id'], $contains) === false) {
                         continue;
                     }
                 }
@@ -1501,8 +1501,12 @@ class Module extends AbstractModule
                         if (isset($value['display_title']) && strlen($value['display_title'])) {
                             $label = $value['display_title'];
                         } else {
-                            $label = $api->searchOne($value['value_resource_id'])->getContent();
-                            if (!$label) {
+                            try {
+                                $label = $api->read('resources', $value['value_resource_id'], ['initialize' => false, 'finalize' => false])->getContent();
+                                if (!$label) {
+                                    continue 2;
+                                }
+                            } catch (\Exception $e) {
                                 continue 2;
                             }
                             $label = $label->displayTitle();

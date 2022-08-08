@@ -14,7 +14,7 @@ return [
     ],
     'view_helpers' => [
         'factories' => [
-            // Copy from AdvancedResourceTemplate. Copy in BulkExport and BulkEdit. Used in Contribute.
+            // Copy from AdvancedResourceTemplate. Copy in BulkExport, BulkEdit and BulkImport. Used in Contribute.
             'customVocabBaseType' => Service\ViewHelper\CustomVocabBaseTypeFactory::class,
         ],
     ],

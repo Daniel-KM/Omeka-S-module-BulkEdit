@@ -12,6 +12,7 @@ class SettingsFieldset extends Fieldset
     public function init(): void
     {
         $this
+            ->setAttribute('id', 'bulk-edit')
             ->add([
                 'name' => 'bulkedit_deduplicate_on_save',
                 'type' => Element\Checkbox::class,

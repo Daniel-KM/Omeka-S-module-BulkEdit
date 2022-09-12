@@ -125,6 +125,6 @@ SQL;
             ->addOrderBy('property.id', 'asc')
             ->addGroupBy('property.id')
         ;
-        return array_map('intval', $this->connection->executeQuery($qb)->fetchAllKeyValue());
+        return array_map('intval', $connection->executeQuery($qb)->fetchAllKeyValue());
     }
 }

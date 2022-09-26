@@ -37,5 +37,13 @@ if (version_compare($oldVersion, '3.3.14', '<')) {
     $message = new Message(
         'It’s now possible to convert any data type to any data type.' // @translate
     );
-    $messenger->addNotice($message);
+    $messenger->addSuccess($message);
+}
+
+if (version_compare($oldVersion, '3.3.15', '<')) {
+    $messenger = new Messenger();
+    $message = new Message(
+        'It’s now possible to update or remove the owner of resources.' // @translate
+    );
+    $messenger->addSuccess($message);
 }

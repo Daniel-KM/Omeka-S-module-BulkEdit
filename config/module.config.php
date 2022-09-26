@@ -26,8 +26,9 @@ return [
         ],
         'factories' => [
             Form\BulkEditFieldset::class => Service\Form\BulkEditFieldsetFactory::class,
-            Form\Element\OptionalPropertySelect::class => Service\Form\Element\OptionalPropertySelectFactory::class,
             Form\Element\DataTypeSelect::class => Service\Form\Element\DataTypeSelectFactory::class,
+            Form\Element\OptionalPropertySelect::class => Service\Form\Element\OptionalPropertySelectFactory::class,
+            Form\Element\OptionalUserSelect::class => Service\Form\Element\OptionalUserSelectFactory::class,
         ],
         'aliases' => [
             // Use aliases to keep core keys.

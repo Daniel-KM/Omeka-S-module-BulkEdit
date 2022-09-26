@@ -935,7 +935,7 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'owner',
-                'type' => OmekaElement\UserSelect::class,
+                'type' => BulkEditElement\OptionalUserSelect::class,
                 'options' => [
                     'label' => 'Append or remove owner', // @translate
                     'empty_option' => '',

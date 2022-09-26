@@ -63,6 +63,7 @@ class Module extends AbstractModule
                 'api.update.pre',
                 [$this, 'handleResourceUpdatePreBatchUpdate']
             );
+            // Batch update via sql queries.
             $sharedEventManager->attach(
                 $adapter,
                 'api.batch_update.post',
@@ -321,7 +322,7 @@ class Module extends AbstractModule
     }
 
     /**
-     * Process action on batch update (all or partial).
+     * Process action on batch update (all or partial) via direct sql.
      *
      * Data may need to be reindexed if a module like Search is used, even if
      * the results are probably the same with a simple trimming.
@@ -617,35 +618,34 @@ class Module extends AbstractModule
         $properties = $this->getPropertyIds();
         $data = array_intersect_key($data, $properties);
 
-        // Keep data that may have been added during batch pre-process,
+        // Keep data that may have been added during batch pre-process.
         $data = array_replace($data, $dataToUpdate);
 
-        // TODO Remove toUpdate that is not used anymore.
-        $toUpdate = false;
+        // Note: $data is passed by reference to each process.
         foreach ($processes as $process => $params) switch ($process) {
             case 'replace':
-                $this->updateValuesForResource($resource, $data, $toUpdate, $params);
+                $this->updateValuesForResource($resource, $data, $params);
                 break;
             case 'fill_values':
-                $this->fillValuesForResource($resource, $data, $toUpdate, $params);
+                $this->fillValuesForResource($resource, $data, $params);
                 break;
             case 'order_values':
-                $this->orderValuesForResource($resource, $data, $toUpdate, $params);
+                $this->orderValuesForResource($resource, $data, $params);
                 break;
             case 'properties_visibility':
-                $this->applyVisibilityForResourceValues($resource, $data, $toUpdate, $params);
+                $this->applyVisibilityForResourceValues($resource, $data, $params);
                 break;
             case 'displace':
-                $this->displaceValuesForResource($resource, $data, $toUpdate, $params);
+                $this->displaceValuesForResource($resource, $data, $params);
                 break;
             case 'explode':
-                $this->explodeValuesForResource($resource, $data, $toUpdate, $params);
+                $this->explodeValuesForResource($resource, $data, $params);
                 break;
             case 'merge':
-                $this->mergeValuesForResource($resource, $data, $toUpdate, $params);
+                $this->mergeValuesForResource($resource, $data, $params);
                 break;
             case 'convert':
-                $this->convertDatatypeForResource($resource, $data, $toUpdate, $params);
+                $this->convertDatatypeForResource($resource, $data, $params);
                 break;
             default:
                 break;
@@ -708,16 +708,10 @@ class Module extends AbstractModule
 
     /**
      * Update values for resources.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
      */
     protected function updateValuesForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        &$toUpdate,
         array $params
     ): void {
         static $settings;
@@ -784,7 +778,6 @@ class Module extends AbstractModule
                     if ($value['type'] !== 'literal') {
                         continue;
                     }
-                    $toUpdate = true;
                     // Unsetting is done in last step.
                     $data[$property][$key]['@value'] = '';
                 }
@@ -810,7 +803,6 @@ class Module extends AbstractModule
                     if ($value['@value'] === $newValue) {
                         continue;
                     }
-                    $toUpdate = true;
                     $data[$property][$key]['@value'] = $newValue;
                 }
             }
@@ -826,7 +818,6 @@ class Module extends AbstractModule
                     if ($value['@value'] === $newValue) {
                         continue;
                     }
-                    $toUpdate = true;
                     $data[$property][$key]['@value'] = $newValue;
                 }
             }
@@ -842,7 +833,6 @@ class Module extends AbstractModule
                     if ($currentLanguage === $language) {
                         continue;
                     }
-                    $toUpdate = true;
                     $data[$property][$key]['@language'] = $language;
                 }
             }
@@ -859,7 +849,6 @@ class Module extends AbstractModule
                 }
                 $data[$property][$key]['@value'] = trim($data[$property][$key]['@value']);
                 if (!mb_strlen($data[$property][$key]['@value'])) {
-                    $toUpdate = true;
                     unset($data[$property][$key]);
                 }
             }
@@ -868,16 +857,10 @@ class Module extends AbstractModule
 
     /**
      * Update values for resources.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
      */
     protected function fillValuesForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        &$toUpdate,
         array $params
     ): void {
         static $settings;
@@ -954,7 +937,6 @@ class Module extends AbstractModule
                     if (!strlen((string) $vvalue)) {
                         continue;
                     }
-                    $toUpdate = true;
                     unset($data[$property][$key]['@value']);
                     unset($data[$property][$key]['o:label']);
                 }
@@ -976,7 +958,6 @@ class Module extends AbstractModule
                 if (is_null($vvalue)) {
                     continue;
                 }
-                $toUpdate = true;
                 $data[$property][$key]['o:label'] = $vvalue;
             }
         }
@@ -986,16 +967,10 @@ class Module extends AbstractModule
      * Order values in a list of properties.
      *
      * This feature is generally used for title, description and subjects.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
      */
     protected function orderValuesForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        &$toUpdate,
         array $params
     ): void {
         $languages = $params['languages'];
@@ -1014,8 +989,6 @@ class Module extends AbstractModule
         if (empty($properties)) {
             return;
         }
-
-        $toUpdate = true;
 
         foreach ($properties as $property) {
             // This two loops process is quicker with many languages.
@@ -1037,16 +1010,10 @@ class Module extends AbstractModule
 
     /**
      * Set visibility to the specified properties of the specified resources.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
      */
     protected function applyVisibilityForResourceValues(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        &$toUpdate,
         array $params
     ): void {
         static $settings;
@@ -1100,7 +1067,6 @@ class Module extends AbstractModule
                 if ($checkContains && strpos((string) $value['@value'], $contains) === false) {
                     continue;
                 }
-                $toUpdate = true;
                 $data[$property][$key]['is_public'] = $visibility;
             }
         }
@@ -1108,16 +1074,10 @@ class Module extends AbstractModule
 
     /**
      * Displace values from a list of properties to another one.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
      */
     protected function displaceValuesForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        &$toUpdate,
         array $params
     ): void {
         static $settings;
@@ -1180,8 +1140,6 @@ class Module extends AbstractModule
             return;
         }
 
-        $toUpdate = true;
-
         foreach ($properties as $property) {
             if ($property === $toProperty) {
                 continue;
@@ -1210,16 +1168,10 @@ class Module extends AbstractModule
 
     /**
      * Explode values from a list of properties into multiple values.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
      */
     protected function explodeValuesForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        &$toUpdate,
         array $params
     ): void {
         static $settings;
@@ -1250,8 +1202,6 @@ class Module extends AbstractModule
             return;
         }
 
-        $toUpdate = true;
-
         foreach ($properties as $property) {
             // This variable is used to keep order of original values.
             $values = [];
@@ -1280,16 +1230,10 @@ class Module extends AbstractModule
 
     /**
      * Merge values from a list of properties into one.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
      */
     protected function mergeValuesForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        &$toUpdate,
         array $params
     ): void {
         static $settings;
@@ -1363,8 +1307,6 @@ class Module extends AbstractModule
                 continue;
             }
 
-            $toUpdate = true;
-
             // Third loop to update data.
             $data[$property] = [];
             foreach ($pairs as $pair) {
@@ -1386,16 +1328,10 @@ class Module extends AbstractModule
 
     /**
      * Convert datatype of a list of properties to another one.
-     *
-     * @param AbstractResourceEntityRepresentation $resource
-     * @param array $data
-     * @param bool $toUpdate
-     * @param array $params
      */
     protected function convertDatatypeForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        &$toUpdate,
         array $params
     ): void {
         static $settings;
@@ -1746,7 +1682,6 @@ class Module extends AbstractModule
                         ));
                         continue;
                     }
-                    $toUpdate = true;
                     $data[$property][$key] = $newValue;
                 }
             }

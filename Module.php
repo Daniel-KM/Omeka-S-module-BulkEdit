@@ -376,6 +376,7 @@ class Module extends AbstractModule
         }
 
         $processes = [
+            'fill_data' => null,
             'replace' => null,
             'fill_values' => null,
             'order_values' => null,
@@ -392,6 +393,13 @@ class Module extends AbstractModule
             'clean_language_codes' => null,
             'deduplicate_values' => null,
         ];
+
+        $params = $bulkedit['fill_data'] ?? [];
+        if (array_key_exists('owner', $params) && is_numeric($params['owner'])) {
+            $processes['fill_data'] = [
+                'owner' => (int) $params['owner'] ?: null,
+            ];
+        }
 
         $params = $bulkedit['replace'] ?? [];
         if (!empty($params['properties'])) {
@@ -613,16 +621,15 @@ class Module extends AbstractModule
     ): array {
         // It's simpler to process data as a full array.
         $data = json_decode(json_encode($resource), true);
-        // Keep only properties values: a batch edit is partial and Bulk Edit
-        // manages only properties.
-        $properties = $this->getPropertyIds();
-        $data = array_intersect_key($data, $properties);
 
         // Keep data that may have been added during batch pre-process.
         $data = array_replace($data, $dataToUpdate);
 
         // Note: $data is passed by reference to each process.
         foreach ($processes as $process => $params) switch ($process) {
+            case 'fill_data':
+                $this->fillDataForResource($resource, $data, $params);
+                break;
             case 'replace':
                 $this->updateValuesForResource($resource, $data, $params);
                 break;
@@ -708,6 +715,40 @@ class Module extends AbstractModule
 
     /**
      * Update values for resources.
+     */
+    protected function fillDataForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        static $settings;
+        if (is_null($settings)) {
+            $ownerId = (int) $params['owner'] ?: null;
+
+            $settings = $params;
+            $settings['ownerId'] = $ownerId;
+        } else {
+            extract($settings);
+        }
+
+        $currentResourceOwner = $resource->owner();
+        if (!$currentResourceOwner && !$ownerId) {
+            return;
+        }
+        if ($currentResourceOwner && $currentResourceOwner->id() === $ownerId) {
+            return;
+        }
+
+        $data['o:owner'] = ['o:id' => $ownerId];
+    }
+
+    /**
+     * Update values for resources.
+     *
+     * @param AbstractResourceEntityRepresentation $resource
+     * @param array $data
+     * @param bool $toUpdate
+     * @param array $params
      */
     protected function updateValuesForResource(
         AbstractResourceEntityRepresentation $resource,

@@ -24,7 +24,8 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetExplode()
             ->appendFieldsetMerge()
             ->appendFieldsetConvert()
-            ->appendFieldsetFillValues()
+            ->appendFieldsetFillData()
+            ->appendFieldsetFillLabels()
             ->appendFieldsetMediaHtml()
             ->appendFieldsetMediaType()
         ;
@@ -914,7 +915,47 @@ class BulkEditFieldset extends Fieldset
         return $this;
     }
 
-    protected function appendFieldsetFillValues()
+    protected function appendFieldsetFillData()
+    {
+        $this
+            ->add([
+                'name' => 'fill_data',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Fill and update metadata', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_data',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('fill_data');
+        $fieldset
+            ->add([
+                'name' => 'owner',
+                'type' => OmekaElement\UserSelect::class,
+                'options' => [
+                    'label' => 'Append or remove owner', // @translate
+                    'empty_option' => '',
+                    'prepend_value_options' => [
+                        '0' => 'Remove owner', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'fill_data_owner',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-placeholder' => 'Select a user…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        return $this;
+    }
+
+    protected function appendFieldsetFillLabels()
     {
         $this
             ->add([

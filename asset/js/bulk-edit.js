@@ -45,6 +45,10 @@ $(document).ready(function() {
 
     $('#bulk-edit')
         .prepend('<p>' + Omeka.jsTranslate('The actions are processed in the order of the form. Be careful when mixing them.') + '</p>');
+    if (!$('input#geometry_convert_literal_to_coordinates').length) {
+        $('#bulk-edit')
+            .append('<p>' + Omeka.jsTranslate('To convert values to/from mapping markers, use module DataTypeGeometry.') + '</p>');
+    }
 
     $('#fill_values > .collapsible')
         .prepend('<p>' + Omeka.jsTranslate('Fill a value from remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".') + '</p>')

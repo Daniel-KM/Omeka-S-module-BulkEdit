@@ -377,30 +377,24 @@ class Module extends AbstractModule
         }
 
         $processes = [
-            'fill_data' => null,
             'replace' => null,
-            'fill_values' => null,
-            'order_values' => null,
-            'properties_visibility' => null,
             'displace' => null,
             'explode' => null,
             'merge' => null,
             'convert' => null,
+            'order_values' => null,
+            'properties_visibility' => null,
+            'fill_data' => null,
+            'fill_values' => null,
             'media_html' => null,
             'media_type' => null,
+            // Cleaning is done separately.
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
             'clean_language_codes' => null,
             'deduplicate_values' => null,
         ];
-
-        $params = $bulkedit['fill_data'] ?? [];
-        if (array_key_exists('owner', $params) && is_numeric($params['owner'])) {
-            $processes['fill_data'] = [
-                'owner' => (int) $params['owner'] ?: null,
-            ];
-        }
 
         $params = $bulkedit['replace'] ?? [];
         if (!empty($params['properties'])) {
@@ -431,50 +425,6 @@ class Module extends AbstractModule
                     'properties' => $params['properties'],
                 ];
             }
-        }
-
-        $params = $bulkedit['fill_values'] ?? [];
-        if (!empty($params['mode'])
-            && in_array($params['mode'], ['empty', 'all', 'remove'])
-            && !empty($params['properties'])
-        ) {
-            $processes['fill_values'] = [
-                'mode' => $params['mode'],
-                'properties' => $params['properties'],
-                'datatypes' => $params['datatypes'],
-                'language_code' => $params['language_code'],
-                'featured_subject' => (bool) $params['featured_subject'],
-            ];
-            // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
-            // $this->preFillValues($processes['fill_values']);
-        }
-
-        $params = $bulkedit['order_values'] ?? [];
-        if (!empty($params['languages'])) {
-            $languages = preg_replace('/[^a-zA-Z-]/', "\n", $params['languages']);
-            $languages = array_filter(explode("\n", $languages));
-            $properties = $params['properties'];
-            if ($languages && $properties) {
-                $processes['order_values'] = [
-                    'languages' => $languages,
-                    'properties' => $properties,
-                ];
-            }
-        }
-
-        $params = $bulkedit['properties_visibility'] ?? [];
-        if (isset($params['visibility'])
-            && $params['visibility'] !== ''
-            && !empty($params['properties'])
-        ) {
-            $visibility = (int) (bool) $params['visibility'];
-            $processes['properties_visibility'] = [
-                'visibility' => $visibility,
-                'properties' => $params['properties'],
-                'datatypes' => $params['datatypes'],
-                'languages' => $this->stringToList($params['languages']),
-                'contains' => $params['contains'],
-            ];
         }
 
         $params = $bulkedit['displace'] ?? [];
@@ -530,6 +480,57 @@ class Module extends AbstractModule
                 'uri_base_site' => $params['uri_base_site'],
                 'contains' => $params['contains'],
             ];
+        }
+
+        $params = $bulkedit['order_values'] ?? [];
+        if (!empty($params['languages'])) {
+            $languages = preg_replace('/[^a-zA-Z-]/', "\n", $params['languages']);
+            $languages = array_filter(explode("\n", $languages));
+            $properties = $params['properties'];
+            if ($languages && $properties) {
+                $processes['order_values'] = [
+                    'languages' => $languages,
+                    'properties' => $properties,
+                ];
+            }
+        }
+
+        $params = $bulkedit['properties_visibility'] ?? [];
+        if (isset($params['visibility'])
+            && $params['visibility'] !== ''
+            && !empty($params['properties'])
+        ) {
+            $visibility = (int) (bool) $params['visibility'];
+            $processes['properties_visibility'] = [
+                'visibility' => $visibility,
+                'properties' => $params['properties'],
+                'datatypes' => $params['datatypes'],
+                'languages' => $this->stringToList($params['languages']),
+                'contains' => $params['contains'],
+            ];
+        }
+
+        $params = $bulkedit['fill_data'] ?? [];
+        if (array_key_exists('owner', $params) && is_numeric($params['owner'])) {
+            $processes['fill_data'] = [
+                'owner' => (int) $params['owner'] ?: null,
+            ];
+        }
+
+        $params = $bulkedit['fill_values'] ?? [];
+        if (!empty($params['mode'])
+            && in_array($params['mode'], ['empty', 'all', 'remove'])
+            && !empty($params['properties'])
+        ) {
+            $processes['fill_values'] = [
+                'mode' => $params['mode'],
+                'properties' => $params['properties'],
+                'datatypes' => $params['datatypes'],
+                'language_code' => $params['language_code'],
+                'featured_subject' => (bool) $params['featured_subject'],
+            ];
+            // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
+            // $this->preFillValues($processes['fill_values']);
         }
 
         $params = $bulkedit['media_html'] ?? [];
@@ -628,20 +629,8 @@ class Module extends AbstractModule
 
         // Note: $data is passed by reference to each process.
         foreach ($processes as $process => $params) switch ($process) {
-            case 'fill_data':
-                $this->fillDataForResource($resource, $data, $params);
-                break;
             case 'replace':
                 $this->updateValuesForResource($resource, $data, $params);
-                break;
-            case 'fill_values':
-                $this->fillValuesForResource($resource, $data, $params);
-                break;
-            case 'order_values':
-                $this->orderValuesForResource($resource, $data, $params);
-                break;
-            case 'properties_visibility':
-                $this->applyVisibilityForResourceValues($resource, $data, $params);
                 break;
             case 'displace':
                 $this->displaceValuesForResource($resource, $data, $params);
@@ -654,6 +643,18 @@ class Module extends AbstractModule
                 break;
             case 'convert':
                 $this->convertDatatypeForResource($resource, $data, $params);
+                break;
+            case 'order_values':
+                $this->orderValuesForResource($resource, $data, $params);
+                break;
+            case 'properties_visibility':
+                $this->applyVisibilityForResourceValues($resource, $data, $params);
+                break;
+            case 'fill_data':
+                $this->fillDataForResource($resource, $data, $params);
+                break;
+            case 'fill_values':
+                $this->fillValuesForResource($resource, $data, $params);
                 break;
             default:
                 break;
@@ -712,35 +713,6 @@ class Module extends AbstractModule
             default:
                 break;
         }
-    }
-
-    /**
-     * Update values for resources.
-     */
-    protected function fillDataForResource(
-        AbstractResourceEntityRepresentation $resource,
-        array &$data,
-        array $params
-    ): void {
-        static $settings;
-        if (is_null($settings)) {
-            $ownerId = (int) $params['owner'] ?: null;
-
-            $settings = $params;
-            $settings['ownerId'] = $ownerId;
-        } else {
-            extract($settings);
-        }
-
-        $currentResourceOwner = $resource->owner();
-        if (!$currentResourceOwner && !$ownerId) {
-            return;
-        }
-        if ($currentResourceOwner && $currentResourceOwner->id() === $ownerId) {
-            return;
-        }
-
-        $data['o:owner'] = ['o:id' => $ownerId];
     }
 
     /**
@@ -893,223 +865,6 @@ class Module extends AbstractModule
                 if (!mb_strlen($data[$property][$key]['@value'])) {
                     unset($data[$property][$key]);
                 }
-            }
-        }
-    }
-
-    /**
-     * Update values for resources.
-     */
-    protected function fillValuesForResource(
-        AbstractResourceEntityRepresentation $resource,
-        array &$data,
-        array $params
-    ): void {
-        static $settings;
-
-        // TODO Only geonames and idref are managed.
-        // TODO Add a query for a single value in ValueSuggest (or dereferenceable).
-        $managedDatatypes = [
-            'valuesuggest:geonames:geonames',
-            'valuesuggest:idref:all',
-            'valuesuggest:idref:person',
-            'valuesuggest:idref:corporation',
-            'valuesuggest:idref:conference',
-            'valuesuggest:idref:subject',
-            'valuesuggest:idref:rameau',
-            /* // No mapping currently.
-            'valuesuggest:idref:fmesh',
-            'valuesuggest:idref:geo',
-            'valuesuggest:idref:family',
-            'valuesuggest:idref:title',
-            'valuesuggest:idref:authorTitle',
-            'valuesuggest:idref:trademark',
-            'valuesuggest:idref:ppn',
-            'valuesuggest:idref:library',
-            */
-        ];
-
-        if (is_null($settings)) {
-            $mode = $params['mode'];
-            $properties = $params['properties'] ?? [];
-            $datatypes = isset($params['datatypes']) ? array_filter($params['datatypes']) : [];
-            $featuredSubject = !empty($params['featured_subject']);
-            $languageCode = $params['language_code'] ?? '';
-
-            $processAllProperties = in_array('all', $properties);
-            $processAllDatatypes = empty($datatypes);
-
-            // Flat the list of datatypes.
-            $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
-            $datatypes = $processAllDatatypes
-                ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes)
-                : array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
-
-            $fillLabelForUriOptions = [
-                'featured_subject' => $featuredSubject,
-                'language_code' => preg_replace('/[^a-zA-Z0-9_-]+/', '', $languageCode),
-            ];
-
-            $settings = $params;
-            $settings['mode'] = $mode;
-            $settings['properties'] = $properties;
-            $settings['processAllProperties'] = $processAllProperties;
-            $settings['datatypes'] = $datatypes;
-            $settings['processAllDatatypes'] = $processAllDatatypes;
-            $settings['fillLabelForUriOptions'] = $fillLabelForUriOptions;
-        } else {
-            extract($settings);
-        }
-
-        // Note: this is the original values.
-        $properties = $processAllProperties
-            ? array_keys($resource->values())
-            : array_intersect($properties, array_keys($resource->values()));
-        if (empty($properties)) {
-            return;
-        }
-
-        if ($mode === 'remove') {
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    if (empty($value['@id']) || !in_array($value['type'], $managedDatatypes)) {
-                        continue;
-                    }
-                    $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
-                    if (!strlen((string) $vvalue)) {
-                        continue;
-                    }
-                    unset($data[$property][$key]['@value']);
-                    unset($data[$property][$key]['o:label']);
-                }
-            }
-            return;
-        }
-
-        $onlyMissing = $mode !== 'all';
-        foreach ($properties as $property) {
-            foreach ($data[$property] as $key => $value) {
-                if (empty($value['@id']) || !in_array($value['type'], $managedDatatypes)) {
-                    continue;
-                }
-                $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
-                if ($onlyMissing && strlen((string) $vvalue)) {
-                    continue;
-                }
-                $vvalue = $this->fillLabelForUri($value['@id'], $value['type'], $fillLabelForUriOptions);
-                if (is_null($vvalue)) {
-                    continue;
-                }
-                $data[$property][$key]['o:label'] = $vvalue;
-            }
-        }
-    }
-
-    /**
-     * Order values in a list of properties.
-     *
-     * This feature is generally used for title, description and subjects.
-     */
-    protected function orderValuesForResource(
-        AbstractResourceEntityRepresentation $resource,
-        array &$data,
-        array $params
-    ): void {
-        $languages = $params['languages'];
-        $forProperties = $params['properties'];
-        if (empty($languages) || empty($forProperties)) {
-            return;
-        }
-
-        $languages = array_fill_keys($languages, []);
-        $processAllProperties = in_array('all', $forProperties);
-
-        // Note: this is the original values.
-        $properties = $processAllProperties
-            ? array_keys($resource->values())
-            : array_intersect($forProperties, array_keys($resource->values()));
-        if (empty($properties)) {
-            return;
-        }
-
-        foreach ($properties as $property) {
-            // This two loops process is quicker with many languages.
-            $values = $languages;
-            foreach ($data[$property] as $value) {
-                if ($value['type'] !== 'literal' || empty($value['@language'])) {
-                    $values[''][] = $value;
-                    continue;
-                }
-                $values[$value['@language']][] = $value;
-            }
-            $vals = [];
-            foreach ($values as $vs) {
-                $vals = array_merge($vals, $vs);
-            }
-            $data[$property] = $vals;
-        }
-    }
-
-    /**
-     * Set visibility to the specified properties of the specified resources.
-     */
-    protected function applyVisibilityForResourceValues(
-        AbstractResourceEntityRepresentation $resource,
-        array &$data,
-        array $params
-    ): void {
-        static $settings;
-        if (is_null($settings)) {
-            $visibility = (int) (bool) $params['visibility'];
-            $properties = $params['properties'];
-            $datatypes = array_filter($params['datatypes']);
-            $languages = $params['languages'];
-            $contains = (string) $params['contains'];
-
-            $checkDatatype = !empty($datatypes);
-            $checkLanguage = !empty($languages);
-            $checkContains = (bool) mb_strlen($contains);
-
-            $settings = $params;
-            $settings['properties'] = $properties;
-            $settings['visibility'] = $visibility;
-            $settings['checkDatatype'] = $checkDatatype;
-            $settings['checkLanguage'] = $checkLanguage;
-            $settings['checkContains'] = $checkContains;
-        } else {
-            extract($settings);
-        }
-
-        if (empty($properties)) {
-            return;
-        }
-
-        // Note: this is the original values.
-        $processAllProperties = in_array('all', $properties);
-        $properties = $processAllProperties
-            ? array_keys($resource->values())
-            : array_intersect($properties, array_keys($resource->values()));
-        if (empty($properties)) {
-            return;
-        }
-
-        foreach ($properties as $property) {
-            foreach ($data[$property] as $key => $value) {
-                $value += ['@language' => null, 'type' => null, '@value' => null];
-                $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
-                if ($currentVisibility === $visibility) {
-                    continue;
-                }
-                if ($checkDatatype && !in_array($value['type'], $datatypes)) {
-                    continue;
-                }
-                if ($checkLanguage && !in_array($value['@language'], $languages)) {
-                    continue;
-                }
-                if ($checkContains && strpos((string) $value['@value'], $contains) === false) {
-                    continue;
-                }
-                $data[$property][$key]['is_public'] = $visibility;
             }
         }
     }
@@ -1731,6 +1486,255 @@ class Module extends AbstractModule
     }
 
     /**
+     * Order values in a list of properties.
+     *
+     * This feature is generally used for title, description and subjects.
+     */
+    protected function orderValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        $languages = $params['languages'];
+        $forProperties = $params['properties'];
+        if (empty($languages) || empty($forProperties)) {
+            return;
+        }
+
+        $languages = array_fill_keys($languages, []);
+        $processAllProperties = in_array('all', $forProperties);
+
+        // Note: this is the original values.
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($forProperties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        foreach ($properties as $property) {
+            // This two loops process is quicker with many languages.
+            $values = $languages;
+            foreach ($data[$property] as $value) {
+                if ($value['type'] !== 'literal' || empty($value['@language'])) {
+                    $values[''][] = $value;
+                    continue;
+                }
+                $values[$value['@language']][] = $value;
+            }
+            $vals = [];
+            foreach ($values as $vs) {
+                $vals = array_merge($vals, $vs);
+            }
+            $data[$property] = $vals;
+        }
+    }
+
+    /**
+     * Set visibility to the specified properties of the specified resources.
+     */
+    protected function applyVisibilityForResourceValues(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        static $settings;
+        if (is_null($settings)) {
+            $visibility = (int) (bool) $params['visibility'];
+            $properties = $params['properties'];
+            $datatypes = array_filter($params['datatypes']);
+            $languages = $params['languages'];
+            $contains = (string) $params['contains'];
+
+            $checkDatatype = !empty($datatypes);
+            $checkLanguage = !empty($languages);
+            $checkContains = (bool) mb_strlen($contains);
+
+            $settings = $params;
+            $settings['properties'] = $properties;
+            $settings['visibility'] = $visibility;
+            $settings['checkDatatype'] = $checkDatatype;
+            $settings['checkLanguage'] = $checkLanguage;
+            $settings['checkContains'] = $checkContains;
+        } else {
+            extract($settings);
+        }
+
+        if (empty($properties)) {
+            return;
+        }
+
+        // Note: this is the original values.
+        $processAllProperties = in_array('all', $properties);
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($properties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                $value += ['@language' => null, 'type' => null, '@value' => null];
+                $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
+                if ($currentVisibility === $visibility) {
+                    continue;
+                }
+                if ($checkDatatype && !in_array($value['type'], $datatypes)) {
+                    continue;
+                }
+                if ($checkLanguage && !in_array($value['@language'], $languages)) {
+                    continue;
+                }
+                if ($checkContains && strpos((string) $value['@value'], $contains) === false) {
+                    continue;
+                }
+                $data[$property][$key]['is_public'] = $visibility;
+            }
+        }
+    }
+
+    /**
+     * Update values for resources.
+     */
+    protected function fillDataForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        static $settings;
+        if (is_null($settings)) {
+            $ownerId = (int) $params['owner'] ?: null;
+
+            $settings = $params;
+            $settings['ownerId'] = $ownerId;
+        } else {
+            extract($settings);
+        }
+
+        $currentResourceOwner = $resource->owner();
+        if (!$currentResourceOwner && !$ownerId) {
+            return;
+        }
+        if ($currentResourceOwner && $currentResourceOwner->id() === $ownerId) {
+            return;
+        }
+
+        $data['o:owner'] = ['o:id' => $ownerId];
+    }
+
+    /**
+     * Update values for resources.
+     */
+    protected function fillValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        static $settings;
+
+        // TODO Only geonames and idref are managed.
+        // TODO Add a query for a single value in ValueSuggest (or dereferenceable).
+        $managedDatatypes = [
+            'valuesuggest:geonames:geonames',
+            'valuesuggest:idref:all',
+            'valuesuggest:idref:person',
+            'valuesuggest:idref:corporation',
+            'valuesuggest:idref:conference',
+            'valuesuggest:idref:subject',
+            'valuesuggest:idref:rameau',
+            /* // No mapping currently.
+            'valuesuggest:idref:fmesh',
+            'valuesuggest:idref:geo',
+            'valuesuggest:idref:family',
+            'valuesuggest:idref:title',
+            'valuesuggest:idref:authorTitle',
+            'valuesuggest:idref:trademark',
+            'valuesuggest:idref:ppn',
+            'valuesuggest:idref:library',
+            */
+        ];
+
+        if (is_null($settings)) {
+            $mode = $params['mode'];
+            $properties = $params['properties'] ?? [];
+            $datatypes = isset($params['datatypes']) ? array_filter($params['datatypes']) : [];
+            $featuredSubject = !empty($params['featured_subject']);
+            $languageCode = $params['language_code'] ?? '';
+
+            $processAllProperties = in_array('all', $properties);
+            $processAllDatatypes = empty($datatypes);
+
+            // Flat the list of datatypes.
+            $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
+            $datatypes = $processAllDatatypes
+                ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes)
+                : array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
+
+            $labelForUriOptions = [
+                'featured_subject' => $featuredSubject,
+                'language_code' => preg_replace('/[^a-zA-Z0-9_-]+/', '', $languageCode),
+            ];
+
+            $settings = $params;
+            $settings['mode'] = $mode;
+            $settings['properties'] = $properties;
+            $settings['processAllProperties'] = $processAllProperties;
+            $settings['datatypes'] = $datatypes;
+            $settings['processAllDatatypes'] = $processAllDatatypes;
+            $settings['labelForUriOptions'] = $labelForUriOptions;
+        } else {
+            extract($settings);
+        }
+
+        // Note: this is the original values.
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($properties, array_keys($resource->values()));
+        if (empty($properties)) {
+            return;
+        }
+
+        if ($mode === 'remove') {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    if (empty($value['@id']) || !in_array($value['type'], $managedDatatypes)) {
+                        continue;
+                    }
+                    $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
+                    if (!strlen((string) $vvalue)) {
+                        continue;
+                    }
+                    unset($data[$property][$key]['@value']);
+                    unset($data[$property][$key]['o:label']);
+                }
+            }
+            return;
+        }
+
+        $onlyMissing = $mode !== 'all';
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                if (empty($value['@id']) || !in_array($value['type'], $managedDatatypes)) {
+                    continue;
+                }
+                $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
+                if ($onlyMissing && strlen((string) $vvalue)) {
+                    continue;
+                }
+                if (empty($value['@id'])) {
+                    continue;
+                }
+                $vvalue = $this->getLabelForUri($value['@id'], $value['type'], $labelForUriOptions);
+                if (is_null($vvalue)) {
+                    continue;
+                }
+                $data[$property][$key]['o:label'] = $vvalue;
+            }
+        }
+    }
+
+    /**
      * Update the html of a media of type html from items.
      */
     protected function updateMediaHtmlForResources(
@@ -1868,6 +1872,278 @@ class Module extends AbstractModule
         }
     }
 
+    protected function getLabelForUri(string $uri, string $datatype, array $options = []): ?string
+    {
+        static $filleds = [];
+        static $logger = null;
+
+        if (!$logger) {
+            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+        }
+
+        $featuredSubject = !empty($options['featured_subject']);
+        $languageCode = $options['language_code'] ?? '';
+
+        $endpointData = $this->endpointDatatype($datatype, $languageCode, $featuredSubject);
+        if (!$endpointData) {
+            return null;
+        }
+
+        if (array_key_exists($uri, $filleds)) {
+            return $filleds[$uri];
+        }
+
+        $url = $this->cleanRemoteUri($uri, $datatype, $languageCode, $featuredSubject);
+        if (!$url) {
+            $filleds[$uri] = null;
+            return null;
+        }
+
+        if (array_key_exists($url, $filleds)) {
+            return $filleds[$url];
+        }
+
+        $doc = $this->fetchUrlXml($url);
+        if (!$doc) {
+            return null;
+        }
+
+        $xpath = new \DOMXPath($doc);
+
+        switch ($datatype) {
+            case 'valuesuggest:geonames:geonames':
+                $xpath->registerNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+                $xpath->registerNamespace('gn', 'http://www.geonames.org/ontology#');
+                break;
+            default:
+                break;
+        }
+
+        $queries = (array) $endpointData['path'];
+        foreach ($queries as $query) {
+            $nodeList = $xpath->query($query);
+            if (!$nodeList || !$nodeList->length) {
+                continue;
+            }
+            $value = trim((string) $nodeList->item(0)->nodeValue);
+            if ($value === '') {
+                continue;
+            }
+
+            $logger->info(new Message(
+                'The label for uri "%1$s" is "%2$s".', // @translate
+                $uri, $value
+            ));
+
+            $filleds[$uri] = $value;
+            return $value;
+        }
+
+        $logger->err(new Message(
+            'The label for uri "%s" was not found.', // @translate
+            $uri
+        ));
+        $filleds[$uri] = null;
+        return null;
+    }
+
+    /**
+     * @todo Move these hard-coded mappings into the form.
+     */
+    protected function endpointDatatype(string $datatype, ?string $languageCode = null, bool $featuredSubject = false): array
+    {
+        $baseurlIdref = [
+            'idref.fr/',
+        ];
+
+        $endpointDatatypes = [
+            'valuesuggest:geonames:geonames' => [
+                'base_url' => [
+                    'geonames.org/',
+                    'sws.geonames.org/',
+                ],
+                'path' => [
+                    '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $languageCode . '"][1]',
+                    '/rdf:RDF/gn:Feature/gn:name[1]',
+                    '/rdf:RDF/gn:Feature/gn:shortName[1]',
+                ],
+            ],
+            'valuesuggest:idref:all' => null,
+            'valuesuggest:idref:person' => [
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="900"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="901"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="902"]/subfield[@code="a"][1]',
+                ],
+            ],
+            'valuesuggest:idref:corporation' => [
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
+                ],
+            ],
+            'valuesuggest:idref:conference' => [
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
+                ],
+            ],
+            'valuesuggest:idref:subject' => [
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
+                    '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+                ],
+            ],
+            'valuesuggest:idref:rameau' => [
+                'base_url' => $baseurlIdref,
+                'path' => [
+                    '/record/datafield[@tag="950"]/subfield[@code="a"][1]',
+                ],
+            ],
+            'valuesuggest:idref:fmesh' => null,
+            'valuesuggest:idref:geo' => null,
+            'valuesuggest:idref:family' => null,
+            'valuesuggest:idref:title' => null,
+            'valuesuggest:idref:authorTitle' => null,
+            'valuesuggest:idref:trademark' => null,
+            'valuesuggest:idref:ppn' => null,
+            'valuesuggest:idref:library' => null,
+        ];
+
+        // Fix datatypes for rameau.
+        if ($featuredSubject && $datatype === 'valuesuggest:idref:rameau') {
+            $endpointDatatypes['valuesuggest:idref:rameau']['path'] = [
+                '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
+                // If featured subject is missing, use the current subject.
+                '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
+                '/record/datafield[@tag="950"]/subfield[@code="a"][1]',
+            ];
+        }
+
+        return $endpointDatatypes[$datatype] ?? [];
+    }
+
+    protected function cleanRemoteUri(string $uri, string $datatype, ?string $languageCode = null, bool $featuredSubject = false): ?string
+    {
+        if (!$uri) {
+            return null;
+        }
+
+        $endpointData = $this->endpointDatatype($datatype, $languageCode, $featuredSubject);
+        if (!$endpointData) {
+            return null;
+        }
+
+        $isManagedUrl = false;
+        foreach ($endpointData['base_url'] as $baseUrl) {
+            foreach (['http://', 'https://', 'http://www.', 'https://www.'] as $prefix) {
+                if (mb_substr($uri, 0, strlen($prefix . $baseUrl)) === $prefix . $baseUrl) {
+                    $isManagedUrl = true;
+                    break 2;
+                }
+            }
+        }
+        if (!$isManagedUrl) {
+            return null;
+        }
+
+        switch ($datatype) {
+            case 'valuesuggest:geonames:geonames':
+                // Extract the id.
+                $id = preg_replace('~.*/(?<id>[0-9]+).*~m', '$1', $uri);
+                if (!$id) {
+                    $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                    $logger->err(new Message(
+                        'The label for uri "%s" was not found.', // @translate
+                        $uri
+                    ));
+                    return null;
+                }
+                $url = "https://sws.geonames.org/$id/about.rdf";
+                break;
+            case substr($datatype, 0, 18) === 'valuesuggest:idref':
+                $url = mb_substr($uri, -4) === '.xml' ? $uri : $uri . '.xml';
+                break;
+            default:
+                return null;
+        }
+
+        return $url;
+    }
+
+    protected function fetchUrlXml(string $url): ?\DOMDocument
+    {
+        static $logger = null;
+
+        if (!$logger) {
+            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+        }
+
+        $headers = [
+            'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:115.0) Gecko/20100101 Firefox/115.0',
+            'Content-Type' => 'application/xml',
+            'Accept-Encoding' => 'gzip, deflate',
+        ];
+
+        try {
+            $response = \Laminas\Http\ClientStatic::get($url, [], $headers);
+        } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
+            $logger->err(new Message(
+                'Connection error when fetching url "%1$s": %2$s', // @translate
+                $url, $e
+            ));
+            return null;
+        }
+        if (!$response->isSuccess()) {
+            $logger->err(new Message(
+                'Connection issue when fetching url "%1$s": %2$s', // @translate
+                $url, $response->getReasonPhrase()
+            ));
+            return null;
+        }
+
+        $xml = $response->getBody();
+        if (!$xml) {
+            $logger->err(new Message(
+                'Output is not xml for url "%s".', // @translate
+                $url
+            ));
+            return null;
+        }
+
+        // $simpleData = new SimpleXMLElement($xml, LIBXML_BIGLINES | LIBXML_COMPACT | LIBXML_NOBLANKS
+        //     | /* LIBXML_NOCDATA | */ LIBXML_NOENT | LIBXML_PARSEHUGE);
+
+        libxml_use_internal_errors(true);
+        $doc = new \DOMDocument();
+        try {
+            $doc->loadXML($xml);
+        } catch (\Exception $e) {
+            $logger->err(new Message(
+                'Output is not xml for url "%s".', // @translate
+                $url
+            ));
+            return null;
+        }
+
+        if (!$doc) {
+            $logger->err(new Message(
+                'Output is not xml for url "%s".', // @translate
+                $url
+            ));
+            return null;
+        }
+
+        return $doc;
+    }
+
     /**
      * Get main datatype ("literal", "resource" or "uri") from any data type.
      */
@@ -1960,234 +2236,7 @@ class Module extends AbstractModule
             ->addOrderBy('property.id', 'asc')
             ->addGroupBy('property.id')
         ;
-        $properties = array_map('intval', $connection->executeQuery($qb)->fetchAllKeyValue());
-        return $properties;
-    }
-
-    protected function fillLabelForUri($uri, $datatype = null, array $options = []): ?string
-    {
-        static $filleds = [];
-        static $logger = null;
-
-        if (!$logger) {
-            $logger = $this->getServiceLocator()->get('Omeka\Logger');
-        }
-
-        $featuredSubject = !empty($options['featured_subject']);
-        $languageCode = $options['language_code'] ?? '';
-
-        $baseurlIdref = [
-            'idref.fr/',
-        ];
-
-        // TODO Move these hard-coded mappings into the form.
-        $managedDatatypes = [
-            'valuesuggest:geonames:geonames' => [
-                'base_url' => [
-                    'geonames.org/',
-                    'sws.geonames.org/',
-                ],
-                'path' => [
-                    '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $languageCode . '"][1]',
-                    '/rdf:RDF/gn:Feature/gn:name[1]',
-                    '/rdf:RDF/gn:Feature/gn:shortName[1]',
-                ],
-            ],
-            'valuesuggest:idref:all' => null,
-            'valuesuggest:idref:person' => [
-                'base_url' => $baseurlIdref,
-                'path' => [
-                    '/record/datafield[@tag="900"]/subfield[@code="a"][1]',
-                    '/record/datafield[@tag="901"]/subfield[@code="a"][1]',
-                    '/record/datafield[@tag="902"]/subfield[@code="a"][1]',
-                ],
-            ],
-            'valuesuggest:idref:corporation' => [
-                'base_url' => $baseurlIdref,
-                'path' => [
-                    '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
-                    '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
-                    '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
-                ],
-            ],
-            'valuesuggest:idref:conference' => [
-                'base_url' => $baseurlIdref,
-                'path' => [
-                    '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
-                    '/record/datafield[@tag="911"]/subfield[@code="a"][1]',
-                    '/record/datafield[@tag="912"]/subfield[@code="a"][1]',
-                ],
-            ],
-            'valuesuggest:idref:subject' => [
-                'base_url' => $baseurlIdref,
-                'path' => [
-                    '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
-                    '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
-                ],
-            ],
-            'valuesuggest:idref:rameau' => [
-                'base_url' => $baseurlIdref,
-                'path' => [
-                    '/record/datafield[@tag="950"]/subfield[@code="a"][1]',
-                ],
-            ],
-            'valuesuggest:idref:fmesh' => null,
-            'valuesuggest:idref:geo' => null,
-            'valuesuggest:idref:family' => null,
-            'valuesuggest:idref:title' => null,
-            'valuesuggest:idref:authorTitle' => null,
-            'valuesuggest:idref:trademark' => null,
-            'valuesuggest:idref:ppn' => null,
-            'valuesuggest:idref:library' => null,
-        ];
-
-        if (!isset($managedDatatypes[$datatype])) {
-            return null;
-        }
-
-        if ($featuredSubject && $datatype === 'valuesuggest:idref:rameau') {
-            $managedDatatypes['valuesuggest:idref:rameau']['path'] = [
-                '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
-                // If featured subject is missing, use the current subject.
-                '/record/datafield[@tag="910"]/subfield[@code="a"][1]',
-                '/record/datafield[@tag="950"]/subfield[@code="a"][1]',
-            ];
-        }
-
-        $headers = [
-            'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
-            'Content-Type' => 'application/xml',
-            'Accept-Encoding' => 'gzip, deflate',
-        ];
-
-        $uri = trim((string) $uri);
-        if (!$uri) {
-            return null;
-        }
-
-        $isManagedUrl = false;
-        foreach ($managedDatatypes[$datatype]['base_url'] as $baseUrl) {
-            foreach (['http://', 'https://', 'http://www.', 'https://www.'] as $prefix) {
-                if (mb_substr($uri, 0, strlen($prefix . $baseUrl)) === $prefix . $baseUrl) {
-                    $isManagedUrl = true;
-                    break 2;
-                }
-            }
-        }
-        if (!$isManagedUrl) {
-            return null;
-        }
-
-        if (array_key_exists($uri, $filleds)) {
-            return $filleds[$uri];
-        }
-
-        switch ($datatype) {
-            case 'valuesuggest:geonames:geonames':
-                // Extract the id.
-                $id = preg_replace('~.*/(?<id>[0-9]+).*~m', '$1', $uri);
-                if (!$id) {
-                    $logger->err(new Message(
-                        'The label for uri "%s" was not found.', // @translate
-                        $uri
-                    ));
-                    $filleds[$uri] = null;
-                    return null;
-                }
-                $url = "https://sws.geonames.org/$id/about.rdf";
-                break;
-            case substr($datatype, 0, 18) === 'valuesuggest:idref':
-                $url = mb_substr($uri, -4) === '.xml' ? $uri : $uri . '.xml';
-                break;
-            default:
-                return null;
-        }
-
-        try {
-            $response = \Laminas\Http\ClientStatic::get($url, [], $headers);
-        } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
-            $logger->err(new Message(
-                'Connection error when fetching url "%1$s": %2$s', // @translate
-                $url, $e
-            ));
-            return null;
-        }
-        if (!$response->isSuccess()) {
-            $logger->err(new Message(
-                'Connection issue when fetching url "%1$s": %2$s', // @translate
-                $url, $response->getReasonPhrase()
-            ));
-            return null;
-        }
-
-        $xml = $response->getBody();
-        if (!$xml) {
-            $logger->err(new Message(
-                'Output is not xml for url "%s".', // @translate
-                $url
-            ));
-            return null;
-        }
-
-        // $simpleData = new SimpleXMLElement($xml, LIBXML_BIGLINES | LIBXML_COMPACT | LIBXML_NOBLANKS
-        //     | /* LIBXML_NOCDATA | */ LIBXML_NOENT | LIBXML_PARSEHUGE);
-
-        libxml_use_internal_errors(true);
-        $doc = new \DOMDocument();
-        try {
-            $doc->loadXML($xml);
-        } catch (\Exception $e) {
-            $logger->err(new Message(
-                'Output is not xml for url "%s".', // @translate
-                $url
-            ));
-            return null;
-        }
-        if (!$doc) {
-            $logger->err(new Message(
-                'Output is not xml for url "%s".', // @translate
-                $url
-            ));
-            return null;
-        }
-
-        $xpath = new \DOMXPath($doc);
-
-        switch ($datatype) {
-            case 'valuesuggest:geonames:geonames':
-                $xpath->registerNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
-                $xpath->registerNamespace('gn', 'http://www.geonames.org/ontology#');
-                break;
-            default:
-                break;
-        }
-
-        $queries = (array) $managedDatatypes[$datatype]['path'];
-        foreach ($queries as $query) {
-            $nodeList = $xpath->query($query);
-            if (!$nodeList || !$nodeList->length) {
-                continue;
-            }
-            $value = trim((string) $nodeList->item(0)->nodeValue);
-            if ($value === '') {
-                continue;
-            }
-
-            $logger->info(new Message(
-                'The label for uri "%1$s" is "%2$s".', // @translate
-                $uri, $value
-            ));
-
-            $filleds[$uri] = $value;
-            return $value;
-        }
-
-        $logger->err(new Message(
-            'The label for uri "%s" was not found.', // @translate
-            $uri
-        ));
-        $filleds[$uri] = null;
-        return null;
+        return $properties
+            = array_map('intval', $connection->executeQuery($qb)->fetchAllKeyValue());
     }
 }

@@ -18,12 +18,12 @@ class BulkEditFieldset extends Fieldset
             ->setAttribute('data-collection-action', 'replace')
             ->appendFieldsetCleaning()
             ->appendFieldsetReplace()
-            ->appendFieldsetOrderValues()
-            ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetDisplace()
             ->appendFieldsetExplode()
             ->appendFieldsetMerge()
             ->appendFieldsetConvert()
+            ->appendFieldsetOrderValues()
+            ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetFillData()
             ->appendFieldsetFillLabels()
             ->appendFieldsetMediaHtml()
@@ -328,164 +328,6 @@ class BulkEditFieldset extends Fieldset
                     'data-collection-action' => 'replace',
                 ],
             ]);
-        return $this;
-    }
-
-    protected function appendFieldsetOrderValues()
-    {
-        $this
-            ->add([
-                'name' => 'order_values',
-                'type' => Fieldset::class,
-                'options' => [
-                    'label' => 'Values order', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'order_values',
-                    'class' => 'field-container',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ]);
-        $fieldset = $this->get('order_values');
-        $fieldset
-            ->add([
-                'name' => 'languages',
-                'type' => Element\Text::class,
-                'options' => [
-                    'label' => 'Order by language', // @translate
-                    'info' => 'List the language you want to order before other values.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'order_languages',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
-                'options' => [
-                    'label' => 'Properties to order', // @translate
-                    'term_as_value' => true,
-                    'prepend_value_options' => [
-                        'all' => '[All properties]', // @translate
-                    ],
-                    'empty_option' => '',
-                    'used_terms' => true,
-                ],
-                'attributes' => [
-                    'id' => 'order_properties',
-                    'class' => 'chosen-select',
-                    'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ]);
-
-        return $this;
-    }
-
-    protected function appendFieldsetPropertiesVisibility()
-    {
-        $this
-            ->add([
-                'name' => 'properties_visibility',
-                'type' => Fieldset::class,
-                'options' => [
-                    'label' => 'Visibility', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'properties_visibility',
-                    'class' => 'field-container',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ]);
-        $fieldset = $this->get('properties_visibility');
-        $fieldset
-            ->add([
-                'name' => 'visibility',
-                'type' => BulkEditElement\OptionalRadio::class,
-                'options' => [
-                    'label' => 'Set visibility', // @translate
-                    'value_options' => [
-                        '1' => 'Public', // @translate
-                        '0' => 'Not public', // @translate
-                        '' => '[No change]', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'propvis_visibility',
-                    'value' => '',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
-                'options' => [
-                    'label' => 'For properties', // @translate
-                    'term_as_value' => true,
-                    'prepend_value_options' => [
-                        'all' => '[All properties]', // @translate
-                    ],
-                    'empty_option' => '',
-                    'used_terms' => true,
-                ],
-                'attributes' => [
-                    'id' => 'propvis_properties',
-                    'class' => 'chosen-select',
-                    'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'datatypes',
-                'type' => BulkEditElement\DataTypeSelect::class,
-                'options' => [
-                    'label' => 'Only datatypes', // @translate
-                    'empty_option' => '[All datatypes]', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'propvis_datatypes',
-                    'class' => 'chosen-select',
-                    'multiple' => true,
-                    'data-placeholder' => 'Select datatypes…', // @translate
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'languages',
-                'type' => Element\Text::class,
-                'options' => [
-                    'label' => 'Only languages', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'propvis_languages',
-                    // 'class' => 'value-language active',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'contains',
-                'type' => Element\Text::class,
-                'options' => [
-                    'label' => 'Only containing', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'propvis_contains',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ]);
-
         return $this;
     }
 
@@ -907,6 +749,164 @@ class BulkEditFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'convert_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetOrderValues()
+    {
+        $this
+            ->add([
+                'name' => 'order_values',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Values order', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'order_values',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('order_values');
+        $fieldset
+            ->add([
+                'name' => 'languages',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Order by language', // @translate
+                    'info' => 'List the language you want to order before other values.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'order_languages',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'properties',
+                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'options' => [
+                    'label' => 'Properties to order', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'order_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetPropertiesVisibility()
+    {
+        $this
+            ->add([
+                'name' => 'properties_visibility',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Visibility', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'properties_visibility',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('properties_visibility');
+        $fieldset
+            ->add([
+                'name' => 'visibility',
+                'type' => BulkEditElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Set visibility', // @translate
+                    'value_options' => [
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                        '' => '[No change]', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'propvis_visibility',
+                    'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'properties',
+                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'options' => [
+                    'label' => 'For properties', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'propvis_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'type' => BulkEditElement\DataTypeSelect::class,
+                'options' => [
+                    'label' => 'Only datatypes', // @translate
+                    'empty_option' => '[All datatypes]', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'propvis_datatypes',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select datatypes…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'languages',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only languages', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'propvis_languages',
+                    // 'class' => 'value-language active',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'contains',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only containing', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'propvis_contains',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

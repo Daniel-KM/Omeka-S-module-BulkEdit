@@ -276,7 +276,8 @@ class Module extends AbstractModule
         /**
          * A batch update process is launched one to three times in the core,
          * at least with option "collectionAction" = "replace".
-         * Batch updates are always partial,.
+         * Batch updates are always partial.
+         *
          * @see \Omeka\Job\BatchUpdate::perform()
          * @var \Omeka\Api\Request $request
          */

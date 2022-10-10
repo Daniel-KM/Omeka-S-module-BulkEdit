@@ -2,7 +2,6 @@
 
 namespace BulkEdit\Form\Element;
 
-use Laminas\Form\Element\Select;
 use Omeka\Form\Element\UserSelect;
 
 class OptionalUserSelect extends UserSelect

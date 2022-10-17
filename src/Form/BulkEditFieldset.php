@@ -1113,11 +1113,28 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'language',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Language code', // @translate
-                    // Mainly geonames, but uri too.
+                    'label' => 'Language code for querying and filling', // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_language',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'update_language',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'Update language in value', // @translate
+                    'value_options' => [
+                        'keep' => 'Keep', // @translate
+                        'update' => 'Update', // @translate
+                        'remove' => 'Remove', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'fill_update_language',
+                    'value' => 'keep',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

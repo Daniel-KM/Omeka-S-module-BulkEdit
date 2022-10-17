@@ -528,6 +528,7 @@ class Module extends AbstractModule
                 'datatypes' => $params['datatypes'],
                 'datatype' => $params['datatype'],
                 'language' => $params['language'],
+                'update_language' => $params['update_language'],
                 'featured_subject' => (bool) $params['featured_subject'],
             ];
             // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
@@ -1665,6 +1666,11 @@ class Module extends AbstractModule
             $datatype = $params['datatype'] ?? null;
             $featuredSubject = !empty($params['featured_subject']);
             $language = $params['language'] ?? '';
+            $updateLanguage = empty($params['update_language'])
+                || !in_array($params['update_language'], ['keep', 'update', 'remove'])
+                || ($params['update_language'] === 'update' && !$language)
+                ? 'keep'
+                : $params['update_language'];
 
             $processAllProperties = in_array('all', $properties);
             $processAllDatatypes = in_array('all', $datatypes);
@@ -1717,6 +1723,7 @@ class Module extends AbstractModule
             $settings['processAllDatatypes'] = $processAllDatatypes;
             $settings['labelAndUriOptions'] = $labelAndUriOptions;
             $settings['language'] = $language;
+            $settings['updateLanguage'] = $updateLanguage;
             $settings['skip'] = $skip;
         } else {
             extract($settings);
@@ -1753,6 +1760,11 @@ class Module extends AbstractModule
                     }
                     unset($data[$property][$key]['@value']);
                     unset($data[$property][$key]['o:label']);
+                    if ($updateLanguage === 'update') {
+                        $data[$property][$key]['@language'] = $language;
+                    } elseif ($updateLanguage === 'remove') {
+                        unset($data[$property][$key]['@language']);
+                    }
                 }
             }
             return;
@@ -1775,6 +1787,11 @@ class Module extends AbstractModule
                         continue;
                     }
                     $data[$property][$key]['o:label'] = $vvalue;
+                    if ($updateLanguage === 'update') {
+                        $data[$property][$key]['@language'] = $language;
+                    } elseif ($updateLanguage === 'remove') {
+                        unset($data[$property][$key]['@language']);
+                    }
                 }
             }
             return;
@@ -1815,6 +1832,11 @@ class Module extends AbstractModule
                     $data[$property][$key]['o:label'] = $vvalue;
                     $data[$property][$key]['type'] = $datatype;
                     $data[$property][$key]['@id'] = $vuri;
+                    if ($updateLanguage === 'update') {
+                        $data[$property][$key]['@language'] = $language;
+                    } elseif ($updateLanguage === 'remove') {
+                        unset($data[$property][$key]['@language']);
+                    }
                 }
             }
         }

@@ -13,13 +13,22 @@ return [
         ],
     ],
     'view_helpers' => [
+        'invokables' => [
+            'formNote' => Form\View\Helper\FormNote::class,
+        ],
         'factories' => [
             // Copy from AdvancedResourceTemplate. Copy in BulkExport, BulkEdit and BulkImport. Used in Contribute.
             'customVocabBaseType' => Service\ViewHelper\CustomVocabBaseTypeFactory::class,
         ],
+        'delegators' => [
+            'Laminas\Form\View\Helper\FormElement' => [
+                Service\Delegator\FormElementDelegatorFactory::class,
+            ],
+        ],
     ],
     'form_elements' => [
         'invokables' => [
+            Form\Element\Note::class => Form\Element\Note::class,
             Form\Element\OptionalRadio::class => Form\Element\OptionalRadio::class,
             Form\Element\OptionalSelect::class => Form\Element\OptionalSelect::class,
             Form\SettingsFieldset::class => Form\SettingsFieldset::class,

@@ -101,6 +101,17 @@ $(document).ready(function() {
     });
     $('#convert_from, #convert_to').trigger('change');
 
+    $('.batch-edit').on('change', 'input[name="bulkedit[fill_values][mode]"]', function() {
+        const fieldset = $(this).closest('fieldset');
+        const mainMode = $(this).data('fill-main').length ? $(this).data('fill-main') : 'label';
+        fieldset.find('[data-fill-mode=' + mainMode + ']').closest('.field').show();
+        fieldset.find('[data-fill-mode]').not('[data-fill-mode=' + mainMode + ']').closest('.field').hide();
+        fieldset.find('[data-fill-mode-option=' + mainMode + ']').show();
+        fieldset.find('[data-fill-mode-option]').not('[data-fill-mode-option=' + mainMode + ']').hide();
+        fieldset.find('[data-fill-mode-option]').closest('select').trigger('chosen:updated');
+    });
+    $('input[name="bulkedit[fill_values][mode]"]').trigger('change');
+
     $('.batch-edit').on('change', '#mediahtml_remove', function() {
         const fields = $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_prepend, #mediahtml_append').closest('.field');
         this.checked ? fields.hide() : fields.show();

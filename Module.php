@@ -519,7 +519,7 @@ class Module extends AbstractModule
 
         $params = $bulkedit['fill_values'] ?? [];
         if (!empty($params['mode'])
-            && in_array($params['mode'], ['empty', 'all', 'remove'])
+            && in_array($params['mode'], ['empty', 'all', 'remove', 'empty_uri', 'all_uri'])
             && !empty($params['properties'])
         ) {
             $processes['fill_values'] = [
@@ -1690,6 +1690,19 @@ class Module extends AbstractModule
                 $skip = true;
             }
 
+            $isModeUri = $mode === 'empty_uri' || $mode === 'all_uri';
+            if ($isModeUri && !in_array($datatype, $datatypes)) {
+                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger->warn(new Message('When filling an uri, the datatype should be specified.')); // @translate
+                $skip = true;
+            }
+
+            if ($isModeUri && !$this->isModuleActive('ValueSuggest')) {
+                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger->warn(new Message('When filling an uri, the module Value Suggest should be available.')); // @translate
+                $skip = true;
+            }
+
             $labelAndUriOptions = [
                 'language' => preg_replace('/[^a-zA-Z0-9_-]+/', '', $language),
                 'featured_subject' => $featuredSubject,
@@ -1754,6 +1767,46 @@ class Module extends AbstractModule
                         continue;
                     }
                     $data[$property][$key]['o:label'] = $vvalue;
+                }
+            }
+            return;
+        }
+
+        if (!$datatype) {
+            return;
+        }
+
+        if ($mode === 'empty_uri' || $mode === 'all_uri') {
+            $onlyMissing = $mode === 'empty_uri';
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    if (!in_array($value['type'], $datatypes)
+                        || !in_array($value['type'], ['literal', 'uri', $datatype])
+                    ) {
+                        continue;
+                    }
+                    // Manage and store badly formatted id.
+                    if (empty($value['@id'])) {
+                        $data[$property][$key]['@id'] = $value['@id'] = null;
+                    }
+                    if ($onlyMissing && $value['@id']
+                        // Manage badly formatted values.
+                        && (substr($value['@id'], 0, 8) === 'https://' || substr($value['@id'], 0, 7) === 'http://')
+                    ) {
+                        continue;
+                    }
+                    $vvalue = $value['@id'] ?? $value['o:label'] ?? $value['@value'] ?? null;
+                    if (empty($vvalue)) {
+                        continue;
+                    }
+                    $vtype = $value['type'] === 'literal' || $value['type'] === 'uri' ? $datatype: $value['type'];
+                    $vuri = $this->getValueSuggestUriForLabel($vvalue, $vtype);
+                    if (!$vuri) {
+                        continue;
+                    }
+                    $data[$property][$key]['o:label'] = $vvalue;
+                    $data[$property][$key]['type'] = $datatype;
+                    $data[$property][$key]['@id'] = $vuri;
                 }
             }
         }
@@ -1970,6 +2023,55 @@ class Module extends AbstractModule
         ));
         $filleds[$uri] = null;
         return null;
+    }
+
+    /**
+     * @see \ValueSuggest\Controller\IndexController::proxyAction()
+     */
+    protected function getValueSuggestUriForLabel(string $label, string $datatype): ?string
+    {
+        static $filleds = [];
+        static $logger = null;
+        static $dataTypeManager = null;
+
+        if (!$logger) {
+            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+            $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
+        }
+
+        if (array_key_exists($label, $filleds)) {
+            return $filleds[$label];
+        }
+
+        if (!strlen($label)) {
+            return null;
+        }
+
+        if (!$datatype || !$dataTypeManager->has($datatype)) {
+            return null;
+        }
+
+        $dataType = $dataTypeManager->get($datatype);
+        if (!$dataType instanceof \ValueSuggest\DataType\DataTypeInterface) {
+            return null;
+        }
+
+        $suggester = $dataType->getSuggester();
+        if (!$suggester instanceof \ValueSuggest\Suggester\SuggesterInterface) {
+            return null;
+        }
+
+        $suggestions = $suggester->getSuggestions($label);
+        if (!is_array($suggestions) || !count($suggestions)) {
+            return null;
+        }
+
+        if (count($suggestions) > 1) {
+            return null;
+        }
+
+        $suggestion = reset($suggestions);
+        return $suggestion['data']['uri'] ?? null;
     }
 
     /**

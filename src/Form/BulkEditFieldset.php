@@ -25,7 +25,7 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetOrderValues()
             ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetFillData()
-            ->appendFieldsetFillLabels()
+            ->appendFieldsetFillValues()
             ->appendFieldsetMediaHtml()
             ->appendFieldsetMediaType()
         ;
@@ -955,14 +955,14 @@ class BulkEditFieldset extends Fieldset
         return $this;
     }
 
-    protected function appendFieldsetFillLabels()
+    protected function appendFieldsetFillValues()
     {
         $this
             ->add([
                 'name' => 'fill_values',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Fill labels for Value Suggest', // @translate
+                    'label' => 'Fill labels or uris for Value Suggest', // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_values',
@@ -979,9 +979,41 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'Fill mode', // @translate
                     'value_options' => [
-                        'empty' => 'Fill missing labels of uris', // @translate
-                        'all' => 'Reset and fill all labels of uris', // @translate
-                        'remove' => 'Remove labels of uris', // @translate
+                        [
+                            'value' => 'empty',
+                            'label' => 'Fill missing labels of uris', // @translate
+                            'attributes' => [
+                                'data-fill-main' => 'label',
+                            ],
+                        ],
+                        [
+                            'value' => 'all',
+                            'label' => 'Reset and fill all labels of uris', // @translate
+                            'attributes' => [
+                                'data-fill-main' => 'label',
+                            ],
+                        ],
+                        [
+                            'value' => 'remove',
+                            'label' => 'Remove labels of uris', // @translate
+                            'attributes' => [
+                                'data-fill-main' => 'label',
+                            ],
+                        ],
+                        [
+                            'value' => 'empty_uri',
+                            'label' => 'Fill missing uri from labels', // @translate
+                            'attributes' => [
+                                'data-fill-main' => 'uri',
+                            ],
+                        ],
+                        [
+                            'value' => 'all_uri',
+                            'label' => 'Reset and fill missing uri from labels', // @translate
+                            'attributes' => [
+                                'data-fill-main' => 'uri',
+                            ],
+                        ],
                     ],
                 ],
                 'attributes' => [
@@ -1010,6 +1042,21 @@ class BulkEditFieldset extends Fieldset
                     'data-placeholder' => 'Select properties', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'note_uri',
+                'type' => BulkEditElement\Note::class,
+                'options' => [
+                    'content' => 'The uri can be filled only when the remote endpoint returns a single result.', // @translate
+                    // TODO For compatibility with other modules, the content is passed as text too. Will be removed in Omeka S v4.
+                    'text' => 'The uri can be filled only when the remote endpoint returns a single result.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_note_uri',
+                    'class' => 'field',
+                    'data-fill-mode' => 'uri',
+                    'style' => 'display: none',
                 ],
             ])
             ->add([

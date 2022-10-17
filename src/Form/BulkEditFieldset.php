@@ -1066,13 +1066,13 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
-                'name' => 'language_code',
+                'name' => 'language',
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Language code (Geonames)', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'fill_language_code',
+                    'id' => 'fill_language',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

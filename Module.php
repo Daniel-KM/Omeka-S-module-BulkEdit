@@ -527,7 +527,7 @@ class Module extends AbstractModule
                 'properties' => $params['properties'],
                 'datatypes' => $params['datatypes'],
                 'datatype' => $params['datatype'],
-                'language_code' => $params['language_code'],
+                'language' => $params['language'],
                 'featured_subject' => (bool) $params['featured_subject'],
             ];
             // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
@@ -1664,7 +1664,7 @@ class Module extends AbstractModule
             $datatypes = $params['datatypes'] ?? [];
             $datatype = $params['datatype'] ?? null;
             $featuredSubject = !empty($params['featured_subject']);
-            $languageCode = $params['language_code'] ?? '';
+            $language = $params['language'] ?? '';
 
             $processAllProperties = in_array('all', $properties);
             $processAllDatatypes = in_array('all', $datatypes);
@@ -1691,8 +1691,8 @@ class Module extends AbstractModule
             }
 
             $labelAndUriOptions = [
+                'language' => preg_replace('/[^a-zA-Z0-9_-]+/', '', $language),
                 'featured_subject' => $featuredSubject,
-                'language_code' => preg_replace('/[^a-zA-Z0-9_-]+/', '', $languageCode),
             ];
 
             $settings = $params;
@@ -1907,9 +1907,9 @@ class Module extends AbstractModule
         }
 
         $featuredSubject = !empty($options['featured_subject']);
-        $languageCode = $options['language_code'] ?? '';
+        $language = $options['language'] ?? '';
 
-        $endpointData = $this->endpointDatatype($datatype, $languageCode, $featuredSubject);
+        $endpointData = $this->endpointDatatype($datatype, $language, $featuredSubject);
         if (!$endpointData) {
             return null;
         }
@@ -1918,7 +1918,7 @@ class Module extends AbstractModule
             return $filleds[$uri];
         }
 
-        $url = $this->cleanRemoteUri($uri, $datatype, $languageCode, $featuredSubject);
+        $url = $this->cleanRemoteUri($uri, $datatype, $language, $featuredSubject);
         if (!$url) {
             $filleds[$uri] = null;
             return null;
@@ -1975,7 +1975,7 @@ class Module extends AbstractModule
     /**
      * @todo Move these hard-coded mappings into the form.
      */
-    protected function endpointDatatype(string $datatype, ?string $languageCode = null, bool $featuredSubject = false): array
+    protected function endpointDatatype(string $datatype, ?string $language = null, bool $featuredSubject = false): array
     {
         $baseurlIdref = [
             'idref.fr/',
@@ -1988,7 +1988,7 @@ class Module extends AbstractModule
                     'sws.geonames.org/',
                 ],
                 'path' => [
-                    '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $languageCode . '"][1]',
+                    '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $language . '"][1]',
                     '/rdf:RDF/gn:Feature/gn:name[1]',
                     '/rdf:RDF/gn:Feature/gn:shortName[1]',
                 ],
@@ -2055,13 +2055,13 @@ class Module extends AbstractModule
         return $endpointDatatypes[$datatype] ?? [];
     }
 
-    protected function cleanRemoteUri(string $uri, string $datatype, ?string $languageCode = null, bool $featuredSubject = false): ?string
+    protected function cleanRemoteUri(string $uri, string $datatype, ?string $language = null, bool $featuredSubject = false): ?string
     {
         if (!$uri) {
             return null;
         }
 
-        $endpointData = $this->endpointDatatype($datatype, $languageCode, $featuredSubject);
+        $endpointData = $this->endpointDatatype($datatype, $language, $featuredSubject);
         if (!$endpointData) {
             return null;
         }

@@ -1017,10 +1017,13 @@ class BulkEditFieldset extends Fieldset
                 // 'type' => BulkEditElement\DataTypeSelect::class,
                 'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Only datatypes', // @translate
-                    'empty_option' => '[All datatypes]', // @translate
+                    'label' => 'Data types to process', // @translate
+                    'empty_option' => '',
                     'value_options' => [
-                        'valuesuggest:geonames:geonames' => 'Geonames',
+                        'all' => '[All datatypes]', // @translate
+                        'literal' => 'Literal', // @translate
+                        'uri' => 'Uri', // @translate
+                        // 'valuesuggest:geonames:geonames' => 'Geonames',
                         'valuesuggest:idref:person' => 'IdRef Personnes',
                         'valuesuggest:idref:corporation' => 'IdRef Organisations',
                         'valuesuggest:idref:conference' => 'IdRef Congrès',
@@ -1033,6 +1036,31 @@ class BulkEditFieldset extends Fieldset
                     'class' => 'chosen-select',
                     'multiple' => true,
                     'data-placeholder' => 'Select datatypes…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'datatype',
+                // 'type' => BulkEditElement\DataTypeSelect::class,
+                'type' => BulkEditElement\OptionalSelect::class,
+                'options' => [
+                    'label' => 'Data type to use when the value is literal or uri (when selected above)', // @translate
+                    'empty_option' => '',
+                    'value_options' => [
+                        // 'valuesuggest:geonames:geonames' => 'Geonames',
+                        'valuesuggest:idref:person' => 'IdRef Personnes',
+                        'valuesuggest:idref:corporation' => 'IdRef Organisations',
+                        'valuesuggest:idref:conference' => 'IdRef Congrès',
+                        'valuesuggest:idref:subject' => 'IdRef Sujets',
+                        'valuesuggest:idref:rameau' => 'IdRef Sujets Rameau',
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'fill_datatype',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-placeholder' => 'Select a datatype…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

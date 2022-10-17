@@ -526,6 +526,7 @@ class Module extends AbstractModule
                 'mode' => $params['mode'],
                 'properties' => $params['properties'],
                 'datatypes' => $params['datatypes'],
+                'datatype' => $params['datatype'],
                 'language_code' => $params['language_code'],
                 'featured_subject' => (bool) $params['featured_subject'],
             ];
@@ -1636,6 +1637,8 @@ class Module extends AbstractModule
         // TODO Only geonames and idref are managed.
         // TODO Add a query for a single value in ValueSuggest (or dereferenceable).
         $managedDatatypes = [
+            'literal',
+            'uri',
             'valuesuggest:geonames:geonames',
             'valuesuggest:idref:all',
             'valuesuggest:idref:person',
@@ -1658,12 +1661,22 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $mode = $params['mode'];
             $properties = $params['properties'] ?? [];
-            $datatypes = isset($params['datatypes']) ? array_filter($params['datatypes']) : [];
+            $datatypes = $params['datatypes'] ?? [];
+            $datatype = $params['datatype'] ?? null;
             $featuredSubject = !empty($params['featured_subject']);
             $languageCode = $params['language_code'] ?? '';
 
             $processAllProperties = in_array('all', $properties);
-            $processAllDatatypes = empty($datatypes);
+            $processAllDatatypes = in_array('all', $datatypes);
+
+            $skip = false;
+            if (!in_array($mode, ['empty', 'all', 'remove', 'empty_uri', 'all_uri'])) {
+                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger->warn(new Message('Process is skipped: mode "%s" is unmanaged', // @translate
+                    $mode
+                ));
+                $skip = true;
+            }
 
             // Flat the list of datatypes.
             $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
@@ -1671,7 +1684,13 @@ class Module extends AbstractModule
                 ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes)
                 : array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
 
-            $labelForUriOptions = [
+            if ((in_array('literal', $datatypes) || in_array('uri', $datatypes)) && !$datatype) {
+                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger->warn(new Message('When "literal" or "uri" is used, the datatype should be specified.')); // @translate
+                $skip = true;
+            }
+
+            $labelAndUriOptions = [
                 'featured_subject' => $featuredSubject,
                 'language_code' => preg_replace('/[^a-zA-Z0-9_-]+/', '', $languageCode),
             ];
@@ -1681,10 +1700,16 @@ class Module extends AbstractModule
             $settings['properties'] = $properties;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['datatypes'] = $datatypes;
+            $settings['datatype'] = $datatype;
             $settings['processAllDatatypes'] = $processAllDatatypes;
-            $settings['labelForUriOptions'] = $labelForUriOptions;
+            $settings['labelAndUriOptions'] = $labelAndUriOptions;
+            $settings['skip'] = $skip;
         } else {
             extract($settings);
+        }
+
+        if ($skip) {
+            return;
         }
 
         // Note: this is the original values.
@@ -1698,7 +1723,7 @@ class Module extends AbstractModule
         if ($mode === 'remove') {
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
-                    if (empty($value['@id']) || !in_array($value['type'], $managedDatatypes)) {
+                    if (empty($value['@id']) || !in_array($value['type'], $datatypes)) {
                         continue;
                     }
                     $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
@@ -1712,24 +1737,24 @@ class Module extends AbstractModule
             return;
         }
 
-        $onlyMissing = $mode !== 'all';
-        foreach ($properties as $property) {
-            foreach ($data[$property] as $key => $value) {
-                if (empty($value['@id']) || !in_array($value['type'], $managedDatatypes)) {
-                    continue;
+        if ($mode === 'empty' || $mode === 'all') {
+            $onlyMissing = $mode === 'empty';
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    if (empty($value['@id']) || !in_array($value['type'], $datatypes)) {
+                        continue;
+                    }
+                    $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
+                    if ($onlyMissing && strlen((string) $vvalue)) {
+                        continue;
+                    }
+                    $vtype = $value['type'] === 'literal' || $value['type'] === 'uri' ? $datatype: $value['type'];
+                    $vvalue = $this->getLabelForUri($value['@id'], $vtype, $labelAndUriOptions);
+                    if (is_null($vvalue)) {
+                        continue;
+                    }
+                    $data[$property][$key]['o:label'] = $vvalue;
                 }
-                $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
-                if ($onlyMissing && strlen((string) $vvalue)) {
-                    continue;
-                }
-                if (empty($value['@id'])) {
-                    continue;
-                }
-                $vvalue = $this->getLabelForUri($value['@id'], $value['type'], $labelForUriOptions);
-                if (is_null($vvalue)) {
-                    continue;
-                }
-                $data[$property][$key]['o:label'] = $vvalue;
             }
         }
     }

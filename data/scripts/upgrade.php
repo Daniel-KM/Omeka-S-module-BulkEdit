@@ -47,3 +47,11 @@ if (version_compare($oldVersion, '3.3.15', '<')) {
     );
     $messenger->addSuccess($message);
 }
+
+if (version_compare($oldVersion, '3.3.16', '<')) {
+    $messenger = new Messenger();
+    $message = new Message(
+        'It’s now possible to get the Value Suggest uri from a label, when the remote endpoint returns a single result.' // @translate
+    );
+    $messenger->addSuccess($message);
+}

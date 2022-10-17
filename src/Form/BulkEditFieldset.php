@@ -1113,7 +1113,8 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'language',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Language code (Geonames)', // @translate
+                    'label' => 'Language code', // @translate
+                    // Mainly geonames, but uri too.
                 ],
                 'attributes' => [
                     'id' => 'fill_language',

@@ -1716,6 +1716,7 @@ class Module extends AbstractModule
             $settings['datatype'] = $datatype;
             $settings['processAllDatatypes'] = $processAllDatatypes;
             $settings['labelAndUriOptions'] = $labelAndUriOptions;
+            $settings['language'] = $language;
             $settings['skip'] = $skip;
         } else {
             extract($settings);
@@ -1800,7 +1801,7 @@ class Module extends AbstractModule
                         continue;
                     }
                     $vtype = $value['type'] === 'literal' || $value['type'] === 'uri' ? $datatype: $value['type'];
-                    $vuri = $this->getValueSuggestUriForLabel($vvalue, $vtype);
+                    $vuri = $this->getValueSuggestUriForLabel($vvalue, $vtype, $language);
                     if (!$vuri) {
                         continue;
                     }
@@ -2028,7 +2029,7 @@ class Module extends AbstractModule
     /**
      * @see \ValueSuggest\Controller\IndexController::proxyAction()
      */
-    protected function getValueSuggestUriForLabel(string $label, string $datatype): ?string
+    protected function getValueSuggestUriForLabel(string $label, string $datatype, ?string $language = null): ?string
     {
         static $filleds = [];
         static $logger = null;
@@ -2061,7 +2062,7 @@ class Module extends AbstractModule
             return null;
         }
 
-        $suggestions = $suggester->getSuggestions($label);
+        $suggestions = $suggester->getSuggestions($label, $language);
         if (!is_array($suggestions) || !count($suggestions)) {
             return null;
         }

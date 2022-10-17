@@ -1014,35 +1014,35 @@ class BulkEditFieldset extends Fieldset
                     'label' => 'Fill mode', // @translate
                     'value_options' => [
                         [
-                            'value' => 'empty',
+                            'value' => 'label_missing',
                             'label' => 'Fill missing labels of uris', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'label',
                             ],
                         ],
                         [
-                            'value' => 'all',
+                            'value' => 'label_all',
                             'label' => 'Reset and fill all labels of uris', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'label',
                             ],
                         ],
                         [
-                            'value' => 'remove',
+                            'value' => 'label_remove',
                             'label' => 'Remove labels of uris', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'label',
                             ],
                         ],
                         [
-                            'value' => 'empty_uri',
+                            'value' => 'uri_missing',
                             'label' => 'Fill missing uri from labels', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'uri',
                             ],
                         ],
                         [
-                            'value' => 'all_uri',
+                            'value' => 'uri_all',
                             'label' => 'Reset and fill missing uri from labels', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'uri',

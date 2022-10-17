@@ -509,7 +509,7 @@ class Module extends AbstractModule
 
         $params = $bulkedit['fill_values'] ?? [];
         if (!empty($params['mode'])
-            && in_array($params['mode'], ['empty', 'all', 'remove', 'empty_uri', 'all_uri'])
+            && in_array($params['mode'], ['label_missing', 'label_all', 'label_remove', 'uri_missing', 'uri_all'])
             && !empty($params['properties'])
         ) {
             $processes['fill_values'] = [
@@ -1667,7 +1667,7 @@ class Module extends AbstractModule
             $processAllDatatypes = in_array('all', $datatypes);
 
             $skip = false;
-            if (!in_array($mode, ['empty', 'all', 'remove', 'empty_uri', 'all_uri'])) {
+            if (!in_array($mode, ['label_missing', 'label_all', 'label_remove', 'uri_missing', 'uri_all'])) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
                 $logger->warn(new Message('Process is skipped: mode "%s" is unmanaged', // @translate
                     $mode
@@ -1681,14 +1681,14 @@ class Module extends AbstractModule
                 ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes)
                 : array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
 
-            if ((in_array('literal', $datatypes) || in_array('uri', $datatypes)) && !$datatype) {
+            if ((in_array('literal', $datatypes) || in_array('uri', $datatypes)) && in_array($datatype, ['', 'literal', 'uri'])) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
                 $logger->warn(new Message('When "literal" or "uri" is used, the datatype should be specified.')); // @translate
                 $skip = true;
             }
 
-            $isModeUri = $mode === 'empty_uri' || $mode === 'all_uri';
-            if ($isModeUri && !in_array($datatype, $datatypes)) {
+            $isModeUri = $mode === 'uri_missing' || $mode === 'uri_all';
+            if ($isModeUri && !in_array($datatype, $datatypes) || in_array($datatype, ['', 'literal', 'uri'])) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
                 $logger->warn(new Message('When filling an uri, the datatype should be specified.')); // @translate
                 $skip = true;
@@ -1732,21 +1732,22 @@ class Module extends AbstractModule
             return;
         }
 
-        if ($mode === 'remove') {
+        if ($mode === 'label_remove') {
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
-                    if (empty($value['@id'])
-                        || $value['type'] === 'literal'
+                    if ($value['type'] === 'literal'
                         || !in_array($value['type'], $datatypes)
                     ) {
                         continue;
                     }
-                    $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
-                    if (!strlen((string) $vvalue)) {
+                    // Don't remove label if there is no id.
+                    // Manage and store badly formatted id.
+                    if (empty($value['@id'])) {
+                        $data[$property][$key]['@id'] = $value['@id'] = null;
                         continue;
                     }
-                    // Don't remove label if there is no id.
-                    if (empty($value['@id'])) {
+                    $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
+                    if (!strlen((string) $vvalue)) {
                         continue;
                     }
                     unset($data[$property][$key]['@value']);
@@ -1761,23 +1762,38 @@ class Module extends AbstractModule
             return;
         }
 
-        if ($mode === 'empty' || $mode === 'all') {
-            $onlyMissing = $mode === 'empty';
+        if ($mode === 'label_missing' || $mode === 'label_all') {
+            $onlyMissing = $mode === 'label_missing';
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
-                    if (empty($value['@id']) || !in_array($value['type'], $datatypes)) {
+                    // Manage and store badly formatted id.
+                    if (empty($value['@id'])) {
+                        $data[$property][$key]['@id'] = $value['@id'] = null;
+                    }
+                    if (!in_array($value['type'], $datatypes)
+                        || !in_array($value['type'], ['literal', 'uri', $datatype])
+                    ) {
                         continue;
                     }
-                    $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
+                    $vuri = $value['type'] === 'literal' ? $value['@value'] : ($value['@id'] ?? null);
+                    if (empty($vuri)) {
+                        continue;
+                    }
+                    $vvalue = $value['type'] !== 'literal'
+                        ? $value['o:label'] ?? $value['@value'] ?? null
+                        : null;
                     if ($onlyMissing && strlen((string) $vvalue)) {
                         continue;
                     }
-                    $vtype = $value['type'] === 'literal' || $value['type'] === 'uri' ? $datatype: $value['type'];
-                    $vvalue = $this->getLabelForUri($value['@id'], $vtype, $labelAndUriOptions);
-                    if (is_null($vvalue)) {
+                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $datatype: $value['type'];
+                    $vvalueNew = $this->getLabelForUri($vuri, $vtype, $labelAndUriOptions);
+                    if (is_null($vvalueNew)) {
                         continue;
                     }
-                    $data[$property][$key]['o:label'] = $vvalue;
+                    $data[$property][$key]['o:label'] = $vvalueNew;
+                    $data[$property][$key]['@value'] = null;
+                    $data[$property][$key]['type'] = $vtype;
+                    $data[$property][$key]['@id'] = $vuri;
                     if ($updateLanguage === 'update') {
                         $data[$property][$key]['@language'] = $language;
                     } elseif ($updateLanguage === 'remove') {
@@ -1788,24 +1804,21 @@ class Module extends AbstractModule
             return;
         }
 
-        if (!$datatype) {
-            return;
-        }
-
-        if ($mode === 'empty_uri' || $mode === 'all_uri') {
-            $onlyMissing = $mode === 'empty_uri';
+        if ($mode === 'uri_missing' || $mode === 'uri_all') {
+            $onlyMissing = $mode === 'uri_missing';
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
+                    // Manage and store badly formatted id.
+                    if (empty($value['@id'])) {
+                        $data[$property][$key]['@id'] = $value['@id'] = null;
+                    }
                     if (!in_array($value['type'], $datatypes)
                         || !in_array($value['type'], ['literal', 'uri', $datatype])
                     ) {
                         continue;
                     }
-                    // Manage and store badly formatted id.
-                    if (empty($value['@id'])) {
-                        $data[$property][$key]['@id'] = $value['@id'] = null;
-                    }
-                    if ($onlyMissing && $value['@id']
+                    if ($value['@id']
+                        && $onlyMissing
                         // Manage badly formatted values.
                         && (substr($value['@id'], 0, 8) === 'https://' || substr($value['@id'], 0, 7) === 'http://')
                     ) {
@@ -1815,13 +1828,14 @@ class Module extends AbstractModule
                     if (empty($vvalue)) {
                         continue;
                     }
-                    $vtype = $value['type'] === 'literal' || $value['type'] === 'uri' ? $datatype: $value['type'];
+                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $datatype: $value['type'];
                     $vuri = $this->getValueSuggestUriForLabel($vvalue, $vtype, $language);
                     if (!$vuri) {
                         continue;
                     }
-                    $data[$property][$key]['o:label'] = $vvalue;
-                    $data[$property][$key]['type'] = $datatype;
+                    $data[$property][$key]['o:label'] = $vvalue === $vuri ? null : $vvalue;
+                    $data[$property][$key]['@value'] = null;
+                    $data[$property][$key]['type'] = $vtype;
                     $data[$property][$key]['@id'] = $vuri;
                     if ($updateLanguage === 'update') {
                         $data[$property][$key]['@language'] = $language;

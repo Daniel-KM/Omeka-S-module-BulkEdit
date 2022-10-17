@@ -9,9 +9,9 @@ use Omeka\Form\Element as OmekaElement;
 
 class BulkEditFieldset extends Fieldset
 {
-    protected $datatypesMain = [];
+    protected $dataTypesMain = [];
 
-    protected $dataTypesLabel = [];
+    protected $dataTypesLabels = [];
 
     public function init(): void
     {
@@ -585,6 +585,7 @@ class BulkEditFieldset extends Fieldset
                     'id' => 'convert_from',
                     'class' => 'chosen-select',
                     'multiple' => false,
+                    'data-datatypes' => json_encode($this->dataTypesMain, 320),
                     'data-placeholder' => 'Select datatype', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -961,6 +962,35 @@ class BulkEditFieldset extends Fieldset
 
     protected function appendFieldsetFillValues()
     {
+        $managedDatatypes = [
+            // 'valuesuggest:geonames:geonames' => 'Geonames',
+            'valuesuggest:idref:person' => 'IdRef Personnes',
+            'valuesuggest:idref:corporation' => 'IdRef Organisations',
+            'valuesuggest:idref:conference' => 'IdRef Congrès',
+            'valuesuggest:idref:subject' => 'IdRef Sujets',
+            'valuesuggest:idref:rameau' => 'IdRef Sujets Rameau',
+        ];
+
+        $datatypesVSAttrs = [];
+        foreach ($this->dataTypesLabels as $datatype => $label) {
+            if (substr($datatype, 0, 12) === 'valuesuggest'
+                // || substr($datatype, 0, 15) === 'valuesuggestall'
+            ) {
+                $isManaged = isset($managedDatatypes[$datatype]);
+                // All datatypes are included for uri, not label.
+                // Uri is not selected on load, but all datatypes are included
+                // anyway until mode selection.
+                $attributes = $isManaged
+                    ? []
+                    : ['data-fill-mode-option' => 'uri'];
+                $datatypesVSAttrs[] = [
+                    'value' => $datatype,
+                    'label' => $label,
+                    'attributes' => $attributes,
+                ];
+            }
+        }
+
         $this
             ->add([
                 'name' => 'fill_values',
@@ -1062,22 +1092,24 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatypes',
-                // 'type' => BulkEditElement\DataTypeSelect::class,
                 'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Data types to process', // @translate
                     'empty_option' => '',
-                    'value_options' => [
-                        'all' => '[All datatypes]', // @translate
-                        'literal' => 'Literal', // @translate
-                        'uri' => 'Uri', // @translate
-                        // 'valuesuggest:geonames:geonames' => 'Geonames',
-                        'valuesuggest:idref:person' => 'IdRef Personnes',
-                        'valuesuggest:idref:corporation' => 'IdRef Organisations',
-                        'valuesuggest:idref:conference' => 'IdRef Congrès',
-                        'valuesuggest:idref:subject' => 'IdRef Sujets',
-                        'valuesuggest:idref:rameau' => 'IdRef Sujets Rameau',
-                    ],
+                    'value_options' => array_merge([
+                        [
+                            'value' => 'all',
+                            'label' => '[All datatypes]', // @translate
+                        ],
+                        [
+                            'value' => 'literal',
+                            'label' => 'Literal', // @translate
+                        ],
+                        [
+                            'value' => 'uri',
+                            'label' => 'Uri', // @translate
+                        ],
+                    ], $datatypesVSAttrs),
                 ],
                 'attributes' => [
                     'id' => 'fill_datatypes',
@@ -1090,19 +1122,11 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'datatype',
-                // 'type' => BulkEditElement\DataTypeSelect::class,
                 'type' => BulkEditElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Data type to use when the value is literal or uri (when selected above)', // @translate
+                    'label' => 'Data type to use when the value is literal or uri', // @translate
                     'empty_option' => '',
-                    'value_options' => [
-                        // 'valuesuggest:geonames:geonames' => 'Geonames',
-                        'valuesuggest:idref:person' => 'IdRef Personnes',
-                        'valuesuggest:idref:corporation' => 'IdRef Organisations',
-                        'valuesuggest:idref:conference' => 'IdRef Congrès',
-                        'valuesuggest:idref:subject' => 'IdRef Sujets',
-                        'valuesuggest:idref:rameau' => 'IdRef Sujets Rameau',
-                    ],
+                    'value_options' => $datatypesVSAttrs,
                 ],
                 'attributes' => [
                     'id' => 'fill_datatype',
@@ -1303,6 +1327,18 @@ class BulkEditFieldset extends Fieldset
                 ],
             ]);
 
+        return $this;
+    }
+
+    public function setDataTypesMain(array $dataTypesMain): self
+    {
+        $this->dataTypesMain = $dataTypesMain;
+        return $this;
+    }
+
+    public function setDataTypesLabels(array $dataTypesLabels): self
+    {
+        $this->dataTypesLabels = $dataTypesLabels;
         return $this;
     }
 }

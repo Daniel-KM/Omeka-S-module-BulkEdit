@@ -106,16 +106,6 @@ class Module extends AbstractModule
         $formElementManager = $services->get('FormElementManager');
         /** @var \BulkEdit\Form\BulkEditFieldset $fieldset */
         $fieldset = $formElementManager->get(BulkEditFieldset::class);
-
-        // Append some infos about datatypes for js.
-        $dataTypeManager = $services->get('Omeka\DataTypeManager');
-        $datatypes = [];
-        foreach ($dataTypeManager->getRegisteredNames() as $datatype) {
-            $datatypes[$datatype] = $this->mainDataType($datatype);
-        }
-        $fieldset->get('convert')->get('from')
-            ->setAttribute('data-datatypes', json_encode($datatypes, 320));
-
         $form->add($fieldset);
     }
 
@@ -1159,8 +1149,9 @@ class Module extends AbstractModule
                 ? $services->get('Omeka\DataTypeManager')->get($toDatatype)
                 : null;
 
-            $fromDatatypeMain = $this->mainDataType($fromDatatype);
-            $toDatatypeMain = $this->mainDataType($toDatatype);
+            $mainDataType = $services->get('ViewHelperManager')->get('mainDataType');
+            $fromDatatypeMain = $mainDataType($fromDatatype);
+            $toDatatypeMain = $mainDataType($toDatatype);
 
             $fromToMain = $fromDatatypeMain . ' => ' . $toDatatypeMain;
             $fromTo = $fromDatatype . ' => ' . $toDatatype;
@@ -2001,6 +1992,7 @@ class Module extends AbstractModule
             return $filleds[$uri];
         }
 
+        // So get the url from the uri.
         $url = $this->cleanRemoteUri($uri, $datatype, $language, $featuredSubject);
         if (!$url) {
             $filleds[$uri] = null;
@@ -2299,59 +2291,6 @@ class Module extends AbstractModule
         }
 
         return $doc;
-    }
-
-    /**
-     * Get main datatype ("literal", "resource" or "uri") from any data type.
-     */
-    protected function mainDataType(?string $dataType): ?string
-    {
-        if (empty($dataType)) {
-            return null;
-        }
-        $mainDataTypes = [
-            'literal' => 'literal',
-            'uri' => 'uri',
-            'resource' => 'resource',
-            'resource:item' => 'resource',
-            'resource:itemset' => 'resource',
-            'resource:media' => 'resource',
-            // Module Annotate.
-            'resource:annotation' => 'resource',
-            'annotation' => 'resource',
-            // Module DataTypeGeometry.
-            'geometry:geography:coordinates' => 'literal',
-            'geometry:geography' => 'literal',
-            'geometry:geometry' => 'literal',
-            // Module DataTypePlace.
-            'place' => 'literal',
-            // Module DataTypeRdf.
-            'html' => 'literal',
-            'xml' => 'literal',
-            'boolean' => 'literal',
-            // Specific module.
-            'email' => 'literal',
-            // Module NumericDataTypes.
-            'numeric:timestamp' => 'literal',
-            'numeric:integer' => 'literal',
-            'numeric:duration' => 'literal',
-            'numeric:interval' => 'literal',
-        ];
-        $dataType = strtolower($dataType);
-        if (array_key_exists($dataType, $mainDataTypes)) {
-            return $mainDataTypes[$dataType];
-        }
-        // Module ValueSuggest.
-        if (substr($dataType, 0, 12) === 'valuesuggest'
-            // || substr($dataType, 0, 15) === 'valuesuggestall'
-        ) {
-            return 'uri';
-        }
-        if (substr($dataType, 0, 11) === 'customvocab') {
-            // CustomVocab v1.7 is not yet released, so use a specific helper.
-            return $this->getServiceLocator()->get('ViewHelperManager')->get('customVocabBaseType')(substr($dataType, 12));
-        }
-        return null;
     }
 
     /**

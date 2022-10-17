@@ -19,6 +19,7 @@ return [
         'factories' => [
             // Copy from AdvancedResourceTemplate. Copy in BulkExport, BulkEdit and BulkImport. Used in Contribute.
             'customVocabBaseType' => Service\ViewHelper\CustomVocabBaseTypeFactory::class,
+            'mainDataType' => Service\ViewHelper\MainDataTypeFactory::class,
         ],
         'delegators' => [
             'Laminas\Form\View\Helper\FormElement' => [

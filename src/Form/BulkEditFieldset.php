@@ -9,6 +9,10 @@ use Omeka\Form\Element as OmekaElement;
 
 class BulkEditFieldset extends Fieldset
 {
+    protected $datatypesMain = [];
+
+    protected $dataTypesLabel = [];
+
     public function init(): void
     {
         $this

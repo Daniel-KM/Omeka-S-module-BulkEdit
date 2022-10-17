@@ -33,7 +33,6 @@ $(document).ready(function() {
     $('.batch-edit #content > form:first-of-type > fieldset')
         .filter(function () {
             return bulkeditFieldsets.hasOwnProperty($(this).attr('id'));
-            return bulkeditFieldsets.indexOf($(this).attr('id')) >= 0;
         })
         .wrapAll('<fieldset id="bulk-edit" class="section">');
 
@@ -110,7 +109,7 @@ $(document).ready(function() {
         fieldset.find('[data-fill-mode-option]').not('[data-fill-mode-option=' + mainMode + ']').hide();
         fieldset.find('[data-fill-mode-option]').closest('select').trigger('chosen:updated');
     });
-    $('input[name="bulkedit[fill_values][mode]"]').trigger('change');
+    // $('input[name="bulkedit[fill_values][mode]"]').trigger('change');
 
     $('.batch-edit').on('change', '#mediahtml_remove', function() {
         const fields = $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_prepend, #mediahtml_append').closest('.field');

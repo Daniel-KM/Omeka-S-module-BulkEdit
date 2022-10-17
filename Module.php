@@ -1737,11 +1737,18 @@ class Module extends AbstractModule
         if ($mode === 'remove') {
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
-                    if (empty($value['@id']) || !in_array($value['type'], $datatypes)) {
+                    if (empty($value['@id'])
+                        || $value['type'] === 'literal'
+                        || !in_array($value['type'], $datatypes)
+                    ) {
                         continue;
                     }
                     $vvalue = $value['o:label'] ?? $value['@value'] ?? null;
                     if (!strlen((string) $vvalue)) {
+                        continue;
+                    }
+                    // Don't remove label if there is no id.
+                    if (empty($value['@id'])) {
                         continue;
                     }
                     unset($data[$property][$key]['@value']);

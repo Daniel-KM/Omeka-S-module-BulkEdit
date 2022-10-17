@@ -1029,9 +1029,6 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
-                    'prepend_value_options' => [
-                        'all' => '[All properties]', // @translate
-                    ],
                     'empty_option' => '',
                     'used_terms' => true,
                 ],

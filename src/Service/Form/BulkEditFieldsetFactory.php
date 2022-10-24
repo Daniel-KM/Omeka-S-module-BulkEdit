@@ -18,8 +18,8 @@ class BulkEditFieldsetFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
-
         // Append some infos about datatypes for js.
+        /** @var \BulkEdit\View\Helper\MainDataType $mainDataType */
         $mainDataType = $services->get('ViewHelperManager')->get('mainDataType');
         $dataTypeManager = $services->get('Omeka\DataTypeManager');
         $datatypesMain = [];

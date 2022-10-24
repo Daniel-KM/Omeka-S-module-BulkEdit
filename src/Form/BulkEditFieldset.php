@@ -825,7 +825,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'properties_visibility',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Visibility', // @translate
+                    'label' => 'Visibility of values', // @translate
                 ],
                 'attributes' => [
                     'id' => 'properties_visibility',

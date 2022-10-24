@@ -1342,8 +1342,8 @@ class Module extends AbstractModule
                                 $valueResourceId = $findResourcesFromIdentifiers($value['@value'], $resourceProperties);
                                 if (!$valueResourceId) {
                                     $logger->info(new Message(
-                                        'No linked resource found with properties %1$s for resource #%1$s, property "%2$s", identifier "%3$s"', // @translate
-                                        $resourceProperties, $resource->id(), $property, $value['@value']
+                                        'No linked resource found with properties %1$s for resource #%2$d, property "%3$s", identifier "%4$s"', // @translate
+                                        implode(', ', $resourceProperties), $resource->id(), $property, $value['@value']
                                     ));
                                     continue 3;
                                 }

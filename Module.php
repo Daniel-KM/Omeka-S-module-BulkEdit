@@ -424,7 +424,7 @@ class Module extends AbstractModule
                 $processes['displace'] = [
                     'from' => $params['from'],
                     'to' => $to,
-                    'datatypes' => $params['datatypes'],
+                    'datatypes' => $params['datatypes'] ?: [],
                     'languages' => $this->stringToList($params['languages']),
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
@@ -494,7 +494,7 @@ class Module extends AbstractModule
             $processes['properties_visibility'] = [
                 'visibility' => $visibility,
                 'properties' => $params['properties'],
-                'datatypes' => $params['datatypes'],
+                'datatypes' => $params['datatypes'] ?: [],
                 'languages' => $this->stringToList($params['languages']),
                 'contains' => $params['contains'],
             ];
@@ -873,7 +873,7 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $fromProperties = $params['from'];
             $toProperty = $params['to'];
-            $datatypes = array_filter($params['datatypes']);
+            $datatypes = array_filter($params['datatypes'] ?? []);
             $languages = $params['languages'];
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $contains = (string) $params['contains'];
@@ -1535,7 +1535,7 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $visibility = (int) (bool) $params['visibility'];
             $properties = $params['properties'];
-            $datatypes = array_filter($params['datatypes']);
+            $datatypes = array_filter($params['datatypes'] ?? []);
             $languages = $params['languages'];
             $contains = (string) $params['contains'];
 

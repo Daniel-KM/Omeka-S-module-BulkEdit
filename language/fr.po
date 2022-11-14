@@ -535,7 +535,7 @@ msgid ""
 "The actions are processed in the order of the form. Be careful when mixing "
 "them."
 msgstr ""
-"Les traitements sont réalisées dans l’ordre du formulaire. Il convient de "
+"Les traitements sont réalisés dans l’ordre du formulaire. Il convient de "
 "faire attention lorsque plusieurs traitements sont choisis."
 
 #: config/module.config.php:53

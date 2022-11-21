@@ -30,6 +30,7 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetFillData()
             ->appendFieldsetFillValues()
+            ->appendFieldsetRemove()
             ->appendFieldsetMediaHtml()
             ->appendFieldsetMediaType()
         ;
@@ -1180,6 +1181,108 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
         ;
+        return $this;
+    }
+
+    protected function appendFieldsetRemove()
+    {
+        $this
+            ->add([
+                'name' => 'remove',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Remove values from a property', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'remove',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('remove');
+        $fieldset
+            ->add([
+                'name' => 'properties',
+                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'options' => [
+                    'label' => 'For properties', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'remove_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'type' => BulkEditElement\DataTypeSelect::class,
+                'options' => [
+                    'label' => 'Only datatypes', // @translate
+                    'empty_option' => '[All datatypes]', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'remove_datatypes',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select datatypes…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'languages',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only languages', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'remove_languages',
+                    // 'class' => 'value-language active',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'visibility',
+                'type' => BulkEditElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Only visibility', // @translate
+                    'value_options' => [
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                        '' => 'Any', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'remove_visibility',
+                    'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'contains',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only containing', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'remove_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
         return $this;
     }
 

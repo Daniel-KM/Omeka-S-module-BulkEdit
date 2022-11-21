@@ -376,6 +376,7 @@ class Module extends AbstractModule
             'properties_visibility' => null,
             'fill_data' => null,
             'fill_values' => null,
+            'remove' => null,
             'media_html' => null,
             'media_type' => null,
             // Cleaning is done separately.
@@ -525,6 +526,17 @@ class Module extends AbstractModule
             // $this->preFillValues($processes['fill_values']);
         }
 
+        $params = $bulkedit['remove'] ?? [];
+        if (!empty($params['properties'])) {
+            $processes['remove'] = [
+                'properties' => $params['properties'],
+                'datatypes' => $params['datatypes'] ?? [],
+                'languages' => $this->stringToList($params['languages']),
+                'visibility' => $params['visibility'],
+                'contains' => $params['contains'],
+            ];
+        }
+
         $params = $bulkedit['media_html'] ?? [];
         $from = $params['from'] ?? '';
         $to = $params['to'] ?? '';
@@ -647,6 +659,9 @@ class Module extends AbstractModule
                 break;
             case 'fill_values':
                 $this->fillValuesForResource($resource, $data, $params);
+                break;
+            case 'remove':
+                $this->removeValuesForResource($resource, $data, $params);
                 break;
             default:
                 break;
@@ -1843,6 +1858,78 @@ class Module extends AbstractModule
                         unset($data[$property][$key]['@language']);
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Remove values from a list of properties to another one.
+     */
+    protected function removeValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        static $settings;
+        if (is_null($settings)) {
+            $properties = $params['properties'];
+            $datatypes = array_filter($params['datatypes'] ?? []);
+            $languages = $params['languages'];
+            $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
+            $contains = (string) $params['contains'];
+
+            if (empty($properties)) {
+                return;
+            }
+
+            $processAllProperties = in_array('all', $properties);
+            $checkDatatype = !empty($datatypes);
+            $checkLanguage = !empty($languages);
+            $checkVisibility = !is_null($visibility);
+            $checkContains = (bool) mb_strlen($contains);
+
+            $settings = $params;
+            $settings['processAllProperties'] = $processAllProperties;
+            $settings['checkDatatype'] = $checkDatatype;
+            $settings['checkLanguage'] = $checkLanguage;
+            $settings['checkVisibility'] = $checkVisibility;
+            $settings['checkContains'] = $checkContains;
+        } else {
+            extract($settings);
+        }
+
+        if (empty($properties)) {
+            return;
+        }
+
+        // Note: this is the original values.
+        $processAllProperties = in_array('all', $properties);
+
+        $properties = $processAllProperties
+            ? array_keys($resource->values())
+            : array_intersect($properties, array_keys($resource->values()));
+
+        if (!$checkDatatype && !$checkLanguage && !$checkVisibility && !$checkContains) {
+            $data = array_diff_key($data, array_flip($properties));
+            return;
+        }
+
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                $value += ['@language' => null, 'is_public' => 1, '@value' => null];
+                if ($checkDatatype && !in_array($value['type'], $datatypes)) {
+                    continue;
+                }
+                if ($checkLanguage && !in_array($value['@language'], $languages)) {
+                    continue;
+                }
+                if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
+                    continue;
+                }
+                if ($checkContains && strpos($value['@value'], $contains) === false) {
+                    continue;
+                }
+                unset($data[$property][$key]);
             }
         }
     }

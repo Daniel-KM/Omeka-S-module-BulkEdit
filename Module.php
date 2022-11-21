@@ -287,6 +287,7 @@ class Module extends AbstractModule
         $postProcesses = [
             'media_html' => null,
             'media_type' => null,
+            'media_visibility' => null,
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
@@ -333,6 +334,7 @@ class Module extends AbstractModule
             $postProcesses = [
                 'media_html' => null,
                 'media_type' => null,
+                'media_visibility' => null,
             ];
         } else {
             $postProcesses = [];
@@ -379,6 +381,7 @@ class Module extends AbstractModule
             'remove' => null,
             'media_html' => null,
             'media_type' => null,
+            'media_visibility' => null,
             // Cleaning is done separately.
             'trim_values' => null,
             'specify_datatypes' => null,
@@ -572,6 +575,19 @@ class Module extends AbstractModule
             ];
         }
 
+        $params = $bulkedit['media_visibility'] ?? [];
+        if (isset($params['visibility'])
+            && $params['visibility'] !== ''
+        ) {
+            $visibility = (int) (bool) $params['visibility'];
+            $processes['media_visibility'] = [
+                'visibility' => $visibility,
+                'media_types' => $params['media_types'] ?: [],
+                'ingesters' => $params['ingesters'] ?: [],
+                'renderers' => $params['renderers'] ?: [],
+            ];
+        }
+
         // Direct processes.
 
         if (!empty($bulkedit['cleaning']['clean_language_codes'])
@@ -615,6 +631,9 @@ class Module extends AbstractModule
             }
             if (!empty($processes['media_type'])) {
                 $this->updateMediaTypeForResources($adapter, $resourceIds, $processes['media_type']);
+            }
+            if (!empty($processes['media_visibility'])) {
+                $this->updateMediaVisibilityForResources($adapter, $resourceIds, $processes['media_visibility']);
             }
         }
     }
@@ -716,6 +735,9 @@ class Module extends AbstractModule
                 break;
             case 'media_type':
                 $this->updateMediaTypeForResources($adapter, $resourceIds, $params);
+                break;
+            case 'media_visibility':
+                $this->updateMediaVisibilityForResources($adapter, $resourceIds, $params);
                 break;
             default:
                 break;
@@ -2052,6 +2074,7 @@ class Module extends AbstractModule
         }
 
         $isMediaIds = $adapter instanceof MediaAdapter;
+        $keyResourceId = $isMediaIds ? 'id' : 'item';
 
         /**
          * @var \Doctrine\ORM\EntityManager $entityManager
@@ -2060,14 +2083,66 @@ class Module extends AbstractModule
         $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
         foreach ($resourceIds as $resourceId) {
-            $medias = $isMediaIds
-                ? $repository->findBy(['id' => $resourceId, 'mediaType' => $from])
-                : $repository->findBy(['item' => $resourceId, 'mediaType' => $from]);
+            $medias = $repository->findBy([
+                $keyResourceId => $resourceId,
+                'mediaType' => $from,
+            ]);
             /** @var \Omeka\Entity\Media $media */
             foreach ($medias as $media) {
                 $media->setMediaType($to);
                 $entityManager->persist($media);
                 // No flush here.
+            }
+        }
+    }
+
+    /**
+     * Update the media visibility of a media file from items.
+     */
+    protected function updateMediaVisibilityForResources(
+        AbstractResourceEntityAdapter $adapter,
+        array $resourceIds,
+        array $params
+    ): void {
+        // Already checked.
+        $visibility = (bool) $params['visibility'];
+        $mediaTypes = $params['media_types'] ?? [];
+        $ingesters = array_filter($params['ingesters'] ?? []);
+        $renderers = array_filter($params['renderers'] ?? []);
+
+        $isMediaIds = $adapter instanceof MediaAdapter;
+
+        $keyResourceId = $isMediaIds ? 'id' : 'item';
+        $defaultArgs = [
+            $keyResourceId => null,
+        ];
+        if ($mediaTypes) {
+            $defaultArgs['mediaType'] = $mediaTypes;
+        }
+        if ($ingesters) {
+            $defaultArgs['ingester'] = $ingesters;
+        }
+        if ($renderers) {
+            $defaultArgs['renderer'] = $renderers;
+        }
+
+        /**
+         * @var \Doctrine\ORM\EntityManager $entityManager
+         * @var \Doctrine\ORM\EntityRepository $repository
+         */
+        $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
+        $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
+        foreach ($resourceIds as $resourceId) {
+            $args = $defaultArgs;
+            $args[$keyResourceId] = $resourceId;
+            $medias = $repository->findBy($args);
+            /** @var \Omeka\Entity\Media $media */
+            foreach ($medias as $media) {
+                if ($media->isPublic() !== $visibility) {
+                    $media->setIsPublic($visibility);
+                    $entityManager->persist($media);
+                    // No flush here.
+                }
             }
         }
     }

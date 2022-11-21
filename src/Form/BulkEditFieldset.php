@@ -13,6 +13,12 @@ class BulkEditFieldset extends Fieldset
 
     protected $dataTypesLabels = [];
 
+    protected $mediaTypes = [];
+
+    protected $ingesters = [];
+
+    protected $renderers = [];
+
     public function init(): void
     {
         $this
@@ -33,6 +39,7 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetRemove()
             ->appendFieldsetMediaHtml()
             ->appendFieldsetMediaType()
+            ->appendFieldsetMediaVisibility()
         ;
 
         // Omeka doesn't display fieldsets, so add them via a hidden input
@@ -1433,6 +1440,100 @@ class BulkEditFieldset extends Fieldset
         return $this;
     }
 
+    protected function appendFieldsetMediaVisibility()
+    {
+        $this
+            ->add([
+                'name' => 'media_visibility',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Visibility of medias', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_visibility',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('media_visibility');
+        $fieldset
+            ->add([
+                'name' => 'visibility',
+                'type' => BulkEditElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Set visibility', // @translate
+                    'value_options' => [
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                        '' => '[No change]', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'mediavis_visibility',
+                    'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'media_types',
+                'type' => BulkEditElement\OptionalSelect::class,
+                'options' => [
+                    'label' => 'Limit to media types', // @translate
+                    'empty_option' => 'All media types', // @translate
+                    'value_options' => $this->mediaTypes,
+                ],
+                'attributes' => [
+                    'id' => 'mediavis_media_types',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'placeholder' => 'Select media types to process', // @ translate
+                    'data-placeholder' => 'Select media types to process', // @ translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'ingesters',
+                'type' => BulkEditElement\OptionalSelect::class,
+                'options' => [
+                    'label' => 'Limit to ingesters', // @translate
+                    'empty_option' => 'All ingesters', // @translate
+                    'value_options' => $this->ingesters,
+                ],
+                'attributes' => [
+                    'id' => 'mediavis_ingesters',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'placeholder' => 'Select ingesters to process', // @ translate
+                    'data-placeholder' => 'Select ingesters to process', // @ translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'renderers',
+                'type' => BulkEditElement\OptionalSelect::class,
+                'options' => [
+                    'label' => 'Limit to renderers', // @translate
+                    'empty_option' => 'All renderers', // @translate
+                    'value_options' => $this->renderers,
+                ],
+                'attributes' => [
+                    'id' => 'mediavis_renderers',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'placeholder' => 'Select renderers to process', // @ translate
+                    'data-placeholder' => 'Select renderers to process', // @ translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
     public function setDataTypesMain(array $dataTypesMain): self
     {
         $this->dataTypesMain = $dataTypesMain;
@@ -1442,6 +1543,24 @@ class BulkEditFieldset extends Fieldset
     public function setDataTypesLabels(array $dataTypesLabels): self
     {
         $this->dataTypesLabels = $dataTypesLabels;
+        return $this;
+    }
+
+    public function setMediaTypes(array $mediaTypes): self
+    {
+        $this->mediaTypes = $mediaTypes;
+        return $this;
+    }
+
+    public function setIngesters(array $ingesters): self
+    {
+        $this->ingesters = $ingesters;
+        return $this;
+    }
+
+    public function setRenderers(array $renderers): self
+    {
+        $this->renderers = $renderers;
         return $this;
     }
 }

@@ -249,8 +249,12 @@ class Module extends AbstractModule
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $event->getParam('data');
-        $bulkedit = $request->getValue('bulkedit');
-        $data['bulkedit'] = $this->prepareProcesses($bulkedit);
+        $bulkedit = $this->prepareProcesses($request->getValue('bulkedit'));
+        if (empty($bulkedit)) {
+            unset($data['bulkedit']);
+        } else {
+            $data['bulkedit'] = $bulkedit;
+        }
         $event->setParam('data', $data);
     }
 

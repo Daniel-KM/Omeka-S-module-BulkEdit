@@ -40,7 +40,7 @@ class BulkEditFieldsetFactory implements FactoryInterface
         $result = $connection->executeQuery('SELECT DISTINCT(renderer) FROM media ORDER BY renderer')->fetchFirstColumn();
         $renderers = array_combine($result, $result);
 
-        $fieldset = new BulkEditFieldset(null, $options);
+        $fieldset = new BulkEditFieldset(null, $options ?? []);
         return $fieldset
             ->setDataTypesMain($datatypesMain)
             ->setDataTypesLabels($datatypesLabels)

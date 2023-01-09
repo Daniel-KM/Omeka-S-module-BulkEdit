@@ -12,6 +12,8 @@ use Omeka\DataType\Manager as DataTypeManager;
  */
 class DataTypeSelect extends Select
 {
+    use TraitOptionalElement;
+
     protected $attributes = [
         'type' => 'select',
         'multiple' => false,
@@ -28,21 +30,7 @@ class DataTypeSelect extends Select
      */
     protected $dataTypes = [];
 
-    /**
-     * @see https://github.com/zendframework/zendframework/issues/2761#issuecomment-14488216
-     *
-     * {@inheritDoc}
-     * @see \Laminas\Form\Element\Select::getInputSpecification()
-     */
-    public function getInputSpecification()
-    {
-        $inputSpecification = parent::getInputSpecification();
-        $inputSpecification['required'] = isset($this->attributes['required'])
-            && $this->attributes['required'];
-        return $inputSpecification;
-    }
-
-    public function getValueOptions()
+    public function getValueOptions(): array
     {
         $options = [];
         $optgroupOptions = [];

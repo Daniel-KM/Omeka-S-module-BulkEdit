@@ -45,6 +45,12 @@ class MainDataType extends AbstractHelper
             'resource:annotation' => 'resource',
             'annotation' => 'resource',
             // Module DataTypeGeometry.
+            'geography' => 'literal',
+            'geography:coordinates' => 'literal',
+            'geometry' => 'literal',
+            'geometry:coordinates' => 'literal',
+            'geometry:position' => 'literal',
+            // TODO Deprecated. Remove in v4.
             'geometry:geography:coordinates' => 'literal',
             'geometry:geography' => 'literal',
             'geometry:geometry' => 'literal',

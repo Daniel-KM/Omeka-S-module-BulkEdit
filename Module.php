@@ -23,7 +23,7 @@ use Omeka\Stdlib\Message;
  *
  * Improve the bulk edit process with new features.
  *
- * @copyright Daniel Berthereau, 2018-2022
+ * @copyright Daniel Berthereau, 2018-2023
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 class Module extends AbstractModule
@@ -2514,5 +2514,23 @@ class Module extends AbstractModule
         ;
         return $properties
             = array_map('intval', $connection->executeQuery($qb)->fetchAllKeyValue());
+    }
+
+    /**
+     * Get each line of a string separately.
+     */
+    public function stringToList($string): array
+    {
+        return array_filter(array_map('trim', explode("\n", $this->fixEndOfLine($string))), 'strlen');
+    }
+
+    /**
+     * Clean the text area from end of lines.
+     *
+     * This method fixes Windows and Apple copy/paste from a textarea input.
+     */
+    public function fixEndOfLine($string): string
+    {
+        return str_replace(["\r\n", "\n\r", "\r"], ["\n", "\n", "\n"], (string) $string);
     }
 }

@@ -37,6 +37,7 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetFillData()
             ->appendFieldsetFillValues()
             ->appendFieldsetRemove()
+            ->appendFieldsetExplodeItem()
             ->appendFieldsetMediaHtml()
             ->appendFieldsetMediaType()
             ->appendFieldsetMediaVisibility()
@@ -1285,6 +1286,48 @@ class BulkEditFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'remove_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetExplodeItem()
+    {
+        $this
+            ->add([
+                'name' => 'explode_item',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Explode item by media', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_item',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('explode_item');
+        $fieldset
+            ->add([
+                'name' => 'mode',
+                'type' => BulkEditElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'What to do with media metadata', // @translate
+                    'value_options' => [
+                        '' => 'No process', // @translate
+                        'append' => 'Append media metadata to item metadata', // @translate
+                        'update' => 'Replace item metadata by media metadata when set', // @translate
+                        'replace' => 'Remove all item metadata and replace them by media one', // @translate
+                        'none' => 'Do not copy media metadata',
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'explode_item_mode',
+                    'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

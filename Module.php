@@ -104,8 +104,12 @@ class Module extends AbstractModule
         $form = $event->getTarget();
         $services = $this->getServiceLocator();
         $formElementManager = $services->get('FormElementManager');
+        $resourceType = $form->getOption('resource_type');
+
         /** @var \BulkEdit\Form\BulkEditFieldset $fieldset */
-        $fieldset = $formElementManager->get(BulkEditFieldset::class);
+        $fieldset = $formElementManager->get(BulkEditFieldset::class, [
+            'resource_type' => $resourceType,
+        ]);
         $form->add($fieldset);
     }
 

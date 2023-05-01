@@ -36,6 +36,8 @@ class BulkEditFieldset extends Fieldset
 
     public function init(): void
     {
+        $resourceType = $this->getOption('resource_type');
+
         $this
             ->setName('bulkedit')
             ->setAttribute('id', 'bulk-edit')
@@ -52,11 +54,28 @@ class BulkEditFieldset extends Fieldset
             ->appendFieldsetFillData()
             ->appendFieldsetFillValues()
             ->appendFieldsetRemove()
-            ->appendFieldsetExplodeItem()
-            ->appendFieldsetMediaHtml()
-            ->appendFieldsetMediaType()
-            ->appendFieldsetMediaVisibility()
         ;
+
+        switch ($resourceType) {
+            case 'items':
+            case 'item':
+                $this
+                    ->appendFieldsetExplodeItem()
+                ;
+                // no break.
+            case 'media':
+                $this
+                    ->appendFieldsetMediaHtml()
+                    ->appendFieldsetMediaType()
+                    ->appendFieldsetMediaVisibility()
+                ;
+                break;
+            case 'item_sets':
+            case 'item-set':
+            case 'itemSet':
+            default:
+                break;
+        }
 
         // Omeka doesn't display fieldsets, so add them via a hidden input
         // managed by js.

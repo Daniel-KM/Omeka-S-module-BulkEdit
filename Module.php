@@ -2038,93 +2038,118 @@ class Module extends AbstractModule
         $properties = $this->getPropertyIds();
         $isOldOmeka = version_compare(\Omeka\Module::VERSION, '4', '<');
 
-        $newItems = [];
-
-        $isFirst = true;
-        foreach ($medias as $media) {
-            $itemData = $data;
-            switch ($mode) {
-                default:
-                case 'append':
-                    foreach ($media->values() as $term => $propertyData) {
-                        /** @var \Omeka\Api\Representation\ValueRepresentation $value */
-                        foreach ($propertyData['values'] as $value) {
-                            $itemData[$term][] = $value->jsonSerialize();
-                        }
-                    }
-                    break;
-                case 'update':
-                    foreach ($media->values() as $term => $propertyData) {
-                        if (!empty($propertyData['values'])) {
-                            $data[$term] = [];
-                            foreach ($propertyData['values'] as $value) {
-                                $itemData[$term][] = $value->jsonSerialize();
-                            }
-                        }
-                    }
-                    break;
-                case 'replace':
-                    $data = array_diff_key($data, $properties);
-                    foreach ($media->values() as $term => $propertyData) {
-                        if (!empty($propertyData['values'])) {
-                            $data[$term] = [];
-                            foreach ($propertyData['values'] as $value) {
-                                $itemData[$term][] = $value->jsonSerialize();
-                            }
-                        }
-                    }
-                    break;
-                case 'none':
-                    break;
-            }
-            // The current items use the first media.
-            // The media are removed only when all other items are created.
-            if ($isFirst) {
-                $isFirst = false;
-                $data = $itemData;
-                $firstMediaId = $media->id();
-            }
-            // Next ones are new items.
-            else {
-                try {
-                    $data['o:id'] = null;
-                    $newItem = $api->create('items', $data)->getContent();
-                } catch (\Exception $e) {
-                    $logger->err(new Message(
-                        'Item #%1$d cannot be exploded: %2$s', // @translate
-                        $resource->id(), $e->getMessage())
-                    );
-                    return;
-                }
-                $newItems[$newItem->id()] = $media->id();
-            }
-        }
-
-        // Explode media via database: it's not possible here.
-        // TODO Should we update item and media by item or by batch loop? Note: doctrine may not be in sync.
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $this->getServiceLocator()->get('Omeka\Connection');
-        $sql = <<<'SQL'
-UPDATE media SET item_id = %1$d WHERE id = %2$d;
+
+        $sqlMedia = <<<'SQL'
+UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
 SQL;
         if (!$isOldOmeka) {
-            $sql .= PHP_EOL . <<<'SQL'
-UPDATE resource SET primary_media_id = %2$d WHERE id = %1$d;
+            $sqlMedia .= PHP_EOL . <<<'SQL'
+UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
 SQL;
         }
-        $sqls = '';
-        foreach ($newItems as $newItemId => $mediaId) {
-            $sqls .= sprintf($sql, $newItemId, $mediaId, $media) . PHP_EOL;
+
+        foreach ($resourceIds as $resourceId) {
+            try {
+                /** @var \Omeka\Api\Representation\ItemRepresentation $item */
+                $item = $api->read('items', ['id' => $resourceId], [], ['initialize' => false])->getContent();
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            $medias = $item->media();
+            // The process is done for metadata, even with only one media.
+            if (!count($medias)) {
+                continue;
+            }
+
+            $itemsAndMedias = [];
+
+            // Keep current data as fully serialized data.
+            // All data are copied for new items, included template, class, etc.
+            // $currentItemData = $item->jsonSerialize();
+            $currentItemData = json_decode(json_encode($item), true);
+
+            $isFirstMedia = true;
+            foreach ($medias as $media) {
+                $itemData = $currentItemData;
+                switch ($mode) {
+                    default:
+                    case 'append':
+                        foreach ($media->values() as $term => $propertyData) {
+                            /** @var \Omeka\Api\Representation\ValueRepresentation $value */
+                            foreach ($propertyData['values'] as $value) {
+                                // $itemData[$term][] = $value->jsonSerialize();
+                                $itemData[$term][] = json_decode(json_encode($value), true);
+                            }
+                        }
+                        break;
+                    case 'update':
+                        foreach ($media->values() as $term => $propertyData) {
+                            if (!empty($propertyData['values'])) {
+                                $itemData[$term] = [];
+                                foreach ($propertyData['values'] as $value) {
+                                    // $itemData[$term][] = $value->jsonSerialize();
+                                    $itemData[$term][] = json_decode(json_encode($value), true);
+                                }
+                            }
+                        }
+                        break;
+                    case 'replace':
+                        $itemData = array_diff_key($itemData, $properties);
+                        foreach ($media->values() as $term => $propertyData) {
+                            if (!empty($propertyData['values'])) {
+                                $itemData[$term] = [];
+                                foreach ($propertyData['values'] as $value) {
+                                    // $itemData[$term][] = $value->jsonSerialize();
+                                    $itemData[$term][] = json_decode(json_encode($value), true);
+                                }
+                            }
+                        }
+                        break;
+                    case 'none':
+                        break;
+                }
+
+                // The current item uses the first media.
+                // The media are removed only when all other items are created.
+                if ($isFirstMedia) {
+                    $isFirstMedia = false;
+                    // Store data for first item.
+                    try {
+                        $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
+                    } catch (\Exception $e) {
+                        $logger->err(new Message(
+                            'Item #%1$d cannot be exploded: %2$s', // @translate
+                            $resourceId, $e->getMessage())
+                        );
+                        continue 2;
+                    }
+                   $itemsAndMedias[$newItem->getId()] = $media->id();
+                }
+                // Next ones are new items.
+                else {
+                    try {
+                        $itemData['o:id'] = null;
+                        $newItem = $api->create('items', $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
+                    } catch (\Exception $e) {
+                        $logger->err(new Message(
+                            'Item #%1$d cannot be exploded: %2$s', // @translate
+                            $resourceId, $e->getMessage())
+                        );
+                        continue 2;
+                    }
+                    $itemsAndMedias[$newItem->getId()] = $media->id();
+                }
+            }
+
+            $sqls = '';
+            foreach ($itemsAndMedias as $newItemId => $mediaId) {
+                $sqls .= sprintf($sqlMedia, $newItemId, $mediaId) . PHP_EOL;
+            }
+            $connection->executeStatement($sqls);
         }
-        if (!$isOldOmeka) {
-            $sqls .= sprintf('UPDATE resource SET primary_media_id = %1$d WHERE id = %2$d', $firstMediaId, $resource->id());
-        }
-pmf($sqls);
-        $connection->executeStatement($sqls);
-pmf(
-    $connection->executeQuery('select * from media where id in (' . implode(',', $newItems) . ')')->fetchAllAssociative()
-);
-pmf($data);
     }
 
     /**

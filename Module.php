@@ -1745,7 +1745,7 @@ class Module extends AbstractModule
             $mode = $params['mode'];
             $properties = $params['properties'] ?? [];
             $datatypes = $params['datatypes'] ?? [];
-            $datatype = $params['datatype'] ?? null;
+            $datatype = empty($params['datatype']) ? null : $params['datatype'];
             $featuredSubject = !empty($params['featured_subject']);
             $language = $params['language'] ?? '';
             $updateLanguage = empty($params['update_language'])
@@ -1772,16 +1772,20 @@ class Module extends AbstractModule
                 ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes)
                 : array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
 
-            if ((in_array('literal', $datatypes) || in_array('uri', $datatypes)) && in_array($datatype, ['', 'literal', 'uri'])) {
+            if (!$datatype && count($datatypes) === 1 && in_array(reset($datatypes), $managedDatatypes)) {
+                $datatype = reset($datatypes);
+            }
+
+            if ((in_array('literal', $datatypes) || in_array('uri', $datatypes)) && in_array($datatype, [null, 'literal', 'uri'])) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->warn(new Message('When "literal" or "uri" is used, the datatype should be specified.')); // @translate
+                $logger->warn(new Message('When "literal" or "uri" is used, the precise datatype should be specified.')); // @translate
                 $skip = true;
             }
 
             $isModeUri = $mode === 'uri_missing' || $mode === 'uri_all';
-            if ($isModeUri && !in_array($datatype, $datatypes) || in_array($datatype, ['', 'literal', 'uri'])) {
+            if ($isModeUri && (!in_array($datatype, $datatypes) || in_array($datatype, [null, 'literal', 'uri']))) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->warn(new Message('When filling an uri, the datatype should be specified.')); // @translate
+                $logger->warn(new Message('When filling an uri, the precise datatype should be specified.')); // @translate
                 $skip = true;
             }
 
@@ -2520,6 +2524,7 @@ SQL;
                 ],
                 'path' => [
                     '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $language . '"][1]',
+                    '/rdf:RDF/gn:Feature/gn:alternateName[@xml:lang="' . $language . '"][1]',
                     '/rdf:RDF/gn:Feature/gn:name[1]',
                     '/rdf:RDF/gn:Feature/gn:shortName[1]',
                 ],

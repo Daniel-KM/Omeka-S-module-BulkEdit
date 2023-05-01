@@ -1006,7 +1006,7 @@ class BulkEditFieldset extends Fieldset
     protected function appendFieldsetFillValues()
     {
         $managedDatatypes = [
-            // 'valuesuggest:geonames:geonames' => 'Geonames',
+            'valuesuggest:geonames:geonames' => 'Geonames',
             'valuesuggest:idref:person' => 'IdRef Personnes',
             'valuesuggest:idref:corporation' => 'IdRef Organisations',
             'valuesuggest:idref:conference' => 'IdRef Congrès',

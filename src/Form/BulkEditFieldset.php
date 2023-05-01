@@ -1313,6 +1313,20 @@ class BulkEditFieldset extends Fieldset
         $fieldset = $this->get('explode_item');
         $fieldset
             ->add([
+                'name' => 'note_process',
+                'type' => BulkEditElement\Note::class,
+                'options' => [
+                    'content' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
+                    // TODO For compatibility with other modules, the content is passed as text too. Will be removed in Omeka S v4.
+                    'text' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_item_note_process',
+                    'class' => 'field',
+                    'style' => 'display_block',
+                ],
+            ])
+            ->add([
                 'name' => 'mode',
                 'type' => BulkEditElement\OptionalRadio::class,
                 'options' => [

@@ -575,6 +575,7 @@ class Module extends AbstractModule
                 'datatypes' => $params['datatypes'] ?? [],
                 'languages' => $this->stringToList($params['languages']),
                 'visibility' => $params['visibility'],
+                'equal' => $params['equal'],
                 'contains' => $params['contains'],
             ];
         }
@@ -1952,6 +1953,7 @@ class Module extends AbstractModule
             $datatypes = array_filter($params['datatypes'] ?? []);
             $languages = $params['languages'];
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
+            $equal = (string) $params['equal'];
             $contains = (string) $params['contains'];
 
             if (empty($properties)) {
@@ -1962,13 +1964,25 @@ class Module extends AbstractModule
             $checkDatatype = !empty($datatypes);
             $checkLanguage = !empty($languages);
             $checkVisibility = !is_null($visibility);
+            $checkEqual = (bool) mb_strlen($equal);
             $checkContains = (bool) mb_strlen($contains);
 
+            $mainDataType = $this->getServiceLocator()->get('ViewHelperManager')->get('mainDataType');
+            $mainDataTypes = [];
+            foreach ($datatypes as $datatype) {
+                $mainDataTypes[$datatype] = $mainDataType($datatype);
+            }
+
             $settings = $params;
+            $settings['datatypes'] = $datatypes;
+            $settings['visibility'] = $visibility;
+            $settings['mainDataType'] = $mainDataType;
+            $settings['mainDataTypes'] = $mainDataTypes;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDatatype'] = $checkDatatype;
             $settings['checkLanguage'] = $checkLanguage;
             $settings['checkVisibility'] = $checkVisibility;
+            $settings['checkEqual'] = $checkEqual;
             $settings['checkContains'] = $checkContains;
         } else {
             extract($settings);
@@ -1985,14 +1999,19 @@ class Module extends AbstractModule
             ? array_keys($resource->values())
             : array_intersect($properties, array_keys($resource->values()));
 
-        if (!$checkDatatype && !$checkLanguage && !$checkVisibility && !$checkContains) {
+        if (!$checkDatatype
+            && !$checkLanguage
+            && !$checkVisibility
+            && !$checkEqual
+            && !$checkContains
+        ) {
             $data = array_diff_key($data, array_flip($properties));
             return;
         }
 
         foreach ($properties as $property) {
             foreach ($data[$property] as $key => $value) {
-                $value += ['@language' => null, 'is_public' => 1, '@value' => null];
+                $value += ['@language' => null, 'is_public' => 1, '@value' => null, 'value_resource_id' => null, '@id' => null];
                 if ($checkDatatype && !in_array($value['type'], $datatypes)) {
                     continue;
                 }
@@ -2002,8 +2021,24 @@ class Module extends AbstractModule
                 if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
                     continue;
                 }
-                if ($checkContains && strpos($value['@value'], $contains) === false) {
-                    continue;
+                if ($checkEqual || $checkContains) {
+                    $valueMainDataType = $mainDataType($value['type']);
+                    if ($checkEqual) {
+                        if (($valueMainDataType === 'literal' && $value['@value'] !== $equal)
+                            || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $equal)
+                            || ($valueMainDataType === 'uri' && $value['@id']  !== $equal)
+                        ) {
+                            continue;
+                        }
+                    }
+                    if ($checkContains) {
+                        if (($valueMainDataType === 'literal' && strpos((string) $value['@value'], $contains) === false)
+                            // || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $contains)
+                            || ($valueMainDataType === 'uri' && strpos((string) $value['@id'], $contains) === false)
+                        ) {
+                            continue;
+                        }
+                    }
                 }
                 unset($data[$property][$key]);
             }

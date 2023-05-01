@@ -1233,7 +1233,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'remove',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Remove values from a property', // @translate
+                    'label' => 'Remove values, linked resources, or uris from a property', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove',
@@ -1313,10 +1313,22 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'equal',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Equal to', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'remove_equal',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only containing', // @translate
+                    'label' => 'Only containing string (text or uri)', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove_contains',

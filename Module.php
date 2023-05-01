@@ -648,7 +648,8 @@ class Module extends AbstractModule
         array $resourceIds,
         array $processes
     ): void {
-        // This process is specific, because not for current resources.
+        // This process is specific, because not for the current resource type
+        // (items).
         if ($adapter instanceof ItemAdapter) {
             if (!empty($processes['media_html'])) {
                 $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
@@ -963,7 +964,9 @@ class Module extends AbstractModule
             $settings = $params;
             $settings['fromProperties'] = $fromProperties;
             $settings['toProperty'] = $toProperty;
+            $settings['datatypes'] = $datatypes;
             $settings['visibility'] = $visibility;
+            $settings['contains'] = $contains;
             $settings['to'] = $to;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDatatype'] = $checkDatatype;
@@ -1609,6 +1612,7 @@ class Module extends AbstractModule
 
             $settings = $params;
             $settings['properties'] = $properties;
+            $settings['datatypes'] = $datatypes;
             $settings['visibility'] = $visibility;
             $settings['checkDatatype'] = $checkDatatype;
             $settings['checkLanguage'] = $checkLanguage;
@@ -1772,6 +1776,7 @@ class Module extends AbstractModule
             $settings = $params;
             $settings['mode'] = $mode;
             $settings['properties'] = $properties;
+            $settings['featuredSubject'] = $featuredSubject;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['datatypes'] = $datatypes;
             $settings['datatype'] = $datatype;
@@ -1849,7 +1854,7 @@ class Module extends AbstractModule
                     if ($onlyMissing && strlen((string) $vvalue)) {
                         continue;
                     }
-                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $datatype: $value['type'];
+                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $datatype : $value['type'];
                     $vvalueNew = $this->getLabelForUri($vuri, $vtype, $labelAndUriOptions);
                     if (is_null($vvalueNew)) {
                         continue;
@@ -1987,7 +1992,8 @@ class Module extends AbstractModule
      * Explode an item by media.
      *
      * This process cannot be done via a pre-process because the media are
-     * reattached to another item
+     * reattached to another item. Furthermore, with standard api, items and
+     * media may be resaved later. So doctrine may not be in sync.
      */
     protected function explodeItemByMedia(
         ItemAdapter $adapter,

@@ -9,14 +9,29 @@ use Omeka\Form\Element as OmekaElement;
 
 class BulkEditFieldset extends Fieldset
 {
+    /**
+     * @var array
+     */
     protected $dataTypesMain = [];
 
+    /**
+     * @var array
+     */
     protected $dataTypesLabels = [];
 
+    /**
+     * @var array
+     */
     protected $mediaTypes = [];
 
+    /**
+     * @var array
+     */
     protected $ingesters = [];
 
+    /**
+     * @var array
+     */
     protected $renderers = [];
 
     public function init(): void
@@ -1335,8 +1350,8 @@ class BulkEditFieldset extends Fieldset
                         '' => 'No process', // @translate
                         'append' => 'Append media metadata to item metadata', // @translate
                         'update' => 'Replace item metadata by media metadata when set', // @translate
-                        'replace' => 'Remove all item metadata and replace them by media one', // @translate
-                        'none' => 'Do not copy media metadata',
+                        'replace' => 'Remove all item metadata and replace them by media ones', // @translate
+                        'none' => 'Do not copy media metadata and keep them in media', // @translate
                     ],
                 ],
                 'attributes' => [

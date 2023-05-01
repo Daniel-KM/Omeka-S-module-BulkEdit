@@ -289,9 +289,12 @@ class Module extends AbstractModule
         // resource or cannot be done via api, so remove them from the standard
         // process.
         $postProcesses = [
+            // Start with complex processes.
+            'explode_item' => null,
             'media_html' => null,
             'media_type' => null,
             'media_visibility' => null,
+            // Then simple queries.
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
@@ -334,23 +337,32 @@ class Module extends AbstractModule
             return;
         }
 
-        if ($request->getResource() === 'media') {
-            $postProcesses = [
+        $resourceName = $request->getResource();
+
+        $postProcesses = [
+            'items' => [
+                'explode_item' => null,
                 'media_html' => null,
                 'media_type' => null,
                 'media_visibility' => null,
-            ];
-        } else {
-            $postProcesses = [];
-        }
+            ],
+            'media' => [
+                'media_html' => null,
+                'media_type' => null,
+                'media_visibility' => null,
+            ],
+        ];
 
-        $postProcesses = array_merge($postProcesses, [
+        $postProcessesResource = $postProcesses[$resourceName] ?? [];
+
+        $postProcesses = array_merge($postProcessesResource, [
             'trim_values' => null,
             'specify_datatypes' => null,
             'clean_languages' => null,
             'clean_language_codes' => null,
             'deduplicate_values' => null,
         ]);
+
         $processes = $this->prepareProcesses();
         $bulkedit = array_intersect_key($processes, $postProcesses);
         if (!count($bulkedit)) {
@@ -694,9 +706,6 @@ class Module extends AbstractModule
             case 'remove':
                 $this->removeValuesForResource($resource, $data, $params);
                 break;
-            case 'explode_item':
-                $this->explodeItemByMedia($resource, $data, $params);
-                break;
             default:
                 break;
         }
@@ -744,6 +753,9 @@ class Module extends AbstractModule
                 /** @var \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues $deduplicateValues */
                 $deduplicateValues = $plugins->get('deduplicateValues');
                 $deduplicateValues($resourceIds);
+                break;
+            case 'explode_item':
+                $this->explodeItemByMedia($adapter, $resourceIds, $params);
                 break;
             case 'media_html':
                 $this->updateMediaHtmlForResources($adapter, $resourceIds, $params);
@@ -1973,35 +1985,22 @@ class Module extends AbstractModule
 
     /**
      * Explode an item by media.
+     *
+     * This process cannot be done via a pre-process because the media are
+     * reattached to another item
      */
     protected function explodeItemByMedia(
-        AbstractResourceEntityRepresentation $resource,
-        array &$data,
+        ItemAdapter $adapter,
+        array $resourceIds,
         array $params
     ): void {
-        static $settings;
-        if (!$resource instanceof \Omeka\Api\Representation\ItemRepresentation) {
-            return;
-        }
-
-        if (is_null($settings)) {
-            $mode = $params['mode'];
-            if (empty($mode) || !in_array($mode, [
-                'append',
-                'update',
-                'replace',
-                'none',
-            ])) {
-                return;
-            }
-
-            $settings = $params;
-        } else {
-            extract($settings);
-        }
-
-        $medias = $resource->media();
-        if (count($medias) <= 1) {
+        $mode = $params['mode'];
+        if (!in_array($mode, [
+            'append',
+            'update',
+            'replace',
+            'none',
+        ])) {
             return;
         }
 
@@ -2074,7 +2073,7 @@ class Module extends AbstractModule
         }
 
         // Explode media via database: it's not possible here.
-        // TODO Should we update item and media by item or by batch loop?
+        // TODO Should we update item and media by item or by batch loop? Note: doctrine may not be in sync.
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $this->getServiceLocator()->get('Omeka\Connection');
         $sql = <<<'SQL'

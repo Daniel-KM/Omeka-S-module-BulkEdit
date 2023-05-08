@@ -626,14 +626,18 @@ class Module extends AbstractModule
             || mb_strlen($prepend)
             || mb_strlen($append)
         ) {
-            $processes['media_html'] = [
-                'from' => $from,
-                'to' => $to,
-                'mode' => $params['mode'],
-                'remove' => $remove,
-                'prepend' => $prepend,
-                'append' => $append,
-            ];
+            // TODO Add the check of the validity of the regex in the form.
+            // Early check validity of the regex.
+            if (!($params['mode'] === 'regex' && @preg_match($from, '') === false)) {
+                $processes['media_html'] = [
+                    'from' => $from,
+                    'to' => $to,
+                    'mode' => $params['mode'],
+                    'remove' => $remove,
+                    'prepend' => $prepend,
+                    'append' => $append,
+                ];
+            }
         }
 
         $params = $bulkedit['media_type'] ?? [];
@@ -2688,10 +2692,11 @@ SQL;
             switch ($mode) {
                 case 'regex':
                     // Check the validity of the regex.
-                    // TODO Add the check of the validity of the regex in the form.
                     $isValidRegex = @preg_match($from, '') !== false;
                     if (!$isValidRegex) {
-                        $from = '';
+                        $this->getServiceLocator()->get('Omeka\Logger')
+                            ->err('Update media html: Invalid regex.'); // @translate
+                        return;
                     }
                     break;
                 case 'html':

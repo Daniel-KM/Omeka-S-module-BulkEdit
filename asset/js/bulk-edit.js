@@ -49,8 +49,8 @@ $(document).ready(function() {
             .append('<p>' + Omeka.jsTranslate('To convert values to/from mapping markers, use module DataTypeGeometry.') + '</p>');
     }
 
-    $('#fill_values > .collapsible')
-        .prepend('<p>' + Omeka.jsTranslate('Fill a value from remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".') + '</p>')
+    $('#fill_values > .collapsible, #explode_item > .collapsible, #explode_pdf > .collapsible')
+        .prepend('<p>' + Omeka.jsTranslate('Processes that manage files and remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".') + '</p>')
 
     $('.batch-edit').on('change', '#cleaning_clean_language_codes', function() {
         const fields = $('#cleaning_clean_language_codes_from, #cleaning_clean_language_codes_to, #cleaning_clean_language_codes_properties').closest('.field');

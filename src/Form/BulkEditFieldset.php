@@ -61,6 +61,7 @@ class BulkEditFieldset extends Fieldset
             case 'item':
                 $this
                     ->appendFieldsetExplodeItem()
+                    ->appendFieldsetExplodePdf()
                     ->appendFieldsetMediaOrder()
                 ;
                 // no break.
@@ -1389,6 +1390,67 @@ class BulkEditFieldset extends Fieldset
                 'attributes' => [
                     'id' => 'explode_item_mode',
                     'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetExplodePdf()
+    {
+        $this
+            ->add([
+                'name' => 'explode_pdf',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Explode pdf into jpeg for iiif viewers', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_pdf',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+            $fieldset = $this->get('explode_pdf');
+        $fieldset
+            ->add([
+                'name' => 'note_process',
+                'type' => BulkEditElement\Note::class,
+                'options' => [
+                    'content' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
+                    // TODO For compatibility with other modules, the content is passed as text too. Will be removed in Omeka S v4.
+                    'text' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_pdf_note_process',
+                    'class' => 'field',
+                    'style' => 'display_block',
+                ],
+            ])
+            ->add([
+                'name' => 'process',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Run process', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_pdf_process',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'resolution',
+                'type' => BulkEditElement\OptionalNumber::class,
+                'options' => [
+                    'label' => 'Resolution, generally 72, 96, 150 (default)  or 300', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_pdf_resolution',
+                    'min' => '0',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

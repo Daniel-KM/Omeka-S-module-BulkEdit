@@ -12,10 +12,12 @@ use BulkEdit\Form\BulkEditFieldset;
 use Generic\AbstractModule;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
+use Laminas\Math\Rand;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Adapter\MediaAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
+use Omeka\File\TempFile;
 use Omeka\Stdlib\Message;
 
 /**
@@ -29,6 +31,11 @@ use Omeka\Stdlib\Message;
 class Module extends AbstractModule
 {
     const NAMESPACE = __NAMESPACE__;
+
+    /**
+     * @var string
+     */
+    protected $basePath;
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
     {
@@ -295,6 +302,7 @@ class Module extends AbstractModule
         $postProcesses = [
             // Start with complex processes.
             'explode_item' => null,
+            'explode_pdf' => null,
             'media_html' => null,
             'media_type' => null,
             'media_visibility' => null,
@@ -364,6 +372,7 @@ class Module extends AbstractModule
         $postProcesses = [
             'items' => [
                 'explode_item' => null,
+                'explode_pdf' => null,
                 'media_html' => null,
                 'media_type' => null,
                 'media_visibility' => null,
@@ -418,6 +427,7 @@ class Module extends AbstractModule
             'fill_values' => null,
             'remove' => null,
             'explode_item' => null,
+            'explode_pdf' => null,
             'media_order' => null,
             'media_html' => null,
             'media_type' => null,
@@ -585,6 +595,14 @@ class Module extends AbstractModule
         if (!empty($params['mode'])) {
             $processes['explode_item'] = [
                 'mode' => $params['mode'],
+            ];
+        }
+
+        $params = $bulkedit['explode_pdf'] ?? [];
+        if (!empty($params['process'])) {
+            $processes['explode_pdf'] = [
+                'resolution' => (int) $params['resolution'] ?? null,
+                'base_uri' => $this->getBaseUri(),
             ];
         }
 
@@ -794,6 +812,9 @@ class Module extends AbstractModule
                 break;
             case 'explode_item':
                 $this->explodeItemByMedia($adapter, $resourceIds, $params);
+                break;
+            case 'explode_pdf':
+                $this->explodePdf($adapter, $resourceIds, $params);
                 break;
             case 'media_html':
                 $this->updateMediaHtmlForResources($adapter, $resourceIds, $params);
@@ -2266,34 +2287,201 @@ class Module extends AbstractModule
         ItemAdapter $adapter,
         array $resourceIds,
         array $params
+        ): void {
+            $mode = $params['mode'];
+            if (!in_array($mode, [
+                'append',
+                'update',
+                'replace',
+                'none',
+            ])) {
+                return;
+            }
+
+            /** @var \Omeka\Api\Manager $api */
+            $api = $this->getServiceLocator()->get('Omeka\ApiManager');
+            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+            $properties = $this->getPropertyIds();
+            $isOldOmeka = version_compare(\Omeka\Module::VERSION, '4', '<');
+
+            /** @var \Doctrine\DBAL\Connection $connection */
+            $connection = $this->getServiceLocator()->get('Omeka\Connection');
+
+            $sqlMedia = <<<'SQL'
+UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
+SQL;
+            if (!$isOldOmeka) {
+                $sqlMedia .= PHP_EOL . <<<'SQL'
+UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
+SQL;
+            }
+
+            foreach ($resourceIds as $resourceId) {
+                try {
+                    /** @var \Omeka\Api\Representation\ItemRepresentation $item */
+                    $item = $api->read('items', ['id' => $resourceId], [], ['initialize' => false])->getContent();
+                } catch (\Exception $e) {
+                    continue;
+                }
+
+                $medias = $item->media();
+                // The process is done for metadata, even with only one media.
+                if (!count($medias)) {
+                    continue;
+                }
+
+                $itemsAndMedias = [];
+
+                // Keep current data as fully serialized data.
+                // All data are copied for new items, included template, class, etc.
+                // $currentItemData = $item->jsonSerialize();
+                $currentItemData = json_decode(json_encode($item), true);
+
+                $isFirstMedia = true;
+                foreach ($medias as $media) {
+                    $itemData = $currentItemData;
+                    switch ($mode) {
+                        default:
+                        case 'append':
+                            foreach ($media->values() as $term => $propertyData) {
+                                /** @var \Omeka\Api\Representation\ValueRepresentation $value */
+                                foreach ($propertyData['values'] as $value) {
+                                    // $itemData[$term][] = $value->jsonSerialize();
+                                    $itemData[$term][] = json_decode(json_encode($value), true);
+                                }
+                            }
+                            break;
+                        case 'update':
+                            foreach ($media->values() as $term => $propertyData) {
+                                if (!empty($propertyData['values'])) {
+                                    $itemData[$term] = [];
+                                    foreach ($propertyData['values'] as $value) {
+                                        // $itemData[$term][] = $value->jsonSerialize();
+                                        $itemData[$term][] = json_decode(json_encode($value), true);
+                                    }
+                                }
+                            }
+                            break;
+                        case 'replace':
+                            $itemData = array_diff_key($itemData, $properties);
+                            foreach ($media->values() as $term => $propertyData) {
+                                if (!empty($propertyData['values'])) {
+                                    $itemData[$term] = [];
+                                    foreach ($propertyData['values'] as $value) {
+                                        // $itemData[$term][] = $value->jsonSerialize();
+                                        $itemData[$term][] = json_decode(json_encode($value), true);
+                                    }
+                                }
+                            }
+                            break;
+                        case 'none':
+                            break;
+                    }
+
+                    // The current item uses the first media.
+                    // The media are removed only when all other items are created.
+                    if ($isFirstMedia) {
+                        $isFirstMedia = false;
+                        // Store data for first item.
+                        try {
+                            $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
+                        } catch (\Exception $e) {
+                            $logger->err(new Message(
+                                'Item #%1$d cannot be exploded: %2$s', // @translate
+                                $resourceId, $e->getMessage())
+                                );
+                            continue 2;
+                        }
+                        $itemsAndMedias[$newItem->getId()] = $media->id();
+                    }
+                    // Next ones are new items.
+                    else {
+                        try {
+                            $itemData['o:id'] = null;
+                            $newItem = $api->create('items', $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
+                        } catch (\Exception $e) {
+                            $logger->err(new Message(
+                                'Item #%1$d cannot be exploded: %2$s', // @translate
+                                $resourceId, $e->getMessage())
+                                );
+                            continue 2;
+                        }
+                        $itemsAndMedias[$newItem->getId()] = $media->id();
+                    }
+                }
+
+                $sqls = '';
+                foreach ($itemsAndMedias as $newItemId => $mediaId) {
+                    $sqls .= sprintf($sqlMedia, $newItemId, $mediaId) . PHP_EOL;
+                }
+                $connection->executeStatement($sqls);
+            }
+    }
+
+    /**
+     * Explode an pdf into images.
+     *
+     * This process cannot be done via a pre-process because the media are
+     * reattached to another item. Furthermore, with standard api, items and
+     * media may be resaved later. So doctrine may not be in sync.
+     *
+     * @see https://ghostscript.readthedocs.io/en/latest/Use.html#parameter-switches-d-and-s
+     */
+    protected function explodePdf(
+        ItemAdapter $adapter,
+        array $resourceIds,
+        array $params
     ): void {
-        $mode = $params['mode'];
-        if (!in_array($mode, [
-            'append',
-            'update',
-            'replace',
-            'none',
-        ])) {
+        /**
+         * @var \Omeka\Stdlib\Cli $cli
+         * @var \Omeka\Api\Manager $api
+         * @var \Laminas\Log\Logger $logger
+         * @var \Omeka\File\TempFileFactory $tempFileFactory
+         */
+        $services = $this->getServiceLocator();
+        $cli = $services->get('Omeka\Cli');
+        $api = $services->get('Omeka\ApiManager');
+        $logger = $services->get('Omeka\Logger');
+        $tempFileFactory = $services->get('Omeka\File\TempFileFactory');
+
+        $commandPath = $cli->validateCommand('/usr/bin', 'gs');
+        if (!$commandPath) {
+            $logger->err('Ghostscript is not available.'); // @translate
             return;
         }
 
-        /** @var \Omeka\Api\Manager $api */
-        $api = $this->getServiceLocator()->get('Omeka\ApiManager');
-        $logger = $this->getServiceLocator()->get('Omeka\Logger');
-        $properties = $this->getPropertyIds();
-        $isOldOmeka = version_compare(\Omeka\Module::VERSION, '4', '<');
+        $tmpDir = $services->get('Config')['temp_dir'];
+        $basePath = $services->get('Config')['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
 
-        /** @var \Doctrine\DBAL\Connection $connection */
-        $connection = $this->getServiceLocator()->get('Omeka\Connection');
+        /**@see \ExtractOcr\Job\ExtractOcr::extractOcrForMedia() */
+        // It's not possible to save a local file via the "upload" ingester. So
+        // the ingester "url" can be used, but it requires the file to be in the
+        // omeka files directory.
+        // Else, use module FileSideload or inject sql.
 
-        $sqlMedia = <<<'SQL'
-UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
-SQL;
-        if (!$isOldOmeka) {
-            $sqlMedia .= PHP_EOL . <<<'SQL'
-UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
-SQL;
+        $this->basePath = $basePath;
+
+        if (!$this->checkDir($tmpDir . '/bulkedit')) {
+            $logger->err(new Message(
+                'Unable to create temp directory "%s".', // @translate
+                '/bulkedit'
+            ));
+            return;
         }
+
+        $baseDestination = '/temp/bulkedit';
+        if (!$this->checkDir($basePath . $baseDestination)) {
+            $logger->err(new Message(
+                'Unable to create temp directory "%s" inside "/files".', // @translate
+                $baseDestination
+            ));
+            return;
+        }
+
+        $baseUri = empty($params['base_uri']) ? $this->getBaseUri() : $params['base_uri'];
+
+        // Default is 72 in ghostscript, but it has bad output for native pdf.
+        $resolution = empty($params['resolution']) ? 150 : (int) $params['resolution'];
 
         foreach ($resourceIds as $resourceId) {
             try {
@@ -2304,96 +2492,169 @@ SQL;
             }
 
             $medias = $item->media();
-            // The process is done for metadata, even with only one media.
             if (!count($medias)) {
                 continue;
             }
 
-            $itemsAndMedias = [];
-
-            // Keep current data as fully serialized data.
-            // All data are copied for new items, included template, class, etc.
-            // $currentItemData = $item->jsonSerialize();
-            $currentItemData = json_decode(json_encode($item), true);
-
-            $isFirstMedia = true;
+            // To avoid issues with multiple pdf, get the list of pdf first.
+            $pdfMedias = [];
             foreach ($medias as $media) {
-                $itemData = $currentItemData;
-                switch ($mode) {
-                    default:
-                    case 'append':
-                        foreach ($media->values() as $term => $propertyData) {
-                            /** @var \Omeka\Api\Representation\ValueRepresentation $value */
-                            foreach ($propertyData['values'] as $value) {
-                                // $itemData[$term][] = $value->jsonSerialize();
-                                $itemData[$term][] = json_decode(json_encode($value), true);
-                            }
-                        }
-                        break;
-                    case 'update':
-                        foreach ($media->values() as $term => $propertyData) {
-                            if (!empty($propertyData['values'])) {
-                                $itemData[$term] = [];
-                                foreach ($propertyData['values'] as $value) {
-                                    // $itemData[$term][] = $value->jsonSerialize();
-                                    $itemData[$term][] = json_decode(json_encode($value), true);
-                                }
-                            }
-                        }
-                        break;
-                    case 'replace':
-                        $itemData = array_diff_key($itemData, $properties);
-                        foreach ($media->values() as $term => $propertyData) {
-                            if (!empty($propertyData['values'])) {
-                                $itemData[$term] = [];
-                                foreach ($propertyData['values'] as $value) {
-                                    // $itemData[$term][] = $value->jsonSerialize();
-                                    $itemData[$term][] = json_decode(json_encode($value), true);
-                                }
-                            }
-                        }
-                        break;
-                    case 'none':
-                        break;
-                }
-
-                // The current item uses the first media.
-                // The media are removed only when all other items are created.
-                if ($isFirstMedia) {
-                    $isFirstMedia = false;
-                    // Store data for first item.
-                    try {
-                        $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
-                    } catch (\Exception $e) {
-                        $logger->err(new Message(
-                            'Item #%1$d cannot be exploded: %2$s', // @translate
-                            $resourceId, $e->getMessage())
-                        );
-                        continue 2;
-                    }
-                   $itemsAndMedias[$newItem->getId()] = $media->id();
-                }
-                // Next ones are new items.
-                else {
-                    try {
-                        $itemData['o:id'] = null;
-                        $newItem = $api->create('items', $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
-                    } catch (\Exception $e) {
-                        $logger->err(new Message(
-                            'Item #%1$d cannot be exploded: %2$s', // @translate
-                            $resourceId, $e->getMessage())
-                        );
-                        continue 2;
-                    }
-                    $itemsAndMedias[$newItem->getId()] = $media->id();
+                if ($media->mediaType() === 'application/pdf') {
+                    $pdfMedias[$media->id()] = $media;
                 }
             }
-
-            $sqls = '';
-            foreach ($itemsAndMedias as $newItemId => $mediaId) {
-                $sqls .= sprintf($sqlMedia, $newItemId, $mediaId) . PHP_EOL;
+            if (!count($pdfMedias)) {
+                continue;
             }
-            $connection->executeStatement($sqls);
+
+            $currentPosition = count($medias);
+
+            $tmpDirResource = $tmpDir . '/bulkedit/' . $resourceId;
+            if (!$this->checkDir($tmpDirResource)) {
+                $logger->err(new Message(
+                    'Unable to create temp directory "%1$s" for item #%2$d.', // @translate
+                    '/bulkedit/' . $resourceId, $resourceId
+                ));
+                return;
+            }
+
+            $baseDestinationResource = '/temp/bulkedit/' . $resourceId;
+            $filesTempDirResource = $basePath . $baseDestinationResource;
+            if (!$this->checkDir($filesTempDirResource)) {
+                $logger->err(new Message(
+                    'Unable to create temp directory "%1$s" inside "/files" for resource #%2$d.', // @translate
+                    $baseDestinationResource, $resourceId
+                ));
+                return;
+            }
+
+            foreach ($pdfMedias as $pdfMedia) {
+                $filepath = $basePath . '/original/' . $pdfMedia->filename();
+                $ready = file_exists($filepath) && is_readable($filepath) && filesize($filepath);
+                if (!$ready) {
+                    $logger->err(new Message(
+                        'Unable to read pdf #%d.', // @translate
+                        $pdfMedia->id()
+                    ));
+                    continue;
+                }
+
+                /** @see \Omeka\File\TempFile::getStorageId() */
+                $storage = bin2hex(Rand::getBytes(16));
+
+                // Sanitize source name, since it's reused as source for images.
+                $sourceBasename = basename($pdfMedia->source(), '.pdf');
+                $sourceBasename = $this->sanitizeName($sourceBasename);
+                $sourceBasename = $this->convertNameToAscii($sourceBasename);
+
+                // Manage windows, that escapes argument differently (quote or
+                // double quote).
+                $tmpPath = escapeshellarg($tmpDirResource . '/' . $storage);
+                $wrap = mb_substr($tmpPath, -1);
+                $command = sprintf(
+                    'gs -sDEVICE=jpeg -sOutputFile=%s -r%s -dNOTRANSPARENCY -dNOPAUSE -dQUIET -dBATCH %s',
+                    $wrap . mb_substr($tmpPath, 1, -1) . '%04d.jpg' . $wrap,
+                    (int) $resolution,
+                    escapeshellarg($filepath)
+                );
+                $result = $cli->execute($command);
+                if ($result === false) {
+                    $logger->err(new Message(
+                        'Unable to extract images from pdf #%d.', // @translate
+                        $pdfMedia->id()
+                    ));
+                    continue;
+                }
+
+                $index = 0;
+                $totalImages = 0;
+                while (++$index) {
+                    $source = sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index);
+                    if (!file_exists($source)) {
+                        break;
+                    }
+                    ++$totalImages;
+                }
+
+                if (!$totalImages) {
+                    $logger->warn(new Message(
+                        'For item #%1$d, pdf #%2$d cannot be exploded into images.', // @translate
+                        $resourceId, $pdfMedia->id()
+                    ));
+                    continue;
+                }
+
+                // Create media from files and append them to item.
+                $logger->info(new Message(
+                    'Exploding #%1$d images from item #%2$d, pdf #%3$d.', // @translate
+                    $totalImages, $resourceId, $pdfMedia->id()
+                ));
+
+                $index = 0;
+                // $hasError = false;
+                while (++$index) {
+                    $source = sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index);
+                    if (!file_exists($source)) {
+                        break;
+                    }
+
+                    $destination = sprintf('%s/%s.%04d.jpg', $filesTempDirResource, $sourceBasename, $index);
+
+                    $result = @copy($source, $destination);
+                    if (!$result) {
+                        // $hasError = true;
+                        $logger->err(new Message(
+                            'File cannot be saved in temporary directory "%1$s" (temp file: "%2$s")', // @translate
+                            basename($destination), $source
+                        ));
+                        break;
+                    }
+
+                    $storageId = basename($source);
+                    $sourceFilename = basename($destination);
+
+                    $fileImage = [
+                        'filepath' => $destination,
+                        'filename' => $sourceFilename,
+                        'url' => $baseUri . $baseDestinationResource . '/' . $sourceFilename,
+                        'url_file' => $baseDestinationResource . '/' . $sourceFilename,
+                        'storageId' => $storageId,
+                    ];
+
+                    $data = [
+                        'o:ingester' => 'url',
+                        'o:item' => [
+                            'o:id' => $pdfMedia->item()->id(),
+                        ],
+                        'o:source' => $sourceFilename,
+                        'ingest_url' => $fileImage['url'],
+                        'file_index' => 0,
+                        'values_json' => '{}',
+                        'o:lang' => null,
+                        'position' => ++$currentPosition,
+                    ];
+
+                    // TODO Extract ocr into extracted text. See ExtractOcr.
+                    // TODO Extract Alto.
+
+                    try {
+                        $media = $api->create('media', $data, [])->getContent();
+                    } catch (\Omeka\Api\Exception\ExceptionInterface $e) {
+                        // Generally a bad or missing pdf file.
+                        // $hasError = true;
+                        $logger->err($e->getMessage() ?: $e);
+                        break;
+                    } catch (\Exception $e) {
+                        // $hasError = true;
+                        $logger->err($e);
+                        break;
+                    }
+                }
+
+                // Delete temp files in all cases.
+                $this->rmDir($tmpDirResource);
+                $this->rmDir($baseDestinationResource);
+            }
         }
     }
 
@@ -3060,6 +3321,162 @@ SQL;
         uasort($toOrder, $cmp);
 
         return $toOrder;
+    }
+
+    /**
+     * Save a temp file into the files/temp directory.
+     *
+     * @see \DerivativeMedia\Module::makeTempFileDownloadable()
+     * @see \Ebook\Mvc\Controller\Plugin\Ebook::saveFile()
+     * @see \ExtractOcr\Job\ExtractOcr::makeTempFileDownloadable()
+     */
+    protected function makeTempFileDownloadable(TempFile $tempFile, $base = '')
+    {
+        $baseDestination = '/temp';
+$destinationDir = $this->basePath . $baseDestination . $base;
+        if (!$this->checkDir($destinationDir)) {
+            return null;
+        }
+
+        $source = $tempFile->getTempPath();
+
+        // Find a unique meaningful filename instead of a hash.
+        $name = date('Ymd_His') . '_pdf2jpg';
+        $extension = 'jpg';
+        $i = 0;
+        do {
+            $filename = $name . ($i ? '-' . $i : '') . '.' . $extension;
+            $destination = $destinationDir . '/' . $filename;
+            if (!file_exists($destination)) {
+                $result = @copy($source, $destination);
+                if (!$result) {
+                        $this->getServiceLocator()->get('Omeka\Logger')->err(new Message('File cannot be saved in temporary directory "%1$s" (temp file: "%2$s")', // @translate
+                        $destination, $source
+                    ));
+                    return null;
+                }
+                $storageId = $base . $name . ($i ? '-' . $i : '');
+                break;
+            }
+        } while (++$i);
+
+        return [
+            'filepath' => $destination,
+            'filename' => $filename,
+            'url' => $this->baseUri . $baseDestination . $base . '/' . $filename,
+            'url_file' => $baseDestination . $base . '/' . $filename,
+            'storageId' => $storageId,
+        ];
+    }
+
+    /**
+     * @todo To get the base uri is useless now, since base uri is passed as job argument.
+     */
+    protected function getBaseUri()
+    {
+        $services = $this->getServiceLocator();
+        $config = $services->get('Config');
+        $baseUri = $config['file_store']['local']['base_uri'];
+        if (!$baseUri) {
+            $helpers = $services->get('ViewHelperManager');
+            $serverUrlHelper = $helpers->get('serverUrl');
+            $basePathHelper = $helpers->get('basePath');
+            $baseUri = $serverUrlHelper($basePathHelper('files'));
+            if ($baseUri === 'http:///files' || $baseUri === 'https:///files') {
+                $t = $services->get('MvcTranslator');
+                throw new \Omeka\Mvc\Exception\RuntimeException(
+                    sprintf(
+                        $t->translate('The base uri is not set (key [file_store][local][base_uri]) in the config file of Omeka "config/local.config.php". It must be set for now (key [file_store][local][base_uri]) in order to process background jobs.'), //@translate
+                        $baseUri
+                    )
+                );
+            }
+        }
+        return $baseUri;
+    }
+
+    /**
+     * Check or create the destination folder.
+     *
+     * @param string $dirPath
+     * @return bool
+     */
+    protected function checkDir($dirPath)
+    {
+        if (!file_exists($dirPath)) {
+            if (!is_writeable($this->basePath)) {
+                return false;
+            }
+            @mkdir($dirPath, 0755, true);
+        } elseif (!is_dir($dirPath) || !is_writeable($dirPath)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Remove a dir from filesystem.
+     *
+     * @param string $dirpath Absolute path.
+     */
+    private function rmDir(string $dirPath): bool
+    {
+        if (!file_exists($dirPath)) {
+            return true;
+        }
+        if (strpos($dirPath, '/..') !== false || substr($dirPath, 0, 1) !== '/') {
+            return false;
+        }
+        $files = array_diff(scandir($dirPath), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dirPath . '/' . $file;
+            if (is_dir($path)) {
+                $this->rmDir($path);
+            } else {
+                unlink($path);
+            }
+        }
+        return rmdir($dirPath);
+    }
+
+    /**
+     * Returns a sanitized string for folder or file path.
+     *
+     * The string should be a simple name, not a full path or url, because "/",
+     * "\" and ":" are removed (so a path should be sanitized by part).
+     *
+     * @param string $string The string to sanitize.
+     * @return string The sanitized string.
+     */
+    protected function sanitizeName($string): string
+    {
+        $string = strip_tags((string) $string);
+        // The first character is a space and the last one is a no-break space.
+        $string = trim($string, ' /\\?<>:*%|"\'`&; ');
+        $string = str_replace(['(', '{'], '[', $string);
+        $string = str_replace([')', '}'], ']', $string);
+        $string = preg_replace('/[[:cntrl:]\/\\\?<>:\*\%\|\"\'`\&\;#+\^\$\s]/', ' ', $string);
+        return substr(preg_replace('/\s+/', ' ', $string), -180);
+    }
+
+    /**
+     * Returns an unaccentued string for folder or file name.
+     *
+     * Note: The string should be already sanitized.
+     *
+     * See \ArchiveRepertoryPlugin::convertFilenameTo()
+     *
+     * @param string $string The string to convert to ascii.
+     * @return string The converted string to use as a folder or a file name.
+     */
+    protected function convertNameToAscii($string): string
+    {
+        $string = htmlentities($string, ENT_NOQUOTES, 'utf-8');
+        $string = preg_replace('#\&([A-Za-z])(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml|caron)\;#', '\1', $string);
+        $string = preg_replace('#\&([A-Za-z]{2})(?:lig)\;#', '\1', $string);
+        $string = preg_replace('#\&[^;]+\;#', '_', $string);
+        $string = preg_replace('/[^[:alnum:]\[\]_\-\.#~@+:]/', '_', $string);
+        return substr(preg_replace('/_+/', '_', $string), -180);
     }
 
     /**

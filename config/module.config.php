@@ -31,6 +31,7 @@ return [
         'invokables' => [
             Form\Element\ArrayText::class => Form\Element\ArrayText::class,
             Form\Element\Note::class => Form\Element\Note::class,
+            Form\Element\OptionalNumber::class => Form\Element\OptionalNumber::class,
             Form\Element\OptionalRadio::class => Form\Element\OptionalRadio::class,
             Form\Element\OptionalSelect::class => Form\Element\OptionalSelect::class,
             Form\SettingsFieldset::class => Form\SettingsFieldset::class,
@@ -63,7 +64,7 @@ return [
         'Collapse', // @translate
         'The actions are processed in the order of the form. Be careful when mixing them.', // @translate
         'To convert values to/from mapping markers, use module DataTypeGeometry.', // @translate
-        'Fill a value from remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".', // @translate
+        'Processes that manage files and remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".', // @translate
     ],
     'bulkedit' => [
         'settings' => [

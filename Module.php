@@ -599,9 +599,11 @@ class Module extends AbstractModule
         }
 
         $params = $bulkedit['explode_pdf'] ?? [];
-        if (!empty($params['process'])) {
+        if (!empty($params['mode'])) {
             $processes['explode_pdf'] = [
+                'mode' => $params['mode'],
                 'resolution' => (int) $params['resolution'] ?? null,
+                // TODO Use server-url from job.
                 'base_uri' => $this->getBaseUri(),
             ];
         }
@@ -2478,6 +2480,8 @@ SQL;
             return;
         }
 
+        $mode = $params['mode'] ??  'all';
+
         $baseUri = empty($params['base_uri']) ? $this->getBaseUri() : $params['base_uri'];
 
         // Default is 72 in ghostscript, but it has bad output for native pdf.
@@ -2505,6 +2509,14 @@ SQL;
             }
             if (!count($pdfMedias)) {
                 continue;
+            }
+
+            if ($mode === 'first' && count($pdfMedias) > 1) {
+                $pdfMedia = reset($pdfMedias);
+                $pdfMedias = [$pdfMedia->id() => $pdfMedia];
+            } elseif ($mode === 'last' && count($pdfMedias) > 1) {
+                $pdfMedia = array_pop($pdfMedias);
+                $pdfMedias = [$pdfMedia->id() => $pdfMedia];
             }
 
             $currentPosition = count($medias);

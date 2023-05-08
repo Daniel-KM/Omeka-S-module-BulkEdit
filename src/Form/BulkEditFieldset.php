@@ -1431,13 +1431,20 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
-                'name' => 'process',
-                'type' => Element\Checkbox::class,
+                'name' => 'mode',
+                'type' => BulkEditElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Run process', // @translate
+                    'label' => 'Process mode', // @translate
+                    'value_options' => [
+                        '' => 'No process', // @translate
+                        'all' => 'All pdf of each item', // @translate
+                        'first' => 'First pdf only', // @translate
+                        'last' => 'Last pdf only', // @translate
+                    ],
                 ],
                 'attributes' => [
-                    'id' => 'explode_pdf_process',
+                    'id' => 'explode_pdf_mode',
+                    'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

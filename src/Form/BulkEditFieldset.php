@@ -1450,6 +1450,23 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'process',
+                'type' => BulkEditElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Creation process', // @translate
+                    'value_options' => [
+                        'all' => 'All pages', // @translate
+                        'skip' => 'Skip existing pages (same created file name)', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'explode_pdf_process',
+                    'value' => 'all',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'resolution',
                 'type' => BulkEditElement\OptionalNumber::class,
                 'options' => [

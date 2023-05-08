@@ -602,6 +602,7 @@ class Module extends AbstractModule
         if (!empty($params['mode'])) {
             $processes['explode_pdf'] = [
                 'mode' => $params['mode'],
+                'process' => $params['process'] ?? null,
                 'resolution' => (int) $params['resolution'] ?? null,
                 // TODO Use server-url from job.
                 'base_uri' => $this->getBaseUri(),
@@ -2480,7 +2481,8 @@ SQL;
             return;
         }
 
-        $mode = $params['mode'] ??  'all';
+        $mode = $params['mode'] ?? 'all';
+        $process = $params['process'] ?? 'all';
 
         $baseUri = empty($params['base_uri']) ? $this->getBaseUri() : $params['base_uri'];
 
@@ -2502,9 +2504,14 @@ SQL;
 
             // To avoid issues with multiple pdf, get the list of pdf first.
             $pdfMedias = [];
+            $imageJpegSourceNames = [];
             foreach ($medias as $media) {
-                if ($media->mediaType() === 'application/pdf') {
-                    $pdfMedias[$media->id()] = $media;
+                $mediaId = $media->id();
+                $mediaType = $media->mediaType();
+                if ($mediaType === 'application/pdf') {
+                    $pdfMedias[$mediaId] = $media;
+                } elseif ($mediaType === 'image/jpeg') {
+                    $imageJpegSourceNames[$mediaId] = $media->source();
                 }
             }
             if (!count($pdfMedias)) {
@@ -2559,6 +2566,11 @@ SQL;
                 $sourceBasename = $this->sanitizeName($sourceBasename);
                 $sourceBasename = $this->convertNameToAscii($sourceBasename);
 
+                $logger->info(new Message(
+                    'Step 1/2 for item #%1$d, pdf #%2$d: Extracting pages as image.', // @translate
+                    $resourceId, $pdfMedia->id()
+                ));
+
                 // Manage windows, that escapes argument differently (quote or
                 // double quote).
                 $tmpPath = escapeshellarg($tmpDirResource . '/' . $storage);
@@ -2572,8 +2584,8 @@ SQL;
                 $result = $cli->execute($command);
                 if ($result === false) {
                     $logger->err(new Message(
-                        'Unable to extract images from pdf #%d.', // @translate
-                        $pdfMedia->id()
+                        'Unable to extract images from item #%1$d pdf #%2$d.', // @translate
+                        $resourceId, $pdfMedia->id()
                     ));
                     continue;
                 }
@@ -2598,7 +2610,7 @@ SQL;
 
                 // Create media from files and append them to item.
                 $logger->info(new Message(
-                    'Exploding #%1$d images from item #%2$d, pdf #%3$d.', // @translate
+                    'Step 2/2 for item #%1$d, pdf #%2$d: Creating %3$d media.', // @translate
                     $totalImages, $resourceId, $pdfMedia->id()
                 ));
 
@@ -2611,6 +2623,13 @@ SQL;
                     }
 
                     $destination = sprintf('%s/%s.%04d.jpg', $filesTempDirResource, $sourceBasename, $index);
+                    $storageId = basename($source);
+                    $sourceFilename = basename($destination);
+
+                    if ($process === 'skip' && in_array($sourceFilename, $imageJpegSourceNames)) {
+                        ++$currentPosition;
+                        continue;
+                    }
 
                     $result = @copy($source, $destination);
                     if (!$result) {
@@ -2621,9 +2640,6 @@ SQL;
                         ));
                         break;
                     }
-
-                    $storageId = basename($source);
-                    $sourceFilename = basename($destination);
 
                     $fileImage = [
                         'filepath' => $destination,
@@ -2636,7 +2652,7 @@ SQL;
                     $data = [
                         'o:ingester' => 'url',
                         'o:item' => [
-                            'o:id' => $pdfMedia->item()->id(),
+                            'o:id' => $resourceId,
                         ],
                         'o:source' => $sourceFilename,
                         'ingest_url' => $fileImage['url'],

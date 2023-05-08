@@ -2083,11 +2083,16 @@ class Module extends AbstractModule
             ];
 
             $mainOrder = null;
+            $subOrder = null;
             if (in_array($order, $orders)) {
                 $mainOrder = $order;
+            } elseif (strpos($order, '/')) {
+                [$mainOrder, $subOrder] = explode('/', $order, 2);
             }
 
-            if (!in_array($mainOrder, $orders)) {
+            if (!in_array($mainOrder, $orders)
+                || ($subOrder && !in_array($subOrder, $orders))
+            ) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
                 $logger->err(new Message(
                     'Order "%s" is invalid.', // @translate
@@ -2099,6 +2104,7 @@ class Module extends AbstractModule
             $settings = $params;
             $settings['order'] = $order;
             $settings['mainOrder'] = $mainOrder;
+            $settings['subOrder'] = $subOrder;
         } else {
             extract($settings);
         }
@@ -2111,11 +2117,16 @@ class Module extends AbstractModule
             return;
         }
 
-        $needTitle = $mainOrder === 'title';
-        $needSource = $mainOrder === 'source';
-        $needBasename = $mainOrder === 'basename';
-        $needMediaType = $mainOrder === 'mediatype';
-        $needExtension = $mainOrder === 'extension';
+        $needTitle = $mainOrder === 'title' || $subOrder === 'title';
+        $needSource = $mainOrder === 'source' || $subOrder === 'source';
+        $needBasename = $mainOrder === 'basename' || $subOrder === 'basename';
+        $needMediaType = $mainOrder === 'mediatype' || $subOrder === 'mediatype';
+        $needExtension = $mainOrder === 'extension' || $subOrder === 'extension';
+
+        // Filter on media-type or extension as first or last, so remove
+        // extension from the other order field.
+        $removeExtension = ($needSource || $needBasename)
+            && ($needMediaType || $needExtension);
 
         $mediaData = [
             'position' => [],
@@ -2156,8 +2167,50 @@ class Module extends AbstractModule
         }
 
         // Do the order.
-        $newOrder = $mediaData[$mainOrder];
-        natcasesort($newOrder);
+        if (!$subOrder || !count(array_filter($mediaData[$subOrder], 'strlen'))) {
+            $newOrder = $mediaData[$mainOrder];
+            natcasesort($newOrder);
+        } else {
+            $firstOrder = $mediaData[$mainOrder];
+            $secondOrder = $mediaData[$subOrder];
+
+            // Remove extension first when needed.
+            if ($removeExtension) {
+                $cleanSub = $mainOrder === 'mediatype' || $mainOrder === 'extension';
+                $cleanOrder = $cleanSub ? $secondOrder : $firstOrder;
+                if (($cleanSub ? $subOrder : $mainOrder) === 'source') {
+                    foreach ($cleanOrder as &$string) {
+                        $extension = pathinfo($string, PATHINFO_EXTENSION);
+                        $length = mb_strlen($extension);
+                        if ($length) {
+                            $string = mb_substr($string, 0, -$length - 1);
+                        }
+                    }
+                } elseif (($cleanSub ? $subOrder : $mainOrder) === 'basename') {
+                    foreach ($cleanOrder as &$string) {
+                        $string = pathinfo($string, PATHINFO_FILENAME);
+                    }
+                }
+                unset($string);
+                $cleanSub ? ($secondOrder = $cleanOrder) : ($firstOrder = $cleanOrder);
+            }
+
+            // Create a single array to order.
+            $newOrder = [];
+            foreach ($firstOrder as $mediaId => $value) {
+                $newOrder[$mediaId] = [
+                    $value,
+                    $secondOrder[$mediaId]
+                ];
+            }
+
+            // Do the order.
+            $cmp = function($a, $b) {
+                return strcasecmp($a[0], $b[0])
+                    ?: strcasecmp($a[1], $b[1]);
+            };
+            uasort($newOrder, $cmp);
+        }
 
         // Keep only the position, starting from 1.
         $newOrder = array_keys($newOrder);

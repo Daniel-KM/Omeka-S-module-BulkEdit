@@ -1421,11 +1421,48 @@ class BulkEditFieldset extends Fieldset
                 'options' => [
                     'label' => 'Media order', // @translate
                     'value_options' => [
-                        'title' => 'By title', // @translate
-                        'source' => 'By original source full name', // @translate
-                        'basename' => 'By original source basename', // @translate
-                        'mediatype' => 'By media type', // @translate
-                        'extension' => 'By extension', // @translate
+                        'simple' => [
+                            'label' => 'Simple',
+                            'options' => [
+                                'title' => 'By title', // @translate
+                                'source' => 'By original source full name', // @translate
+                                'basename' => 'By original source basename', // @translate
+                                'mediatype' => 'By media type', // @translate
+                                'extension' => 'By extension', // @translate
+                            ],
+                        ],
+                        'mediatype_first' => [
+                            'label' => 'Sort by media type first',
+                            'options' => [
+                                'mediatype/title' => 'By media type then title', // @translate
+                                'mediatype/source' => 'By media type then source', // @translate
+                                'mediatype/basename' => 'By media type then source basename', // @translate
+                            ],
+                        ],
+                        'mediatype_after' => [
+                            'label' => 'Sort by media type last',
+                            'options' => [
+                                'title/mediatype' => 'By title then media type', // @translate
+                                'source/mediatype' => 'By source then media type', // @translate
+                                'basename/mediatype' => 'By source basename then media type', // @translate
+                            ],
+                        ],
+                        'extension_first' => [
+                            'label' => 'Sort by extension first',
+                            'options' => [
+                                'extension/title' => 'By extension then title', // @translate
+                                'extension/source' => 'By extension then source', // @translate
+                                'extension/basename' => 'By extension then source basename', // @translate
+                            ],
+                        ],
+                        'extension_after' => [
+                            'label' => 'Sort by extension last',
+                            'options' => [
+                                'title/extension' => 'By title then extension', // @translate
+                                'source/extension' => 'By source then extension', // @translate
+                                'basename/extension' => 'By source basename then extension', // @translate
+                            ],
+                        ],
                     ],
                     'empty_option' => '',
                 ],

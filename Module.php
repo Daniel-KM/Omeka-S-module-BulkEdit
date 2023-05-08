@@ -593,6 +593,8 @@ class Module extends AbstractModule
         if (mb_strlen($order)) {
             $processes['media_order'] = [
                 'order' => $order,
+                'mediatypes' => $params['mediatypes'] ?? [],
+                'extensions' => $params['extensions'] ?? [],
             ];
         }
 
@@ -2073,6 +2075,8 @@ class Module extends AbstractModule
 
         if (is_null($settings)) {
             $order = $params['order'];
+            $mediaTypes = $params['mediatypes'];
+            $extensions = $params['extensions'];
 
             $orders = [
                 'title',
@@ -2134,6 +2138,7 @@ class Module extends AbstractModule
             'source' => [],
             'basename' => [],
             'mediatype' => [],
+            'mainmediatype' => [],
             'extension' => [],
         ];
 
@@ -2160,6 +2165,7 @@ class Module extends AbstractModule
             if ($needMediaType) {
                 $mediaType = (string) $media->mediaType();
                 $mediaData['mediatype'][$mediaId] = $mediaType;
+                $mediaData['mainmediatype'][$mediaId] = $mediaType ? strtok($mediaType, '/') : '';
             }
             if ($needExtension) {
                 $mediaData['extension'][$mediaId] = (string) $media->extension();
@@ -2168,9 +2174,20 @@ class Module extends AbstractModule
 
         // Do the order.
         if (!$subOrder || !count(array_filter($mediaData[$subOrder], 'strlen'))) {
-            $newOrder = $mediaData[$mainOrder];
-            natcasesort($newOrder);
-        } else {
+            // Manage order with a list.
+            if (($mainOrder === 'mediatype' && $mediaTypes)
+                || ($mainOrder === 'extension' && $extensions)
+            ) {
+                $newOrder = $this->orderWithList($mediaData, $mainOrder, $mediaTypes, $extensions);
+            }
+            // Simple one column order.
+            else {
+                $newOrder = $mediaData[$mainOrder];
+                natcasesort($newOrder);
+            }
+        }
+        // Do the order with two criterias.
+        else {
             $firstOrder = $mediaData[$mainOrder];
             $secondOrder = $mediaData[$subOrder];
 
@@ -2196,22 +2213,31 @@ class Module extends AbstractModule
             }
 
             // Create a single array to order.
-            $newOrder = [];
+            $toOrder = [];
             foreach ($firstOrder as $mediaId => $value) {
-                $newOrder[$mediaId] = [
+                $toOrder[$mediaId] = [
                     $value,
-                    $secondOrder[$mediaId]
+                    $secondOrder[$mediaId],
+                    $mediaData['mainmediatype'][$mediaId],
+                    // TODO Use media id to be consistent before php 8.0.
+                    // $mediaId,
                 ];
             }
 
-            // Do the order.
-            $cmp = function($a, $b) {
-                return strcasecmp($a[0], $b[0])
-                    ?: strcasecmp($a[1], $b[1]);
-            };
-            uasort($newOrder, $cmp);
+            if (($mainOrder === 'mediatype' && !$mediaTypes)
+                || ($mainOrder === 'extension' && !$extensions)
+                || ($subOrder === 'mediatype' && !$mediaTypes)
+                || ($subOrder === 'extension' && !$extensions)
+            ) {
+                $newOrder = $this->orderWithTwoCriteria($toOrder);
+            } elseif ($mainOrder === 'mediatype' || $mainOrder === 'extension') {
+                $newOrder = $this->orderWithListThenField($toOrder, $mainOrder, $subOrder, $mediaTypes, $extensions);
+            } else {
+                $newOrder = $this->orderWithFieldThenList($toOrder, $mainOrder, $subOrder, $mediaTypes, $extensions);
+            }
         }
 
+        // The media ids are the keys.
         // Keep only the position, starting from 1.
         $newOrder = array_keys($newOrder);
         array_unshift($newOrder, null);
@@ -2886,6 +2912,154 @@ SQL;
         }
 
         return $doc;
+    }
+
+    protected function orderWithTwoCriteria($toOrder): array
+    {
+        $cmp = function($a, $b) {
+            return strcasecmp($a[0], $b[0])
+                ?: strcasecmp($a[1], $b[1]);
+        };
+        uasort($toOrder, $cmp);
+        return $toOrder;
+    }
+
+    protected function orderWithList($data, $mainOrder, $mediaTypes, $extensions): array
+    {
+        $newOrder = [];
+
+        if ($mainOrder === 'mediatype') {
+            // Order each media type separately.
+            foreach ($mediaTypes as $mediaType) {
+                // Get all medias with the specified media type and not
+                // already filtered.
+                $mainOrderType = strpos($mediaType, '/') ? 'mediatype' : 'mainmediatype';
+                foreach ($data[$mainOrderType] as $mediaId => $mediaMediaType) {
+                    if ($mediaMediaType === $mediaType && !isset($newOrder[$mediaId])) {
+                        $newOrder[$mediaId] = $mediaId;
+                    }
+                }
+            }
+        } else {
+            // Order each extensions separately.
+            foreach ($extensions as $extension) {
+                foreach ($data['extension'] as $mediaId => $mediaExtension) {
+                    if ($mediaExtension === $extension && !isset($newOrder[$mediaId])) {
+                        $newOrder[$mediaId] = $mediaId;
+                    }
+                }
+            }
+        }
+
+        // Other media are ordered alphabetically.
+        $remainingOrder = array_diff_key($data[$mainOrder], $newOrder);
+        if (count($remainingOrder)) {
+            natcasesort($remainingOrder);
+            $newOrder += $remainingOrder;
+        }
+
+        return $newOrder;
+    }
+
+    protected function orderWithListThenField($toOrder, $mainOrder, $subOrder, $mediaTypes, $extensions): array
+    {
+        if (($mainOrder === 'mediatype' && !$mediaTypes)
+            || ($mainOrder === 'extension' && !$extensions)
+        ) {
+            return $this->orderWithTwoCriteria($toOrder);
+        }
+
+        $newOrder = [];
+
+        if ($mainOrder === 'mediatype') {
+            // Order each media type separately.
+            foreach ($mediaTypes as $mediaType) {
+                // Get all medias with the specified media type and not
+                // already filtered.
+                $partialOrder = [];
+                $mainOrderType = strpos($mediaType, '/') ? 0 : 2;
+                foreach ($toOrder as $mediaId => $mediaData) {
+                    if ($mediaData[$mainOrderType] === $mediaType && !isset($newOrder[$mediaId])) {
+                        $partialOrder[$mediaId] = $mediaData[1];
+                    }
+                }
+                // Order the partial order with the second field.
+                uasort($partialOrder, 'strcasecmp');
+                $newOrder += $partialOrder;
+            }
+        } else {
+            // Order each media type separately.
+            foreach ($extensions as $extension) {
+                // Get all medias with the specified media type and not
+                // already filtered.
+                $partialOrder = [];
+                foreach ($toOrder as $mediaId => $mediaData) {
+                    if ($mediaData[0] === $extension && !isset($newOrder[$mediaId])) {
+                        $partialOrder[$mediaId] = $mediaData[1];
+                    }
+                }
+                // Order the partial order with the second field.
+                uasort($partialOrder, 'strcasecmp');
+                $newOrder += $partialOrder;
+            }
+        }
+
+        // Other media are ordered alphabetically.
+        $remainingOrder = array_diff_key($toOrder, $newOrder);
+        if (count($remainingOrder)) {
+            $newOrder += $this->orderWithTwoCriteria($remainingOrder);
+        }
+
+        return $newOrder;
+    }
+
+    protected function orderWithFieldThenList($toOrder, $mainOrder, $subOrder, $mediaTypes, $extensions): array
+    {
+        if (($subOrder === 'mediatype' && !$mediaTypes)
+            || ($subOrder === 'extension' && !$extensions)
+        ) {
+            return $this->orderWithTwoCriteria($toOrder);
+        }
+
+        if ($subOrder === 'mediatype') {
+            $cmp = function ($a, $b) use ($mediaTypes) {
+                $result = strcasecmp($a[0], $b[0]);
+                if ($result) {
+                    return $result;
+                }
+                foreach ($mediaTypes as $mediaType) {
+                    $mainOrderType = strpos($mediaType, '/') ? 1 : 2;
+                    $aa = $a[$mainOrderType];
+                    $bb = $b[$mainOrderType];
+                    if ($aa === $mediaType && $bb !== $mediaType) {
+                        return -1;
+                    } elseif ($aa !== $mediaType && $bb === $mediaType) {
+                        return 1;
+                    }
+                }
+                return strcasecmp($a[1], $b[1]);
+            };
+
+        } else {
+            $cmp = function ($a, $b) use ($extensions) {
+                $result = strcasecmp($a[0], $b[0]);
+                if ($result) {
+                    return $result;
+                }
+                foreach ($extensions as $extension) {
+                    if ($a[1] === $extension && $b[1] !== $extension) {
+                        return -1;
+                    } elseif ($a[1] !== $extension && $b[1] === $extension) {
+                        return 1;
+                    }
+                }
+                return strcasecmp($a[1], $b[1]);
+            };
+        }
+
+        uasort($toOrder, $cmp);
+
+        return $toOrder;
     }
 
     /**

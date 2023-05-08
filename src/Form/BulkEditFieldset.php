@@ -1475,6 +1475,37 @@ class BulkEditFieldset extends Fieldset
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
+            ])
+            ->add([
+                'name' => 'mediatypes',
+                'type' => BulkEditElement\ArrayText::class,
+                'options' => [
+                    'label' => 'List of media types to order first', // @translate
+                    'value_separator' => ' ', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'mediaorder_mediatypes',
+                    'value' => [
+                        'video',
+                        'audio',
+                        'image',
+                        'application/pdf',
+                    ],
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'extensions',
+                'type' => BulkEditElement\ArrayText::class,
+                'options' => [
+                    'label' => 'List of extensions to order first', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'mediaorder_extensions',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
             ]);
 
         return $this;

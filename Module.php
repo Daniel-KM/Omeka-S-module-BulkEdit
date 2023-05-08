@@ -58,11 +58,13 @@ class Module extends AbstractModule
                 [$this, 'handleResourceProcessPre']
             );
 
+            // Clean batch update request one time.
             $sharedEventManager->attach(
                 $adapter,
                 'api.preprocess_batch_update',
                 [$this, 'handleResourceBatchUpdatePreprocess']
             );
+
             // Batch update is designed to do the same process to all resources,
             // but BulkEdit needs to check each data separately.
             $sharedEventManager->attach(
@@ -70,20 +72,14 @@ class Module extends AbstractModule
                 'api.update.pre',
                 [$this, 'handleResourceUpdatePreBatchUpdate']
             );
-            // Batch update via sql queries.
+            // Nevertheless, some processes can be done one time or via sql
+            // queries.
             $sharedEventManager->attach(
                 $adapter,
                 'api.batch_update.post',
-                [$this, 'handleResourceBatchUpdatePost']
+                [$this, 'handleResourcesBatchUpdatePost']
             );
         }
-
-        // Special listener to manage media html from items.
-        $sharedEventManager->attach(
-            \Omeka\Api\Adapter\ItemAdapter::class,
-            'api.batch_update.pre',
-            [$this, 'handleResourceBatchUpdatePre']
-        );
 
         // Extend the batch edit form via js.
         $sharedEventManager->attach(
@@ -125,8 +121,6 @@ class Module extends AbstractModule
      *
      * - preventive trim on property values.
      * - preventive deduplication on property values
-     *
-     * @param Event $event
      */
     public function handleResourceProcessPre(Event $event): void
     {
@@ -253,10 +247,14 @@ class Module extends AbstractModule
             ->appendFile($assetUrl('js/bulk-edit.js', 'BulkEdit'), 'text/javascript', ['defer' => 'defer']);
     }
 
+    /**
+     * Clean the request one time only.
+     *
+     *  Batch process is divided in chunk (100) and each bulk may be run three
+     *  times (replace, remove or append). Omeka S v4.1 cleaned process.
+     */
     public function handleResourceBatchUpdatePreprocess(Event $event): void
     {
-        // Clean the request one time only (batch process is divided in bulks).
-
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $event->getParam('data');
@@ -269,18 +267,14 @@ class Module extends AbstractModule
         $event->setParam('data', $data);
     }
 
-    public function handleResourceBatchUpdatePre(Event $event): void
-    {
-        $processes = $this->prepareProcesses();
-        $request = $event->getParam('request');
-        $this->updateResourcesPre($event->getTarget(), $request->getIds(), $processes);
-    }
-
+    /**
+     * Process tasks that can be done via api.update.pre for a single resource.
+     */
     public function handleResourceUpdatePreBatchUpdate(Event $event): void
     {
         /**
-         * A batch update process is launched one to three times in the core,
-         * at least with option "collectionAction" = "replace".
+         * A batch update process is launched one to three times in the core, at
+         * least with option "collectionAction" = "replace" (Omeka < 4.1).
          * Batch updates are always partial.
          *
          * @see \Omeka\Job\BatchUpdate::perform()
@@ -296,9 +290,8 @@ class Module extends AbstractModule
             return;
         }
 
-        // Some batch processes are done globally via a single sql or on another
-        // resource or cannot be done via api, so remove them from the standard
-        // process.
+        // Skip process that can be done globally via a single sql or on another
+        // resource or cannot be done via api.
         $postProcesses = [
             // Start with complex processes.
             'explode_item' => null,
@@ -335,23 +328,24 @@ class Module extends AbstractModule
     /**
      * Process action on batch update (all or partial) via direct sql.
      *
-     * Data may need to be reindexed if a module like Search is used, even if
-     * the results are probably the same with a simple trimming.
-     *
-     * @param Event $event
+     * Data may need to be reindexed if a module like AdvancedSearch is used
+     * for processes that use sql.
      */
-    public function handleResourceBatchUpdatePost(Event $event): void
+    public function handleResourcesBatchUpdatePost(Event $event): void
     {
         /**
          * A batch update process is launched one to three times in the core,
          * at least with option "collectionAction" = "replace".
          * Batch updates are always partial.
          *
+         * Warning: on batch update all, there is no collectionAction "replace",
+         * so it should be set by default.
+         *
          * @see \Omeka\Job\BatchUpdate::perform()
          * @var \Omeka\Api\Request $request
          */
         $request = $event->getParam('request');
-        if ($request->getOption('collectionAction') !== 'replace') {
+        if ($request->getOption('collectionAction', 'replace') !== 'replace') {
             return;
         }
 
@@ -401,12 +395,13 @@ class Module extends AbstractModule
         }
 
         $adapter = $event->getTarget();
-        $this->updateViaSql($adapter, $ids, $bulkedit);
+        $this->updateResourcesPost($adapter, $ids, $bulkedit);
     }
 
     protected function prepareProcesses($bulkedit = null)
     {
         static $processes;
+
         if (!is_null($processes)) {
             return $processes;
         }
@@ -698,26 +693,9 @@ class Module extends AbstractModule
         return $processes;
     }
 
-    protected function updateResourcesPre(
-        AbstractResourceEntityAdapter$adapter,
-        array $resourceIds,
-        array $processes
-    ): void {
-        // This process is specific, because not for the current resource type
-        // (items).
-        if ($adapter instanceof ItemAdapter) {
-            if (!empty($processes['media_html'])) {
-                $this->updateMediaHtmlForResources($adapter, $resourceIds, $processes['media_html']);
-            }
-            if (!empty($processes['media_type'])) {
-                $this->updateMediaTypeForResources($adapter, $resourceIds, $processes['media_type']);
-            }
-            if (!empty($processes['media_visibility'])) {
-                $this->updateMediaVisibilityForResources($adapter, $resourceIds, $processes['media_visibility']);
-            }
-        }
-    }
-
+    /**
+     * Run process for a single resource.
+     */
     protected function updateResourcePre(
         AbstractResourceEntityAdapter$adapter,
         AbstractResourceEntityRepresentation $resource,
@@ -763,7 +741,7 @@ class Module extends AbstractModule
                 $this->removeValuesForResource($resource, $data, $params);
                 break;
             case 'media_order':
-                $this->updateMediaOrderForResources($resource, $data, $params);
+                $this->updateMediaOrderForResource($resource, $data, $params);
                 break;
             default:
                 break;
@@ -772,7 +750,10 @@ class Module extends AbstractModule
         return $data;
     }
 
-    protected function updateViaSql(
+    /**
+     * Run process for multiple resources, possibly via sql.
+     */
+    protected function updateResourcesPost(
         AbstractResourceEntityAdapter$adapter,
         array $resourceIds,
         array $processes
@@ -2090,7 +2071,7 @@ class Module extends AbstractModule
     /**
      * Update the media positions for an item.
      */
-    protected function updateMediaOrderForResources(
+    protected function updateMediaOrderForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
         array $params
@@ -2290,135 +2271,135 @@ class Module extends AbstractModule
         ItemAdapter $adapter,
         array $resourceIds,
         array $params
-        ): void {
-            $mode = $params['mode'];
-            if (!in_array($mode, [
-                'append',
-                'update',
-                'replace',
-                'none',
-            ])) {
-                return;
-            }
+    ): void {
+        $mode = $params['mode'];
+        if (!in_array($mode, [
+            'append',
+            'update',
+            'replace',
+            'none',
+        ])) {
+            return;
+        }
 
-            /** @var \Omeka\Api\Manager $api */
-            $api = $this->getServiceLocator()->get('Omeka\ApiManager');
-            $logger = $this->getServiceLocator()->get('Omeka\Logger');
-            $properties = $this->getPropertyIds();
-            $isOldOmeka = version_compare(\Omeka\Module::VERSION, '4', '<');
+        /** @var \Omeka\Api\Manager $api */
+        $api = $this->getServiceLocator()->get('Omeka\ApiManager');
+        $logger = $this->getServiceLocator()->get('Omeka\Logger');
+        $properties = $this->getPropertyIds();
+        $isOldOmeka = version_compare(\Omeka\Module::VERSION, '4', '<');
 
-            /** @var \Doctrine\DBAL\Connection $connection */
-            $connection = $this->getServiceLocator()->get('Omeka\Connection');
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $this->getServiceLocator()->get('Omeka\Connection');
 
-            $sqlMedia = <<<'SQL'
+        $sqlMedia = <<<'SQL'
 UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
 SQL;
-            if (!$isOldOmeka) {
-                $sqlMedia .= PHP_EOL . <<<'SQL'
+        if (!$isOldOmeka) {
+            $sqlMedia .= PHP_EOL . <<<'SQL'
 UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
 SQL;
+        }
+
+        foreach ($resourceIds as $resourceId) {
+            try {
+                /** @var \Omeka\Api\Representation\ItemRepresentation $item */
+                $item = $api->read('items', ['id' => $resourceId], [], ['initialize' => false])->getContent();
+            } catch (\Exception $e) {
+                continue;
             }
 
-            foreach ($resourceIds as $resourceId) {
-                try {
-                    /** @var \Omeka\Api\Representation\ItemRepresentation $item */
-                    $item = $api->read('items', ['id' => $resourceId], [], ['initialize' => false])->getContent();
-                } catch (\Exception $e) {
-                    continue;
-                }
+            $medias = $item->media();
+            // The process is done for metadata, even with only one media.
+            if (!count($medias)) {
+                continue;
+            }
 
-                $medias = $item->media();
-                // The process is done for metadata, even with only one media.
-                if (!count($medias)) {
-                    continue;
-                }
+            $itemsAndMedias = [];
 
-                $itemsAndMedias = [];
+            // Keep current data as fully serialized data.
+            // All data are copied for new items, included template, class, etc.
+            // $currentItemData = $item->jsonSerialize();
+            $currentItemData = json_decode(json_encode($item), true);
 
-                // Keep current data as fully serialized data.
-                // All data are copied for new items, included template, class, etc.
-                // $currentItemData = $item->jsonSerialize();
-                $currentItemData = json_decode(json_encode($item), true);
-
-                $isFirstMedia = true;
-                foreach ($medias as $media) {
-                    $itemData = $currentItemData;
-                    switch ($mode) {
-                        default:
-                        case 'append':
-                            foreach ($media->values() as $term => $propertyData) {
-                                /** @var \Omeka\Api\Representation\ValueRepresentation $value */
+            $isFirstMedia = true;
+            foreach ($medias as $media) {
+                $itemData = $currentItemData;
+                switch ($mode) {
+                    default:
+                    case 'append':
+                        foreach ($media->values() as $term => $propertyData) {
+                            /** @var \Omeka\Api\Representation\ValueRepresentation $value */
+                            foreach ($propertyData['values'] as $value) {
+                                // $itemData[$term][] = $value->jsonSerialize();
+                                $itemData[$term][] = json_decode(json_encode($value), true);
+                            }
+                        }
+                        break;
+                    case 'update':
+                        foreach ($media->values() as $term => $propertyData) {
+                            if (!empty($propertyData['values'])) {
+                                $itemData[$term] = [];
                                 foreach ($propertyData['values'] as $value) {
                                     // $itemData[$term][] = $value->jsonSerialize();
                                     $itemData[$term][] = json_decode(json_encode($value), true);
                                 }
                             }
-                            break;
-                        case 'update':
-                            foreach ($media->values() as $term => $propertyData) {
-                                if (!empty($propertyData['values'])) {
-                                    $itemData[$term] = [];
-                                    foreach ($propertyData['values'] as $value) {
-                                        // $itemData[$term][] = $value->jsonSerialize();
-                                        $itemData[$term][] = json_decode(json_encode($value), true);
-                                    }
+                        }
+                        break;
+                    case 'replace':
+                        $itemData = array_diff_key($itemData, $properties);
+                        foreach ($media->values() as $term => $propertyData) {
+                            if (!empty($propertyData['values'])) {
+                                $itemData[$term] = [];
+                                foreach ($propertyData['values'] as $value) {
+                                    // $itemData[$term][] = $value->jsonSerialize();
+                                    $itemData[$term][] = json_decode(json_encode($value), true);
                                 }
                             }
-                            break;
-                        case 'replace':
-                            $itemData = array_diff_key($itemData, $properties);
-                            foreach ($media->values() as $term => $propertyData) {
-                                if (!empty($propertyData['values'])) {
-                                    $itemData[$term] = [];
-                                    foreach ($propertyData['values'] as $value) {
-                                        // $itemData[$term][] = $value->jsonSerialize();
-                                        $itemData[$term][] = json_decode(json_encode($value), true);
-                                    }
-                                }
-                            }
-                            break;
-                        case 'none':
-                            break;
-                    }
-
-                    // The current item uses the first media.
-                    // The media are removed only when all other items are created.
-                    if ($isFirstMedia) {
-                        $isFirstMedia = false;
-                        // Store data for first item.
-                        try {
-                            $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
-                        } catch (\Exception $e) {
-                            $logger->err(new Message(
-                                'Item #%1$d cannot be exploded: %2$s', // @translate
-                                $resourceId, $e->getMessage())
-                                );
-                            continue 2;
                         }
-                        $itemsAndMedias[$newItem->getId()] = $media->id();
-                    }
-                    // Next ones are new items.
-                    else {
-                        try {
-                            $itemData['o:id'] = null;
-                            $newItem = $api->create('items', $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
-                        } catch (\Exception $e) {
-                            $logger->err(new Message(
-                                'Item #%1$d cannot be exploded: %2$s', // @translate
-                                $resourceId, $e->getMessage())
-                                );
-                            continue 2;
-                        }
-                        $itemsAndMedias[$newItem->getId()] = $media->id();
-                    }
+                        break;
+                    case 'none':
+                        break;
                 }
 
-                $sqls = '';
-                foreach ($itemsAndMedias as $newItemId => $mediaId) {
-                    $sqls .= sprintf($sqlMedia, $newItemId, $mediaId) . PHP_EOL;
+                // The current item uses the first media.
+                // The media are removed only when all other items are created.
+                if ($isFirstMedia) {
+                    $isFirstMedia = false;
+                    // Store data for first item.
+                    try {
+                        $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
+                    } catch (\Exception $e) {
+                        $logger->err(new Message(
+                            'Item #%1$d cannot be exploded: %2$s', // @translate
+                            $resourceId, $e->getMessage())
+                        );
+                        continue 2;
+                    }
+                    $itemsAndMedias[$newItem->getId()] = $media->id();
                 }
-                $connection->executeStatement($sqls);
+                // Next ones are new items.
+                else {
+                    try {
+                        $itemData['o:id'] = null;
+                        $newItem = $api->create('items', $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
+                    } catch (\Exception $e) {
+                        $logger->err(new Message(
+                            'Item #%1$d cannot be exploded: %2$s', // @translate
+                            $resourceId, $e->getMessage())
+                        );
+                        continue 2;
+                    }
+                    $itemsAndMedias[$newItem->getId()] = $media->id();
+                }
             }
+
+            $sqls = '';
+            foreach ($itemsAndMedias as $newItemId => $mediaId) {
+                $sqls .= sprintf($sqlMedia, $newItemId, $mediaId) . PHP_EOL;
+            }
+            $connection->executeStatement($sqls);
+        }
     }
 
     /**

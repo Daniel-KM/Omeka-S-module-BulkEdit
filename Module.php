@@ -418,6 +418,7 @@ class Module extends AbstractModule
             'fill_values' => null,
             'remove' => null,
             'explode_item' => null,
+            'media_order' => null,
             'media_html' => null,
             'media_type' => null,
             'media_visibility' => null,
@@ -587,6 +588,14 @@ class Module extends AbstractModule
             ];
         }
 
+        $params = $bulkedit['media_order'] ?? [];
+        $order = $params['order'] ?? '';
+        if (mb_strlen($order)) {
+            $processes['media_order'] = [
+                'order' => $order,
+            ];
+        }
+
         $params = $bulkedit['media_html'] ?? [];
         $from = $params['from'] ?? '';
         $to = $params['to'] ?? '';
@@ -729,6 +738,9 @@ class Module extends AbstractModule
                 break;
             case 'remove':
                 $this->removeValuesForResource($resource, $data, $params);
+                break;
+            case 'media_order':
+                $this->updateMediaOrderForResources($resource, $data, $params);
                 break;
             default:
                 break;
@@ -2050,6 +2062,121 @@ class Module extends AbstractModule
     }
 
     /**
+     * Update the media positions for an item.
+     */
+    protected function updateMediaOrderForResources(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        static $settings;
+
+        if (is_null($settings)) {
+            $order = $params['order'];
+
+            $orders = [
+                'title',
+                'source',
+                'basename',
+                'mediatype',
+                'extension',
+            ];
+
+            $mainOrder = null;
+            if (in_array($order, $orders)) {
+                $mainOrder = $order;
+            }
+
+            if (!in_array($mainOrder, $orders)) {
+                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger->err(new Message(
+                    'Order "%s" is invalid.', // @translate
+                    $order
+                ));
+                $order = '';
+            }
+
+            $settings = $params;
+            $settings['order'] = $order;
+            $settings['mainOrder'] = $mainOrder;
+        } else {
+            extract($settings);
+        }
+
+        if (!$order) {
+            return;
+        }
+
+        if (empty($data['o:media']) || count($data['o:media']) <= 1) {
+            return;
+        }
+
+        $needTitle = $mainOrder === 'title';
+        $needSource = $mainOrder === 'source';
+        $needBasename = $mainOrder === 'basename';
+        $needMediaType = $mainOrder === 'mediatype';
+        $needExtension = $mainOrder === 'extension';
+
+        $mediaData = [
+            'position' => [],
+            'title' => [],
+            'source' => [],
+            'basename' => [],
+            'mediatype' => [],
+            'extension' => [],
+        ];
+
+        /**
+         * @var \Omeka\Api\Representation\ItemRepresentation $resource
+         * @var \Omeka\Api\Representation\MediaRepresentation $media
+         */
+
+        // A quick loop to get all data as string.
+        $position = 0;
+        foreach ($resource->media() as $media) {
+            $mediaId = $media->id();
+            $mediaData['position'][$mediaId] = ++$position;
+            if ($needTitle) {
+                $mediaData['title'][$mediaId] = (string) $media->title();
+            }
+            if ($needSource) {
+                $mediaData['source'][$mediaId] = (string) $media->source();
+            }
+            if ($needBasename) {
+                $source = (string) $media->source();
+                $mediaData['basename'][$mediaId] = $source ? basename($source) : '';
+            }
+            if ($needMediaType) {
+                $mediaType = (string) $media->mediaType();
+                $mediaData['mediatype'][$mediaId] = $mediaType;
+            }
+            if ($needExtension) {
+                $mediaData['extension'][$mediaId] = (string) $media->extension();
+            }
+        }
+
+        // Do the order.
+        $newOrder = $mediaData[$mainOrder];
+        natcasesort($newOrder);
+
+        // Keep only the position, starting from 1.
+        $newOrder = array_keys($newOrder);
+        array_unshift($newOrder, null);
+        unset($newOrder[0]);
+        $newOrder = array_flip($newOrder);
+
+        if ($mediaData['position'] === $newOrder) {
+            return;
+        }
+
+        $oMedias = [];
+        foreach ($data['o:media'] as $oMedia) {
+            $oMedias[$oMedia['o:id']] = $oMedia;
+        }
+        $data['o:media'] = array_values(array_replace($newOrder, $oMedias));
+    }
+
+    /**
      * Explode an item by media.
      *
      * This process cannot be done via a pre-process because the media are
@@ -2321,6 +2448,9 @@ SQL;
             $medias = $repository->findBy([
                 $keyResourceId => $resourceId,
                 'mediaType' => $from,
+            ], [
+                'position' => 'ASC',
+                'id' => 'ASC',
             ]);
             /** @var \Omeka\Entity\Media $media */
             foreach ($medias as $media) {

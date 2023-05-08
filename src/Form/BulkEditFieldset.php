@@ -61,6 +61,7 @@ class BulkEditFieldset extends Fieldset
             case 'item':
                 $this
                     ->appendFieldsetExplodeItem()
+                    ->appendFieldsetMediaOrder()
                 ;
                 // no break.
             case 'media':
@@ -1316,7 +1317,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'equal',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Equal to', // @translate
+                    'label' => 'Only equal to', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove_equal',
@@ -1388,6 +1389,52 @@ class BulkEditFieldset extends Fieldset
                 'attributes' => [
                     'id' => 'explode_item_mode',
                     'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetMediaOrder()
+    {
+        $this
+            ->add([
+                'name' => 'media_order',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Media order', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_order',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('media_order');
+        $fieldset
+            ->add([
+                'name' => 'order',
+                'type' => BulkEditElement\OptionalSelect::class,
+                'options' => [
+                    'label' => 'Media order', // @translate
+                    'value_options' => [
+                        'title' => 'By title', // @translate
+                        'source' => 'By original source full name', // @translate
+                        'basename' => 'By original source basename', // @translate
+                        'mediatype' => 'By media type', // @translate
+                        'extension' => 'By extension', // @translate
+                    ],
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'mediaorder_order',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-info-datatype' => 'literal',
+                    'data-placeholder' => 'Select option', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1507,7 +1554,7 @@ class BulkEditFieldset extends Fieldset
                     'label' => 'Media type (mime-type)', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'media_html',
+                    'id' => 'media_type',
                     'class' => 'field-container',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',

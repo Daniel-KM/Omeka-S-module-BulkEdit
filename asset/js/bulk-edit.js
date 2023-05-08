@@ -5,7 +5,7 @@ $(document).ready(function() {
     const nav = '<nav class="section-nav">'
         + '<ul>'
         + '<li class="active"><a href="#batch-edit" id="batch-edit-label">' + Omeka.jsTranslate('Batch edit') + '</a></li>'
-        + '<li><a href="#bulk-edit" id="bulk-edit-label">' + Omeka.jsTranslate('Advanced bulk edit') + '</a></li>'
+        + '<li><a href="#bulk-edit" id="bulk-edit-label">' + Omeka.jsTranslate('Advanced') + '</a></li>'
         + '</ul>'
         + '</nav>';
     $(nav).insertAfter('.batch-edit #page-actions');

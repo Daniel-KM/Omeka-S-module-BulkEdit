@@ -57,7 +57,7 @@ return [
     ],
     'js_translate_strings' => [
         'Batch edit', // @translate
-        'Advanced bulk edit', // @translate
+        'Advanced', // @translate
         'Expand', // @translate
         'Collapse', // @translate
         'The actions are processed in the order of the form. Be careful when mixing them.', // @translate

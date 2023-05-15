@@ -2514,25 +2514,27 @@ SQL;
             $currentPosition = count($medias);
 
             $tmpDirResource = $tmpDir . '/bulkedit/' . $resourceId;
-            if (!$this->checkDir($tmpDirResource)) {
-                $logger->err(new Message(
-                    'Unable to create temp directory "%1$s" for item #%2$d.', // @translate
-                    '/bulkedit/' . $resourceId, $resourceId
-                ));
-                return;
-            }
-
             $baseDestinationResource = '/temp/bulkedit/' . $resourceId;
             $filesTempDirResource = $basePath . $baseDestinationResource;
-            if (!$this->checkDir($filesTempDirResource)) {
-                $logger->err(new Message(
-                    'Unable to create temp directory "%1$s" inside "/files" for resource #%2$d.', // @translate
-                    $baseDestinationResource, $resourceId
-                ));
-                return;
-            }
 
             foreach ($pdfMedias as $pdfMedia) {
+                // To avoid space issue, files are removed after each loop.
+                if (!$this->checkDir($tmpDirResource)) {
+                    $logger->err(new Message(
+                        'Unable to create temp directory "%1$s" for item #%2$d.', // @translate
+                        '/bulkedit/' . $resourceId, $resourceId
+                    ));
+                    return;
+                }
+
+                if (!$this->checkDir($filesTempDirResource)) {
+                    $logger->err(new Message(
+                        'Unable to create temp directory "%1$s" inside "/files" for resource #%2$d.', // @translate
+                        $baseDestinationResource, $resourceId
+                    ));
+                    return;
+                }
+
                 $filepath = $basePath . '/original/' . $pdfMedia->filename();
                 $ready = file_exists($filepath) && is_readable($filepath) && filesize($filepath);
                 if (!$ready) {

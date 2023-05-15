@@ -2596,7 +2596,7 @@ SQL;
                 // Create media from files and append them to item.
                 $logger->info(new Message(
                     'Step 2/2 for item #%1$d, pdf #%2$d: Creating %3$d media.', // @translate
-                    $totalImages, $resourceId, $pdfMedia->id()
+                    $resourceId, $pdfMedia->id(), $totalImages
                 ));
 
                 $index = 0;

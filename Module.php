@@ -2472,7 +2472,7 @@ SQL;
         $baseUri = empty($params['base_uri']) ? $this->getBaseUri() : $params['base_uri'];
 
         // Default is 72 in ghostscript, but it has bad output for native pdf.
-        $resolution = empty($params['resolution']) ? 150 : (int) $params['resolution'];
+        $resolution = empty($params['resolution']) ? 400 : (int) $params['resolution'];
 
         foreach ($resourceIds as $resourceId) {
             try {

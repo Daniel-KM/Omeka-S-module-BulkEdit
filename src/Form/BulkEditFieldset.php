@@ -1470,7 +1470,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'resolution',
                 'type' => BulkEditElement\OptionalNumber::class,
                 'options' => [
-                    'label' => 'Resolution, generally 72, 96, 150 (default)  or 300', // @translate
+                    'label' => 'Resolution, generally 72, 96, 150, 300, 400 (default), 600 or more', // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_pdf_resolution',

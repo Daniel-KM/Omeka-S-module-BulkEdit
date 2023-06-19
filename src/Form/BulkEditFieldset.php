@@ -34,6 +34,13 @@ class BulkEditFieldset extends Fieldset
      */
     protected $renderers = [];
 
+    /**
+     * Warning: Update bulk-edit.js for empty values to fix batch update selected resource.
+     * Fixed in Omeka S v4.0.2 (#609dbbb30).
+     *
+     * {@inheritDoc}
+     * @see \Laminas\Form\Element::init()
+     */
     public function init(): void
     {
         $resourceType = $this->getOption('resource_type');
@@ -120,10 +127,11 @@ class BulkEditFieldset extends Fieldset
         $fieldset
             ->add([
                 'name' => 'trim_values',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Trim property values', // @translate
                     'info' => 'Remove initial and trailing whitespace of all values of all properties', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'cleaning_trim_values',
@@ -133,10 +141,11 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'specify_datatypes',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Specify data type "resource" for linked resources', // @translate
                     'info' => 'In some cases, linked resources are saved in the database with the generic data type "resource", not with the specific "resource:item", "resource:media, etc.', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'cleaning_specify_datatypes',
@@ -146,9 +155,10 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'clean_languages',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Clean languages (set null when language is empty)', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'cleaning_clean_languages',
@@ -158,10 +168,11 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'clean_language_codes',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Normalize or modify language codes', // @translate
                     'info' => 'Normalize language codes from a code to another one, for example "fr" to "fra" or vice-versa. It allows to add or remove a code too.', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'cleaning_clean_language_codes',
@@ -219,10 +230,11 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'deduplicate_values',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Deduplicate property values case insensitively', // @translate
                     'info' => 'Deduplicate values of all properties, case INsensitively. Trimming values before is recommended, because values are checked strictly.', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'cleaning_clean_deduplicate_values',
@@ -297,9 +309,10 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'remove',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Remove string', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'replace_remove',
@@ -346,9 +359,10 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'language_clear',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Remove language', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'replace_language_clear',
@@ -699,9 +713,10 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'literal_extract_html_text',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Convert to literal: keep only text from html/xml', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'convert_literal_extract_html_text',
@@ -712,9 +727,10 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'literal_html_only_tagged_string',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Convert to html/xml: only html/xml-looking strings', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'convert_literal_html_only_tagged_string',
@@ -747,9 +763,10 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'uri_extract_label',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Convert to uri: extract label after uri', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'convert_uri_extract_label',
@@ -773,7 +790,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'uri_base_site',
-                'type' => OmekaElement\SiteSelect::class,
+                'type' => BulkEditElement\OptionalSiteSelect::class,
                 'options' => [
                     'label' => 'Convert to uri: Site to use as base url', // @translate
                     // 'disable_group_by_owner' => true,
@@ -1196,7 +1213,7 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'update_language',
-                'type' => Element\Radio::class,
+                'type' => BulkEditElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Update language in value', // @translate
                     'value_options' => [
@@ -1214,9 +1231,10 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'featured_subject',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Use featured subject (Rameau)', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'fill_featured_subject',
@@ -1660,9 +1678,10 @@ class BulkEditFieldset extends Fieldset
             ])
             ->add([
                 'name' => 'remove',
-                'type' => Element\Checkbox::class,
+                'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Remove string', // @translate
+                    'use_hidden_element' => false,
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_remove',

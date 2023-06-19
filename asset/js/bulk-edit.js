@@ -136,4 +136,89 @@ $(document).ready(function() {
         $(this).parent().toggleClass('mobile-active');
     });
 
+    /**
+     * There is a bug during hydration in abstractResourceEntityAdapter or
+     * ValueHydrator: when there is an operation "replace" empty (?), the
+     * operation "remove" does not work. Try to remove a property disabling
+     * all events of the modules except "form.add_elements".
+     * So just remove bulkedit if there is no data.
+     * Fixed in Omeka S v4.0.2 (#609dbbb30).
+     */
+    const bulkEditDefaults = {
+        'bulkedit[cleaning][trim_values]': '0',
+        'bulkedit[cleaning][specify_datatypes]': '0',
+        'bulkedit[cleaning][clean_languages]': '0',
+        'bulkedit[cleaning][clean_language_codes]': '0',
+        'bulkedit[cleaning][clean_language_codes_from]': '',
+        'bulkedit[cleaning][clean_language_codes_to]': '',
+        'bulkedit[cleaning][deduplicate_values]': '0',
+        'bulkedit[replace][from]': '',
+        'bulkedit[replace][to]': '',
+        'bulkedit[replace][mode]': 'raw',
+        'bulkedit[replace][remove]': '0',
+        'bulkedit[replace][prepend]': '',
+        'bulkedit[replace][append]': '',
+        'bulkedit[replace][language]': '',
+        'bulkedit[replace][language_clear]': '0',
+        'bulkedit[displace][to]': '',
+        'bulkedit[displace][languages]': '',
+        'bulkedit[displace][visibility]': '',
+        'bulkedit[displace][contains]': '',
+        'bulkedit[explode][separator]': '',
+        'bulkedit[explode][contains]': '',
+        'bulkedit[convert][from]': '',
+        'bulkedit[convert][to]': '',
+        'bulkedit[convert][literal_value]': '',
+        'bulkedit[convert][literal_extract_html_text]': '0',
+        'bulkedit[convert][literal_html_only_tagged_string]': '0',
+        'bulkedit[convert][uri_extract_label]': '0',
+        'bulkedit[convert][uri_label]': '',
+        'bulkedit[convert][uri_base_site]': 'api',
+        'bulkedit[convert][contains]': '',
+        'bulkedit[order_values][languages]': '',
+        'bulkedit[properties_visibility][visibility]': '',
+        'bulkedit[properties_visibility][languages]': '',
+        'bulkedit[properties_visibility][contains]': '',
+        'bulkedit[fill_data][owner]': '',
+        'bulkedit[fill_values][datatype]': '',
+        'bulkedit[fill_values][language]': '',
+        'bulkedit[fill_values][update_language]': 'keep',
+        'bulkedit[fill_values][featured_subject]': '0',
+        'bulkedit[remove][languages]': '',
+        'bulkedit[remove][visibility]': '',
+        'bulkedit[remove][equal]': '',
+        'bulkedit[remove][contains]': '',
+        'bulkedit[explode_item][mode]': '',
+        'bulkedit[explode_pdf][mode]': '',
+        'bulkedit[explode_pdf][process]': 'all',
+        'bulkedit[explode_pdf][resolution]': '',
+        'bulkedit[media_order][order]': '',
+        'bulkedit[media_order][mediatypes]': 'video audio image application/pdf',
+        'bulkedit[media_order][extensions]': '',
+        'bulkedit[media_html][from]': '',
+        'bulkedit[media_html][to]': '',
+        'bulkedit[media_html][mode]': 'raw',
+        'bulkedit[media_html][remove]': '0',
+        'bulkedit[media_html][prepend]': '',
+        'bulkedit[media_html][append]': '',
+        'bulkedit[media_type][from]': '',
+        'bulkedit[media_type][to]': '',
+        'bulkedit[media_visibility][visibility]': '',
+    };
+
+   $('#content form').on('submit', function(e) {
+        const form = $(this);
+        const formData = new FormData(form[0]);
+        for (const [name, value] of formData) {
+            if (bulkEditDefaults.hasOwnProperty(name) && bulkEditDefaults[name] !== value) {
+                return true;
+            }
+        }
+        Object.keys(bulkEditDefaults).forEach(name => {
+            form.find('[name="' + name + '"]').remove();
+            formData.delete(name);
+        });
+        return true;
+    });
+
 });

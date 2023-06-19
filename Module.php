@@ -2909,6 +2909,7 @@ SQL;
 
         switch ($datatype) {
             case 'valuesuggest:geonames:geonames':
+                // Probably useless.
                 $xpath->registerNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
                 $xpath->registerNamespace('gn', 'http://www.geonames.org/ontology#');
                 break;
@@ -2917,7 +2918,7 @@ SQL;
         }
 
         $queries = (array) $endpointData['path'];
-        foreach ($queries as $query) {
+        foreach (array_filter($queries) as $query) {
             $nodeList = $xpath->query($query);
             if (!$nodeList || !$nodeList->length) {
                 continue;
@@ -3009,10 +3010,13 @@ SQL;
                     'sws.geonames.org/',
                 ],
                 'path' => [
-                    '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $language . '"][1]',
-                    '/rdf:RDF/gn:Feature/gn:alternateName[@xml:lang="' . $language . '"][1]',
+                    // If there is a language, use it first, else use name.
+                    $language ? '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $language . '"][1]' : null,
+                    $language ? '/rdf:RDF/gn:Feature/gn:alternateName[@xml:lang="' . $language . '"][1]' : null,
                     '/rdf:RDF/gn:Feature/gn:name[1]',
                     '/rdf:RDF/gn:Feature/gn:shortName[1]',
+                    '/rdf:RDF/gn:Feature/gn:officialName[1]',
+                    '/rdf:RDF/gn:Feature/gn:alternateName[1]',
                 ],
             ],
             'valuesuggest:idref:all' => null,

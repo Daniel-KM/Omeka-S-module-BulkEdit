@@ -2900,12 +2900,12 @@ SQL;
             return $filleds[$url];
         }
 
-        $doc = $this->fetchUrlXml($url);
-        if (!$doc) {
+        $dom = $this->fetchUrlXml($url);
+        if (!$dom) {
             return null;
         }
 
-        $xpath = new \DOMXPath($doc);
+        $xpath = new \DOMXPath($dom);
 
         switch ($datatype) {
             case 'valuesuggest:geonames:geonames':
@@ -3125,12 +3125,20 @@ SQL;
         return $url;
     }
 
-    protected function fetchUrlXml(string $url): ?\DOMDocument
+    protected function fetchUrl(string $url): ?string
     {
-        static $logger = null;
+        /**
+         * @var \Laminas\Log\Logger $logger
+         * @var \Laminas\Http\Client $httpClient
+         */
+        static $logger;
+        static $httpClient;
 
         if (!$logger) {
-            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+            $services = $this->getServiceLocator();
+            $logger = $services->get('Omeka\Logger');
+            // Use omeka http client instead of the simple static client.
+            $httpClient = $services->get('Omeka\HttpClient');
         }
 
         $headers = [
@@ -3139,8 +3147,14 @@ SQL;
             'Accept-Encoding' => 'gzip, deflate',
         ];
 
+        // TODO Should we reset cookies each time?
+        $httpClient
+            ->reset()
+            ->setUri($url)
+            ->setHeaders($headers);
+
         try {
-            $response = \Laminas\Http\ClientStatic::get($url, [], $headers);
+            $response = $httpClient->send();
         } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
             $logger->err(new Message(
                 'Connection error when fetching url "%1$s": %2$s', // @translate
@@ -3156,12 +3170,27 @@ SQL;
             return null;
         }
 
-        $xml = $response->getBody();
-        if (!$xml) {
-            $logger->err(new Message(
-                'Output is not xml for url "%s".', // @translate
+        $string = $response->getBody();
+        if (!strlen($string)) {
+            $logger->warn(new Message(
+                'Output is empty for url "%s".', // @translate
                 $url
             ));
+        }
+
+        return $string;
+    }
+
+    protected function fetchUrlXml(string $url): ?\DOMDocument
+    {
+        static $logger = null;
+
+        if (!$logger) {
+            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+        }
+
+        $xml = $this->fetchUrl($url);
+        if (!$xml) {
             return null;
         }
 
@@ -3182,7 +3211,7 @@ SQL;
 
         if (!$doc) {
             $logger->err(new Message(
-                'Output is not xml for url "%s".', // @translate
+                'Output is not a valid xml for url "%s".', // @translate
                 $url
             ));
             return null;

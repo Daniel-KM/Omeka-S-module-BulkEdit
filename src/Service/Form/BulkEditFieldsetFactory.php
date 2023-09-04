@@ -32,13 +32,13 @@ class BulkEditFieldsetFactory implements FactoryInterface
 
         $connection = $services->get('Omeka\Connection');
 
-        $result = $connection->executeQuery('SELECT DISTINCT(media_type) FROM media WHERE media_type IS NOT NULL AND media_type != "" ORDER BY media_type')->fetchFirstColumn();
+        $result = $connection->executeQuery('SELECT DISTINCT(media_type) FROM media WHERE media_type IS NOT NULL AND media_type != "" ORDER BY media_type ASC')->fetchFirstColumn();
         $mediaTypes = array_combine($result, $result);
 
-        $result = $connection->executeQuery('SELECT DISTINCT(ingester) FROM media ORDER BY ingester')->fetchFirstColumn();
+        $result = $connection->executeQuery('SELECT DISTINCT(ingester) FROM media ORDER BY ingester ASC')->fetchFirstColumn();
         $ingesters = array_combine($result, $result);
 
-        $result = $connection->executeQuery('SELECT DISTINCT(renderer) FROM media ORDER BY renderer')->fetchFirstColumn();
+        $result = $connection->executeQuery('SELECT DISTINCT(renderer) FROM media ORDER BY renderer ASC')->fetchFirstColumn();
         $renderers = array_combine($result, $result);
 
         $fieldset = new BulkEditFieldset(null, $options ?? []);

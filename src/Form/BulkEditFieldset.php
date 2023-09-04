@@ -311,7 +311,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'remove',
                 'type' => BulkEditElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Remove string', // @translate
+                    'label' => 'Remove whole string', // @translate
                     'use_hidden_element' => false,
                 ],
                 'attributes' => [

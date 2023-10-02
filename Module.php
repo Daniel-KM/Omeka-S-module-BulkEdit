@@ -513,6 +513,7 @@ class Module extends AbstractModule
                 'literal_value' => $params['literal_value'],
                 'literal_extract_html_text' => $params['literal_extract_html_text'],
                 'literal_html_only_tagged_string' => $params['literal_html_only_tagged_string'],
+                'resource_value_preprocess' => $params['resource_value_preprocess'],
                 'resource_properties' => $params['resource_properties'],
                 'uri_extract_label' => !empty($params['uri_extract_label']),
                 'uri_label' => $params['uri_label'],
@@ -1249,6 +1250,7 @@ class Module extends AbstractModule
             $literalValue = $params['literal_value'];
             $literalExtractHtmlText = !empty($params['literal_extract_html_text']);
             $literalHtmlOnlyTaggedString = !empty($params['literal_html_only_tagged_string']);
+            $resourceValuePreprocess = $params['resource_value_preprocess'];
             $resourceProperties = $params['resource_properties'];
             $uriExtractLabel = !empty($params['uri_extract_label']);
             $uriLabel = strlen($params['uri_label']) ? $params['uri_label'] : null;
@@ -1310,6 +1312,7 @@ class Module extends AbstractModule
             $settings['literalValue'] = $literalValue;
             $settings['literalExtractHtmlText'] = $literalExtractHtmlText;
             $settings['literalHtmlOnlyTaggedString'] = $literalHtmlOnlyTaggedString;
+            $settings['resourceValuePreprocess'] = $resourceValuePreprocess;
             $settings['resourceProperties'] = $resourceProperties;
             $settings['uriExtractLabel'] = $uriExtractLabel;
             $settings['uriLabel'] = $uriLabel;
@@ -1452,7 +1455,13 @@ class Module extends AbstractModule
                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => (string) $value['@value'], '@id' => null, 'o:label' => null];
                                 break;
                             case 'resource':
-                                $valueResourceId = $findResourcesFromIdentifiers($value['@value'], $resourceProperties);
+                                $val = $value['@value'];
+                                if ($resourceValuePreprocess === 'basename') {
+                                    $val = pathinfo($val, PATHINFO_BASENAME);
+                                } elseif ($resourceValuePreprocess === 'filename') {
+                                    $val = pathinfo($val, PATHINFO_FILENAME);
+                                }
+                                $valueResourceId = $findResourcesFromIdentifiers($val, $resourceProperties);
                                 if (!$valueResourceId) {
                                     $logger->info(new Message(
                                         'No linked resource found with properties %1$s for resource #%2$d, property "%3$s", identifier "%4$s"', // @translate

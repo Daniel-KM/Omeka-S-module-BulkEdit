@@ -740,10 +740,29 @@ class BulkEditFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'resource_value_preprocess',
+                'type' => BulkEditElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Convert to linked resource: Preprocess value', // @translate
+                    'value_options' => [
+                        'full' => 'Use full value as identifier', // @translate
+                        'basename' => 'Use basename as identifier', // @translate
+                        'filename' => 'Use basename without extension', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'resource_value_preprocess',
+                    'value' => 'full',
+                    'data-info-datatype' => 'resource',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'resource_properties',
                 'type' => BulkEditElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'Convert to resource: Properties where to search the identifier', // @translate
+                    'label' => 'Convert to linked resource: Properties where to search the identifier', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'o:id' => 'Omeka internal id', // @translate

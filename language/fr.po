@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 00:00+0000\n"
-"PO-Revision-Date: 2023-05-08 00:00+0000\n"
+"POT-Creation-Date: 2023-10-30 00:00+0000\n"
+"PO-Revision-Date: 2023-10-30 00:00+0000\n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -762,11 +762,11 @@ msgstr "Seulement le premier pdf"
 
 #: src/Form/BulkEditFieldset.php:1442
 msgid "Last pdf only"
-msgstr "Dernier pdf seulement"
+msgstr "Seulement le dernier pdf"
 
 #: src/Form/BulkEditFieldset.php:1456
 msgid "Creation process"
-msgstr "En cours de création"
+msgstr "Type de traitement"
 
 #: src/Form/BulkEditFieldset.php:1458
 msgid "All pages"

@@ -5,10 +5,14 @@ namespace BulkEdit\Form;
 use BulkEdit\Form\Element as BulkEditElement;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
-use Omeka\Form\Element as OmekaElement;
+use Laminas\I18n\Translator\TranslatorAwareInterface;
+use Laminas\I18n\Translator\TranslatorAwareTrait;
 
-class BulkEditFieldset extends Fieldset
+class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
 {
+    // TODO Fix translation of fieldset legend in core.
+    use TranslatorAwareTrait;
+
     /**
      * @var array
      */
@@ -115,7 +119,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'cleaning',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Cleaning', // @translate
+                    'label' => $this->translator->translate('Cleaning'), // @translate
                 ],
                 'attributes' => [
                     'class' => 'field-container',
@@ -253,7 +257,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'replace',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Replace literal values', // @translate
+                    'label' => $this->translator->translate('Replace literal values'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace',
@@ -401,7 +405,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'displace',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Displace values', // @translate
+                    'label' => $this->translator->translate('Displace values'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'displace',
@@ -517,7 +521,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'explode',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Explode values', // @translate
+                    'label' => $this->translator->translate('Explode values'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode',
@@ -581,7 +585,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'merge',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Merge values as uri and label', // @translate
+                    'label' => $this->translator->translate('Merge values as uri and label'), // @translate
                     'info' => 'The values are merged two by two, whatever order and initial datatype. The number of values must be even and clean.', // @translate
                 ],
                 'attributes' => [
@@ -622,7 +626,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'convert',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Convert datatype', // @translate
+                    'label' => $this->translator->translate('Convert datatype'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'convert',
@@ -850,7 +854,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'order_values',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Values order', // @translate
+                    'label' => $this->translator->translate('Values order'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'order_values',
@@ -906,7 +910,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'properties_visibility',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Visibility of values', // @translate
+                    'label' => $this->translator->translate('Visibility of values'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'properties_visibility',
@@ -1008,7 +1012,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'fill_data',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Fill and update metadata', // @translate
+                    'label' => $this->translator->translate('Fill and update metadata'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_data',
@@ -1077,7 +1081,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'fill_values',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Fill labels or uris for Value Suggest', // @translate
+                    'label' => $this->translator->translate('Fill labels or uris for Value Suggest'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_values',
@@ -1272,7 +1276,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'remove',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Remove values, linked resources, or uris from a property', // @translate
+                    'label' => $this->translator->translate('Remove values, linked resources, or uris from a property'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove',
@@ -1386,7 +1390,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'explode_item',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Explode item by media', // @translate
+                    'label' => $this->translator->translate('Explode item by media'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_item',
@@ -1442,7 +1446,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'explode_pdf',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Explode pdf into jpeg for iiif viewers', // @translate
+                    'label' => $this->translator->translate('Explode pdf into jpeg for iiif viewers'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_pdf',
@@ -1527,7 +1531,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'media_order',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Media order', // @translate
+                    'label' => $this->translator->translate('Media order'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_order',
@@ -1641,7 +1645,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'media_html',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Media HTML', // @translate
+                    'label' => $this->translator->translate('Media HTML'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_html',
@@ -1743,7 +1747,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'media_type',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Media type (mime-type)', // @translate
+                    'label' => $this->translator->translate('Media type (mime-type)'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_type',
@@ -1789,7 +1793,7 @@ class BulkEditFieldset extends Fieldset
                 'name' => 'media_visibility',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => 'Visibility of medias', // @translate
+                    'label' => $this->translator->translate('Visibility of medias'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_visibility',

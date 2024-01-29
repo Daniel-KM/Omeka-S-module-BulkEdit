@@ -43,6 +43,8 @@ class BulkEditFieldsetFactory implements FactoryInterface
 
         $fieldset = new BulkEditFieldset(null, $options ?? []);
         return $fieldset
+            // TODO Fix translation of fieldset legend in core.
+            ->setTranslator($services->get('MvcTranslator'))
             ->setDataTypesMain($datatypesMain)
             ->setDataTypesLabels($datatypesLabels)
             ->setMediaTypes($mediaTypes)

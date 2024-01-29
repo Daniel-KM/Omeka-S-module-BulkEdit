@@ -55,7 +55,7 @@ class MainDataType extends AbstractHelper
             'geometry:geography' => 'literal',
             'geometry:geometry' => 'literal',
             // Module DataTypePlace.
-            'place' => 'literal',
+            'place' => 'uri',
             // Module DataTypeRdf.
             'html' => 'literal',
             'xml' => 'literal',

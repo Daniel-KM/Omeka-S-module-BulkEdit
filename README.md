@@ -35,10 +35,9 @@ is saved.
 Installation
 ------------
 
-Uncompress files and rename plugin folder `BulkEdit`.
+This module is dependant of module [Common], that should be installed first.
 
-**Important**: If you use the module [Numeric Data Types], you should apply this
-[patch] or use this [version].
+Uncompress files and rename plugin folder `BulkEdit`.
 
 See general end user documentation for [Installing a module] and follow the
 config instructions.
@@ -243,7 +242,7 @@ of the CeCILL license and that you accept its terms.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2018-2023 (see [Daniel-KM])
+* Copyright Daniel Berthereau, 2018-2024 (see [Daniel-KM])
 
 First developed for the [Archives Henri Poincaré] of [Université de Lorraine],
 then improved for various projects.
@@ -252,10 +251,8 @@ then improved for various projects.
 [Bulk Edit]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit
 [Omeka S]: https://omeka.org/s
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
-[Numeric Data Types]: https://github.com/Omeka-S-modules/NumericDataTypes
-[patch]: https://github.com/omeka-s-modules/NumericDataTypes/pull/29
-[version]: https://github.com/Daniel-KM/Omeka-S-module-NumericDataTypes
 [Advanced Search]: https://gitlab.com/Daniel-KM/Omeka-S-module-AdvancedSearch
+[Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
 [omeka/omeka-s#1258]: https://github.com/omeka/omeka-s/issues/1258
 [Reference]: https://gitlab.com/Daniel-KM/Omeka-S-module-Reference
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit/-/issues

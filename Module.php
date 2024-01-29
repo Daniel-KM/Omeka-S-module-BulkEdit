@@ -3143,15 +3143,18 @@ SQL;
         /**
          * @var \Laminas\Log\Logger $logger
          * @var \Laminas\Http\Client $httpClient
+         * @var string $errorReporting
          */
         static $logger;
         static $httpClient;
+        static $errorReporting;
 
         if (!$logger) {
             $services = $this->getServiceLocator();
             $logger = $services->get('Omeka\Logger');
             // Use omeka http client instead of the simple static client.
             $httpClient = $services->get('Omeka\HttpClient');
+            $errorReporting = error_reporting();
         }
 
         $headers = [
@@ -3166,6 +3169,9 @@ SQL;
             ->setUri($url)
             ->setHeaders($headers);
 
+        // Fix deprecated warning in \Laminas\Http\PhpEnvironment\Response::sendHeaders() (l. 113).
+        error_reporting($errorReporting & ~E_DEPRECATED);
+
         try {
             $response = $httpClient->send();
         } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
@@ -3173,8 +3179,12 @@ SQL;
                 'Connection error when fetching url "%1$s": %2$s', // @translate
                 $url, $e
             ));
+            error_reporting($errorReporting);
             return null;
         }
+
+        error_reporting($errorReporting);
+
         if (!$response->isSuccess()) {
             $logger->err(new Message(
                 'Connection issue when fetching url "%1$s": %2$s', // @translate

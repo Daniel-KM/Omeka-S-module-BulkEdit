@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace BulkEdit\Service\ControllerPlugin;
 
 use BulkEdit\Mvc\Controller\Plugin\TrimValues;

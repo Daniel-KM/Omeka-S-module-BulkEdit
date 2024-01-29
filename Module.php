@@ -2,36 +2,36 @@
 
 namespace BulkEdit;
 
-if (!class_exists(\Generic\AbstractModule::class)) {
-    require file_exists(dirname(__DIR__) . '/Generic/AbstractModule.php')
-        ? dirname(__DIR__) . '/Generic/AbstractModule.php'
-        : __DIR__ . '/src/Generic/AbstractModule.php';
+if (!class_exists(\Common\TraitModule::class)) {
+    require_once dirname(__DIR__) . '/Common/TraitModule.php';
 }
 
 use BulkEdit\Form\BulkEditFieldset;
+use Common\TraitModule;
 use DOMDocument;
 use DOMXPath;
-use Generic\AbstractModule;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\Math\Rand;
+use Omeka\Module\AbstractModule;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Adapter\MediaAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\File\TempFile;
-use Omeka\Stdlib\Message;
 
 /**
  * BulkEdit
  *
  * Improve the bulk edit process with new features.
  *
- * @copyright Daniel Berthereau, 2018-2023
+ * @copyright Daniel Berthereau, 2018-2024
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 class Module extends AbstractModule
 {
+    use TraitModule;
+
     const NAMESPACE = __NAMESPACE__;
 
     /**
@@ -126,8 +126,12 @@ class Module extends AbstractModule
      */
     public function handleResourceProcessPre(Event $event): void
     {
-        $settings = $this->getServiceLocator()->get('Omeka\Settings');
+        $services = $this->getServiceLocator();
+        $settings = $services->get('Omeka\Settings');
         $deduplicationOnSave = (bool) $settings->get('bulkedit_deduplicate_on_save');
+
+        /** @var \Common\Stdlib\EasyMeta $easyMeta */
+        $easyMeta = $services->get('EasyMeta');
 
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
@@ -187,7 +191,7 @@ class Module extends AbstractModule
                 || !is_array($values)
                 || empty($term)
                 || !is_string($term)
-                || !$this->isPropertyTerm($term)
+                || !$easyMeta->propertyId($term)
             ) {
                 continue;
             }
@@ -693,10 +697,10 @@ class Module extends AbstractModule
             return [];
         }
 
-        $this->getServiceLocator()->get('Omeka\Logger')->info(new Message(
-            "Cleaned params used for bulk edit:\n%s", // @translate
-            json_encode($processes, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS)
-        ));
+        $this->getServiceLocator()->get('Omeka\Logger')->info(
+            "Cleaned params used for bulk edit:\n{json}", // @translate
+            ['json' => json_encode($processes, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS)]
+        );
 
         return $processes;
     }
@@ -1348,32 +1352,32 @@ class Module extends AbstractModule
         }
 
         if (!$fromDatatypeMain || !$toDatatypeMain || !$toDatatypeAdapter) {
-            $logger->warn(new Message(
+            $logger->warn(
                 'A conversion requires valid "from" datatype and "to" datatype.' // @translate
-            ));
+            );
             return;
         }
 
         if ($fromToMain === 'literal => resource') {
             if (!$findResourcesFromIdentifiers) {
-                $logger->warn(new Message(
-                    'A conversion from data type "%1$s" to "%2$s" requires the module Bulk Import.', // @translate
-                    'literal', 'resource'
-                ));
+                $logger->warn(
+                    'A conversion from data type "{datatype_1}" to "{datatype_2}" requires the module Bulk Import.', // @translate
+                    ['datatype_1' => 'literal', 'datatype_2' => 'resource']
+                );
                 return;
             }
             if (empty($resourceProperties)) {
-                $logger->warn(new Message(
-                    'To convert into the data type "%s", the properties where to find the identifier should be set.', // @translate
-                    $toDatatype
-                ));
+                $logger->warn(
+                    'To convert into the data type "{datatype}", the properties where to find the identifier should be set.', // @translate
+                    ['datatype' => $toDatatype]
+                );
                 return;
             }
         } elseif ($fromToMain === 'resource => uri' && !$uriBaseResource) {
-            $logger->warn(new Message(
-                'The conversion from data type "%1$s" to "%2$s" requires a site or api to create the url.', // @translate
-                $fromDatatype, $toDatatype
-            ));
+            $logger->warn(
+                'The conversion from data type "{datatype_1}" to "{datatype_2}" requires a site or api to create the url.', // @translate
+                ['datatype_1' => $fromDatatype, 'datatype_2' => $toDatatype]
+            );
             return;
         }
 
@@ -1387,10 +1391,10 @@ class Module extends AbstractModule
             try {
                 return $api->read('resources', $id, ['initialize' => false, 'finalize' => false])->getContent();
             } catch (\Exception $e) {
-                $logger->info(new Message(
-                    'No linked resource found for resource #%1$s, property "%2$s", value resource #%3$s.', // @translate
-                    $resource->id(), $property, $id
-                ));
+                $logger->info(
+                    'No linked resource found for resource #{resource_id}, property "{property}", value resource #{linked_resource_id}.', // @translate
+                    ['resource_id' => $resource->id(), 'property' => $property, 'linked_resource_id' => $id]
+                );
                 return null;
             }
         };
@@ -1412,10 +1416,10 @@ class Module extends AbstractModule
             }
             $vrResourceName = $vr->resourceName();
             if ($valueResourceName && $resourceControllerNames[$valueResourceName] !== $vrResourceName) {
-                $logger->warn(new Message(
-                    'For resource #%1$s, property "%2$s", the linked resource #%3$s is not a %4$s, but a %5$s.', // @translate
-                    $resource->id(), $property, $vr->id(), $resourceControllerNames[$valueResourceName], $vrResourceName
-                ));
+                $logger->warn(
+                    'For resource #{resource_id}, property "{property}", the linked resource #{linked_resource_id} is not a {resource_type}, but a {resource_name}.', // @translate
+                    ['resource_id' => $resource->id(), 'property' => $property, 'linked_resource_id' => $vr->id(), 'resource_type' => $resourceControllerNames[$valueResourceName], 'resource_name' => $vrResourceName]
+                );
                 return false;
             }
             if (($toDatatypeItem && $vrResourceName !== 'items')
@@ -1473,10 +1477,10 @@ class Module extends AbstractModule
                                 }
                                 $valueResourceId = $findResourcesFromIdentifiers($val, $resourceProperties);
                                 if (!$valueResourceId) {
-                                    $logger->info(new Message(
-                                        'No linked resource found with properties %1$s for resource #%2$d, property "%3$s", identifier "%4$s"', // @translate
-                                        implode(', ', $resourceProperties), $resource->id(), $property, $value['@value']
-                                    ));
+                                    $logger->info(
+                                        'No linked resource found with properties {properties} for resource #{resource_id}, property "{property}", identifier "{identifier}".', // @translate
+                                        ['properties' => implode(', ', $resourceProperties), 'resource_id' => $resource->id(), 'property' => $property, 'identifier' => $value['@value']]
+                                    );
                                     continue 3;
                                 }
                                 $vr = $api->read('resources', ['id' => $valueResourceId])->getContent();
@@ -1549,16 +1553,16 @@ class Module extends AbstractModule
                                                 unset($place['uri']);
                                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => null, 'o:data' => $place];
                                             }  else {
-                                                $logger->info(new Message(
-                                                    'For resource #%1$s, property "%2$s", the uri "%3$s" do not return a valid place.', // @translate
-                                                    $resource->id(), $property, $value['@id']
-                                                ));
+                                                $logger->info(
+                                                    'For resource #{resource_id}, property "{property}", the uri "{uri}" do not return a valid place.', // @translate
+                                                    ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@id']]
+                                                );
                                             }
                                         } else {
-                                            $logger->info(new Message(
-                                                'For resource #%1$s, property "%2$s", the uri "%3$s" do not return a record.', // @translate
-                                                $resource->id(), $property, $value['@id']
-                                            ));
+                                            $logger->info(
+                                                'For resource #{resource_id}, property "{property}", the uri "{uri}" do not return a record.', // @translate
+                                                ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@id']]
+                                            );
                                         }
                                     }
                                 } else {
@@ -1601,10 +1605,10 @@ class Module extends AbstractModule
                                     || substr($value['@id'], 0, strlen($uriBasePath)) !== $uriBasePath
                                     || !($vr = $resourceFromId($valueResourceId, $property))
                                 ) {
-                                    $logger->info(new Message(
-                                        'For resource #%1$s, property "%2$s", the value "%3$s" is not a resource url.', // @translate
-                                        $resource->id(), $property, $value['@value']
-                                    ));
+                                    $logger->info(
+                                        'For resource #{resource_id}, property "{property}", the value "{uri}" is not a resource url.', // @translate
+                                        ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@value']]
+                                    );
                                     continue 3;
                                 }
                                 if (!$checkResourceNameAndToDatatype($vr, $valueResourceName, $property)) {
@@ -1623,10 +1627,10 @@ class Module extends AbstractModule
 
                 if ($newValue) {
                     if (!$toDatatypeAdapter->isValid($newValue)) {
-                        $logger->notice(new Message(
-                            'Conversion from data type "%1$s" to "%2$s" is not possible in resource #%3$d for value: %4$s', // @translate
-                            $fromDatatype, $toDatatype, $resource->id(), $value[$datatypeToValueKeys[$fromDatatypeMain]]
-                        ));
+                        $logger->notice(
+                            'Conversion from data type "{datatype_1}" to "{datatype_2}" is not possible in resource #{resource_id} for value: {value}', // @translate
+                            ['datatype_1' => $fromDatatype, 'datatype_2' => $toDatatype, 'resource_id' => $resource->id(), 'value' => $value[$datatypeToValueKeys[$fromDatatypeMain]]]
+                        );
                         continue;
                     }
                     $data[$property][$key] = $newValue;
@@ -1827,9 +1831,10 @@ class Module extends AbstractModule
             $skip = false;
             if (!in_array($mode, ['label_missing', 'label_all', 'label_remove', 'uri_missing', 'uri_all'])) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->warn(new Message('Process is skipped: mode "%s" is unmanaged', // @translate
-                    $mode
-                ));
+                $logger->warn(
+                    'Process is skipped: mode "{mode}" is unmanaged', // @translate
+                    ['mode' => $mode]
+                );
                 $skip = true;
             }
 
@@ -1845,20 +1850,20 @@ class Module extends AbstractModule
 
             if ((in_array('literal', $datatypes) || in_array('uri', $datatypes)) && in_array($datatype, [null, 'literal', 'uri'])) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->warn(new Message('When "literal" or "uri" is used, the precise datatype should be specified.')); // @translate
+                $logger->warn('When "literal" or "uri" is used, the precise datatype should be specified.'); // @translate
                 $skip = true;
             }
 
             $isModeUri = $mode === 'uri_missing' || $mode === 'uri_all';
             if ($isModeUri && (!in_array($datatype, $datatypes) || in_array($datatype, [null, 'literal', 'uri']))) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->warn(new Message('When filling an uri, the precise datatype should be specified.')); // @translate
+                $logger->warn('When filling an uri, the precise datatype should be specified.'); // @translate
                 $skip = true;
             }
 
             if ($isModeUri && !$this->isModuleActive('ValueSuggest')) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->warn(new Message('When filling an uri, the module Value Suggest should be available.')); // @translate
+                $logger->warn('When filling an uri, the module Value Suggest should be available.'); // @translate
                 $skip = true;
             }
 
@@ -2151,10 +2156,10 @@ class Module extends AbstractModule
                 || ($subOrder && !in_array($subOrder, $orders))
             ) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->err(new Message(
-                    'Order "%s" is invalid.', // @translate
-                    $order
-                ));
+                $logger->err(
+                    'Order "{order}" is invalid.', // @translate
+                    ['order' => $order]
+                );
                 $order = '';
             }
 
@@ -2330,23 +2335,22 @@ class Module extends AbstractModule
             return;
         }
 
-        /** @var \Omeka\Api\Manager $api */
-        $api = $this->getServiceLocator()->get('Omeka\ApiManager');
-        $logger = $this->getServiceLocator()->get('Omeka\Logger');
-        $properties = $this->getPropertyIds();
-        $isOldOmeka = version_compare(\Omeka\Module::VERSION, '4', '<');
-
-        /** @var \Doctrine\DBAL\Connection $connection */
-        $connection = $this->getServiceLocator()->get('Omeka\Connection');
+        /**
+         * @var \Omeka\Api\Manager $api
+         * @var \Common\Stdlib\EasyMeta $easyMeta
+         * @var \Doctrine\DBAL\Connection $connection
+         */
+        $services = $this->getServiceLocator();
+        $api = $services->get('Omeka\ApiManager');
+        $logger = $services->get('Omeka\Logger');
+        $easyMeta = $services->get('EasyMeta');
+        $properties = $easyMeta->propertyIds();
+        $connection = $services->get('Omeka\Connection');
 
         $sqlMedia = <<<'SQL'
 UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
-SQL;
-        if (!$isOldOmeka) {
-            $sqlMedia .= PHP_EOL . <<<'SQL'
 UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
 SQL;
-        }
 
         foreach ($resourceIds as $resourceId) {
             try {
@@ -2418,9 +2422,9 @@ SQL;
                     try {
                         $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
                     } catch (\Exception $e) {
-                        $logger->err(new Message(
-                            'Item #%1$d cannot be exploded: %2$s', // @translate
-                            $resourceId, $e->getMessage())
+                        $logger->err(
+                            'Item #{item_id} cannot be exploded: {message}', // @translate
+                            ['item_id' => $resourceId, 'message' => $e->getMessage()]
                         );
                         continue 2;
                     }
@@ -2432,9 +2436,9 @@ SQL;
                         $itemData['o:id'] = null;
                         $newItem = $api->create('items', $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
                     } catch (\Exception $e) {
-                        $logger->err(new Message(
-                            'Item #%1$d cannot be exploded: %2$s', // @translate
-                            $resourceId, $e->getMessage())
+                        $logger->err(
+                            'Item #{item_id} cannot be exploded: {message}', // @translate
+                            ['item_id' => $resourceId, 'message' => $e->getMessage()]
                         );
                         continue 2;
                     }
@@ -2493,20 +2497,12 @@ SQL;
 
         $this->basePath = $basePath;
 
-        if (!$this->checkDir($tmpDir . '/bulkedit')) {
-            $logger->err(new Message(
-                'Unable to create temp directory "%s".', // @translate
-                '/bulkedit'
-            ));
+        if (!$this->checkDestinationDir($tmpDir . '/bulkedit')) {
             return;
         }
 
         $baseDestination = '/temp/bulkedit';
-        if (!$this->checkDir($basePath . $baseDestination)) {
-            $logger->err(new Message(
-                'Unable to create temp directory "%s" inside "/files".', // @translate
-                $baseDestination
-            ));
+        if (!$this->checkDestinationDir($basePath . $baseDestination)) {
             return;
         }
 
@@ -2563,29 +2559,29 @@ SQL;
 
             foreach ($pdfMedias as $pdfMedia) {
                 // To avoid space issue, files are removed after each loop.
-                if (!$this->checkDir($tmpDirResource)) {
-                    $logger->err(new Message(
-                        'Unable to create temp directory "%1$s" for item #%2$d.', // @translate
-                        '/bulkedit/' . $resourceId, $resourceId
-                    ));
+                if (!$this->checkDestinationDir($tmpDirResource)) {
+                    $logger->err(
+                        'Unable to create temp directory "{dir}" for item #{item_id}.', // @translate
+                        ['dir' => '/bulkedit/' . $resourceId, 'item_id' => $resourceId]
+                    );
                     return;
                 }
 
-                if (!$this->checkDir($filesTempDirResource)) {
-                    $logger->err(new Message(
-                        'Unable to create temp directory "%1$s" inside "/files" for resource #%2$d.', // @translate
-                        $baseDestinationResource, $resourceId
-                    ));
+                if (!$this->checkDestinationDir($filesTempDirResource)) {
+                    $logger->err(
+                        'Unable to create temp directory "{dir}" inside "/files" for resource #{resource_id}.', // @translate
+                        ['dir' => $baseDestinationResource, 'item_id' => $resourceId]
+                    );
                     return;
                 }
 
                 $filepath = $basePath . '/original/' . $pdfMedia->filename();
                 $ready = file_exists($filepath) && is_readable($filepath) && filesize($filepath);
                 if (!$ready) {
-                    $logger->err(new Message(
-                        'Unable to read pdf #%d.', // @translate
-                        $pdfMedia->id()
-                    ));
+                    $logger->err(
+                        'Unable to read pdf #{media_id}.', // @translate
+                        ['media_id' => $pdfMedia->id()]
+                    );
                     continue;
                 }
 
@@ -2597,10 +2593,10 @@ SQL;
                 $sourceBasename = $this->sanitizeName($sourceBasename);
                 $sourceBasename = $this->convertNameToAscii($sourceBasename);
 
-                $logger->info(new Message(
-                    'Step 1/2 for item #%1$d, pdf #%2$d: Extracting pages as image.', // @translate
-                    $resourceId, $pdfMedia->id()
-                ));
+                $logger->info(
+                    'Step 1/2 for item #{item_id}, pdf #{media_id}: Extracting pages as image.', // @translate
+                    ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
+                );
 
                 // Manage windows, that escapes argument differently (quote or
                 // double quote).
@@ -2614,10 +2610,10 @@ SQL;
                 );
                 $result = $cli->execute($command);
                 if ($result === false) {
-                    $logger->err(new Message(
-                        'Unable to extract images from item #%1$d pdf #%2$d.', // @translate
-                        $resourceId, $pdfMedia->id()
-                    ));
+                    $logger->err(
+                        'Unable to extract images from item #{item_id} pdf #{media_id}.', // @translate
+                        ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
+                    );
                     continue;
                 }
 
@@ -2632,18 +2628,18 @@ SQL;
                 }
 
                 if (!$totalImages) {
-                    $logger->warn(new Message(
-                        'For item #%1$d, pdf #%2$d cannot be exploded into images.', // @translate
-                        $resourceId, $pdfMedia->id()
-                    ));
+                    $logger->warn(
+                        'For item #{item_id}, pdf #{media_id} cannot be exploded into images.', // @translate
+                        ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
+                    );
                     continue;
                 }
 
                 // Create media from files and append them to item.
-                $logger->info(new Message(
-                    'Step 2/2 for item #%1$d, pdf #%2$d: Creating %3$d media.', // @translate
-                    $resourceId, $pdfMedia->id(), $totalImages
-                ));
+                $logger->info(
+                    'Step 2/2 for item #{item_id}, pdf #{media_id}: Creating {total} media.', // @translate
+                    ['item_id' => $resourceId, 'media_id' => $pdfMedia->id(), 'total' => $totalImages]
+                );
 
                 $index = 0;
                 // $hasError = false;
@@ -2665,10 +2661,10 @@ SQL;
                     $result = @copy($source, $destination);
                     if (!$result) {
                         // $hasError = true;
-                        $logger->err(new Message(
-                            'File cannot be saved in temporary directory "%1$s" (temp file: "%2$s")', // @translate
-                            basename($destination), $source
-                        ));
+                        $logger->err(
+                            'File cannot be saved in temporary directory "{dir}" (temp file: "{file}")', // @translate
+                            ['dir' => basename($destination), 'file' => $source]
+                        );
                         break;
                     }
 
@@ -2972,19 +2968,19 @@ SQL;
                 continue;
             }
 
-            $logger->info(new Message(
-                'The label for uri "%1$s" is "%2$s".', // @translate
-                $uri, $value
-            ));
+            $logger->info(
+                'The label for uri "{uri}" is "{value}".', // @translate
+                ['uri' => $uri, 'value' => $value]
+            );
 
             $filleds[$uri] = $value;
             return $value;
         }
 
-        $logger->err(new Message(
-            'The label for uri "%s" was not found.', // @translate
-            $uri
-        ));
+        $logger->err(
+            'The label for uri "{ur}" was not found.', // @translate
+            ['uri' => $uri]
+        );
         $filleds[$uri] = null;
         return null;
     }
@@ -3155,10 +3151,10 @@ SQL;
                 $id = preg_replace('~.*/(?<id>[\d]+).*~m', '$1', $uri);
                 if (!$id) {
                     $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                    $logger->err(new Message(
-                        'The label for uri "%s" was not found.', // @translate
-                        $uri
-                    ));
+                    $logger->err(
+                        'The label for uri "{uri}" was not found.', // @translate
+                        ['uri' => $uri]
+                    );
                     return null;
                 }
                 $url = "https://sws.geonames.org/$id/about.rdf";
@@ -3214,10 +3210,10 @@ SQL;
         try {
             $response = $httpClient->send();
         } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
-            $logger->err(new Message(
-                'Connection error when fetching url "%1$s": %2$s', // @translate
-                $url, $e
-            ));
+            $logger->err(
+                'Connection error when fetching url "{url}": {exception}', // @translate
+                ['url' => $url, 'exception' => $e]
+            );
             error_reporting($errorReporting);
             return null;
         }
@@ -3225,19 +3221,19 @@ SQL;
         error_reporting($errorReporting);
 
         if (!$response->isSuccess()) {
-            $logger->err(new Message(
-                'Connection issue when fetching url "%1$s": %2$s', // @translate
-                $url, $response->getReasonPhrase()
-            ));
+            $logger->err(
+                'Connection issue when fetching url "{ur}": {message}', // @translate
+                ['url' => $url, 'message' => $response->getReasonPhrase()]
+            );
             return null;
         }
 
         $string = $response->getBody();
         if (!strlen($string)) {
-            $logger->warn(new Message(
-                'Output is empty for url "%s".', // @translate
-                $url
-            ));
+            $logger->warn(
+                'Output is empty for url "{url}".', // @translate
+                ['url' => $url]
+            );
         }
 
         return $string;
@@ -3264,18 +3260,18 @@ SQL;
         try {
             $doc->loadXML($xml);
         } catch (\Exception $e) {
-            $logger->err(new Message(
-                'Output is not xml for url "%s".', // @translate
-                $url
-            ));
+            $logger->err(
+                'Output is not xml for url "{url}".', // @translate
+                ['url' => $url]
+            );
             return null;
         }
 
         if (!$doc) {
-            $logger->err(new Message(
-                'Output is not a valid xml for url "%s".', // @translate
-                $url
-            ));
+            $logger->err(
+                'Output is not a valid xml for url "{url}".', // @translate
+                ['url' => $url]
+            );
             return null;
         }
 
@@ -3533,8 +3529,8 @@ SQL;
     protected function makeTempFileDownloadable(TempFile $tempFile, $base = '')
     {
         $baseDestination = '/temp';
-$destinationDir = $this->basePath . $baseDestination . $base;
-        if (!$this->checkDir($destinationDir)) {
+        $destinationDir = $this->basePath . $baseDestination . $base;
+        if (!$this->checkDestinationDir($destinationDir)) {
             return null;
         }
 
@@ -3550,9 +3546,10 @@ $destinationDir = $this->basePath . $baseDestination . $base;
             if (!file_exists($destination)) {
                 $result = @copy($source, $destination);
                 if (!$result) {
-                        $this->getServiceLocator()->get('Omeka\Logger')->err(new Message('File cannot be saved in temporary directory "%1$s" (temp file: "%2$s")', // @translate
-                        $destination, $source
-                    ));
+                    $this->getServiceLocator()->get('Omeka\Logger')->err(
+                        'File cannot be saved in temporary directory "{dir}" (temp file: "{file}")', // @translate
+                        ['dir' => $destination, 'file' => $source]
+                    );
                     return null;
                 }
                 $storageId = $base . $name . ($i ? '-' . $i : '');
@@ -3596,50 +3593,6 @@ $destinationDir = $this->basePath . $baseDestination . $base;
     }
 
     /**
-     * Check or create the destination folder.
-     *
-     * @param string $dirPath
-     * @return bool
-     */
-    protected function checkDir($dirPath)
-    {
-        if (!file_exists($dirPath)) {
-            if (!is_writeable($this->basePath)) {
-                return false;
-            }
-            @mkdir($dirPath, 0755, true);
-        } elseif (!is_dir($dirPath) || !is_writeable($dirPath)) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Remove a dir from filesystem.
-     *
-     * @param string $dirpath Absolute path.
-     */
-    private function rmDir(string $dirPath): bool
-    {
-        if (!file_exists($dirPath)) {
-            return true;
-        }
-        if (strpos($dirPath, '/..') !== false || substr($dirPath, 0, 1) !== '/') {
-            return false;
-        }
-        $files = array_diff(scandir($dirPath), ['.', '..']);
-        foreach ($files as $file) {
-            $path = $dirPath . '/' . $file;
-            if (is_dir($path)) {
-                $this->rmDir($path);
-            } else {
-                unlink($path);
-            }
-        }
-        return rmdir($dirPath);
-    }
-
-    /**
      * Returns a sanitized string for folder or file path.
      *
      * The string should be a simple name, not a full path or url, because "/",
@@ -3680,52 +3633,9 @@ $destinationDir = $this->basePath . $baseDestination . $base;
     }
 
     /**
-     * Check if a string or a id is a managed term.
-     */
-    protected function isPropertyTerm($term): bool
-    {
-        $ids = $this->getPropertyIds();
-        return isset($ids[$term]);
-    }
-
-    /**
-     * Get all property ids by term.
-     *
-     * @return array Associative array of ids by term.
-     */
-    protected function getPropertyIds(): array
-    {
-        static $properties;
-        if (isset($properties)) {
-            return $properties;
-        }
-
-        /** @var \Doctrine\DBAL\Connection $connection */
-        $connection = $this->getServiceLocator()->get('Omeka\Connection');
-        $qb = $connection->createQueryBuilder();
-        $qb
-            ->select(
-                'DISTINCT CONCAT(vocabulary.prefix, ":", property.local_name) AS term',
-                'property.id AS id',
-                // Only the two first selects are needed, but some databases
-                // require "order by" or "group by" value to be in the select.
-                'vocabulary.id',
-                'property.id'
-            )
-            ->from('property', 'property')
-            ->innerJoin('property', 'vocabulary', 'vocabulary', 'property.vocabulary_id = vocabulary.id')
-            ->orderBy('vocabulary.id', 'asc')
-            ->addOrderBy('property.id', 'asc')
-            ->addGroupBy('property.id')
-        ;
-        return $properties
-            = array_map('intval', $connection->executeQuery($qb)->fetchAllKeyValue());
-    }
-
-    /**
      * Get each line of a string separately.
      */
-    public function stringToList($string): array
+    protected function stringToList($string): array
     {
         return array_filter(array_map('trim', explode("\n", $this->fixEndOfLine($string))), 'strlen');
     }
@@ -3735,7 +3645,7 @@ $destinationDir = $this->basePath . $baseDestination . $base;
      *
      * This method fixes Windows and Apple copy/paste from a textarea input.
      */
-    public function fixEndOfLine($string): string
+    protected function fixEndOfLine($string): string
     {
         return str_replace(["\r\n", "\n\r", "\r"], ["\n", "\n", "\n"], (string) $string);
     }

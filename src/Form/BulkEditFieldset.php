@@ -3,6 +3,7 @@
 namespace BulkEdit\Form;
 
 use BulkEdit\Form\Element as BulkEditElement;
+use Common\Form\Element as CommonElement;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
 use Laminas\I18n\Translator\TranslatorAwareInterface;
@@ -131,7 +132,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'trim_values',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Trim property values', // @translate
                     'info' => 'Remove initial and trailing whitespace of all values of all properties', // @translate
@@ -145,7 +146,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'specify_datatypes',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Specify data type "resource" for linked resources', // @translate
                     'info' => 'In some cases, linked resources are saved in the database with the generic data type "resource", not with the specific "resource:item", "resource:media, etc.', // @translate
@@ -159,7 +160,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'clean_languages',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Clean languages (set null when language is empty)', // @translate
                     'use_hidden_element' => false,
@@ -172,7 +173,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'clean_language_codes',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Normalize or modify language codes', // @translate
                     'info' => 'Normalize language codes from a code to another one, for example "fr" to "fra" or vice-versa. It allows to add or remove a code too.', // @translate
@@ -212,7 +213,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'clean_language_codes_properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -234,7 +235,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'deduplicate_values',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Deduplicate property values case insensitively', // @translate
                     'info' => 'Deduplicate values of all properties, case INsensitively. Trimming values before is recommended, because values are checked strictly.', // @translate
@@ -294,7 +295,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'mode',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Replacement mode', // @translate
                     'value_options' => [
@@ -313,7 +314,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'remove',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Remove whole string', // @translate
                     'use_hidden_element' => false,
@@ -363,7 +364,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'language_clear',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Remove language', // @translate
                     'use_hidden_element' => false,
@@ -376,7 +377,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -418,7 +419,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'from',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'From properties', // @translate
                     'term_as_value' => true,
@@ -436,7 +437,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'to',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'To property', // @translate
                     'term_as_value' => true,
@@ -453,7 +454,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => BulkEditElement\DataTypeSelect::class,
+                'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'empty_option' => '[All datatypes]', // @translate
@@ -482,7 +483,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'visibility',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Only visibility', // @translate
                     'value_options' => [
@@ -534,7 +535,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties', // @translate
                     'term_as_value' => true,
@@ -599,7 +600,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties', // @translate
                     'term_as_value' => true,
@@ -639,7 +640,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'from',
-                'type' => BulkEditElement\DataTypeSelect::class,
+                'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'From datatype', // @translate
                     'empty_option' => '',
@@ -656,7 +657,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'to',
-                'type' => BulkEditElement\DataTypeSelect::class,
+                'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'To datatype', // @translate
                     'empty_option' => '',
@@ -672,7 +673,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -693,7 +694,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'literal_value',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Convert to literal: Content', // @translate
                     'value_options' => [
@@ -717,7 +718,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'literal_extract_html_text',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Convert to literal: keep only text from html/xml', // @translate
                     'use_hidden_element' => false,
@@ -731,7 +732,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'literal_html_only_tagged_string',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Convert to html/xml: only html/xml-looking strings', // @translate
                     'use_hidden_element' => false,
@@ -745,7 +746,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'resource_value_preprocess',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Convert to linked resource: Preprocess value', // @translate
                     'value_options' => [
@@ -764,7 +765,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'resource_properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Convert to linked resource: Properties where to search the identifier', // @translate
                     'term_as_value' => true,
@@ -786,7 +787,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'uri_extract_label',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Convert to uri: extract label after uri', // @translate
                     'use_hidden_element' => false,
@@ -830,7 +831,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'uri_base_site',
-                'type' => BulkEditElement\OptionalSiteSelect::class,
+                'type' => CommonElement\OptionalSiteSelect::class,
                 'options' => [
                     'label' => 'Convert to uri: Site to use as base url', // @translate
                     // 'disable_group_by_owner' => true,
@@ -897,7 +898,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties to order', // @translate
                     'term_as_value' => true,
@@ -940,7 +941,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'visibility',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Set visibility', // @translate
                     'value_options' => [
@@ -958,7 +959,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -979,7 +980,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => BulkEditElement\DataTypeSelect::class,
+                'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'empty_option' => '[All datatypes]', // @translate
@@ -1042,7 +1043,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'owner',
-                'type' => BulkEditElement\OptionalUserSelect::class,
+                'type' => CommonElement\OptionalUserSelect::class,
                 'options' => [
                     'label' => 'Append or remove owner', // @translate
                     'empty_option' => '',
@@ -1111,7 +1112,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Fill mode', // @translate
                     'value_options' => [
@@ -1161,7 +1162,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -1194,7 +1195,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Data types to process', // @translate
                     'empty_option' => '',
@@ -1224,7 +1225,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'datatype',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Data type to use when the value is literal or uri', // @translate
                     'empty_option' => '',
@@ -1253,7 +1254,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'update_language',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Update language in value', // @translate
                     'value_options' => [
@@ -1271,7 +1272,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'featured_subject',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Use featured subject (Rameau)', // @translate
                     'use_hidden_element' => false,
@@ -1306,7 +1307,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'properties',
-                'type' => BulkEditElement\OptionalPropertySelect::class,
+                'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
@@ -1327,7 +1328,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'datatypes',
-                'type' => BulkEditElement\DataTypeSelect::class,
+                'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
                     'label' => 'Only datatypes', // @translate
                     'empty_option' => '[All datatypes]', // @translate
@@ -1356,7 +1357,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'visibility',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Only visibility', // @translate
                     'value_options' => [
@@ -1434,7 +1435,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'mode',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'What to do with media metadata', // @translate
                     'value_options' => [
@@ -1490,7 +1491,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'mode',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Process mode', // @translate
                     'value_options' => [
@@ -1509,7 +1510,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'process',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Creation process', // @translate
                     'value_options' => [
@@ -1526,7 +1527,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'resolution',
-                'type' => BulkEditElement\OptionalNumber::class,
+                'type' => CommonElement\OptionalNumber::class,
                 'options' => [
                     'label' => 'Resolution, generally 72, 96, 150, 300, 400 (default), 600 or more', // @translate
                 ],
@@ -1561,7 +1562,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'order',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Media order', // @translate
                     'value_options' => [
@@ -1622,7 +1623,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'mediatypes',
-                'type' => BulkEditElement\ArrayText::class,
+                'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'List of media types to order first', // @translate
                     'value_separator' => ' ', // @translate
@@ -1641,7 +1642,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'extensions',
-                'type' => BulkEditElement\ArrayText::class,
+                'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'List of extensions to order first', // @translate
                 ],
@@ -1699,7 +1700,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'mode',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Replacement mode', // @translate
                     'value_options' => [
@@ -1718,7 +1719,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'remove',
-                'type' => BulkEditElement\OptionalCheckbox::class,
+                'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
                     'label' => 'Remove string', // @translate
                     'use_hidden_element' => false,
@@ -1823,7 +1824,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'visibility',
-                'type' => BulkEditElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Set visibility', // @translate
                     'value_options' => [
@@ -1841,7 +1842,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'media_types',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Limit to media types', // @translate
                     'empty_option' => 'All media types', // @translate
@@ -1859,7 +1860,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'ingesters',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Limit to ingesters', // @translate
                     'empty_option' => 'All ingesters', // @translate
@@ -1877,7 +1878,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'renderers',
-                'type' => BulkEditElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Limit to renderers', // @translate
                     'empty_option' => 'All renderers', // @translate

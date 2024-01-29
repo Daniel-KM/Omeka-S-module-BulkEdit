@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace BulkEdit\Mvc\Controller\Plugin;
 
 use Doctrine\ORM\EntityManager;

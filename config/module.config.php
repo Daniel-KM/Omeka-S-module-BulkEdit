@@ -29,24 +29,11 @@ return [
     ],
     'form_elements' => [
         'invokables' => [
-            Form\Element\ArrayText::class => Form\Element\ArrayText::class,
             Form\Element\Note::class => Form\Element\Note::class,
-            Form\Element\OptionalCheckbox::class => Form\Element\OptionalCheckbox::class,
-            Form\Element\OptionalNumber::class => Form\Element\OptionalNumber::class,
-            Form\Element\OptionalRadio::class => Form\Element\OptionalRadio::class,
-            Form\Element\OptionalSelect::class => Form\Element\OptionalSelect::class,
             Form\SettingsFieldset::class => Form\SettingsFieldset::class,
         ],
         'factories' => [
             Form\BulkEditFieldset::class => Service\Form\BulkEditFieldsetFactory::class,
-            Form\Element\DataTypeSelect::class => Service\Form\Element\DataTypeSelectFactory::class,
-            Form\Element\OptionalPropertySelect::class => Service\Form\Element\OptionalPropertySelectFactory::class,
-            Form\Element\OptionalSiteSelect::class => Service\Form\Element\OptionalSiteSelectFactory::class,
-            Form\Element\OptionalUserSelect::class => Service\Form\Element\OptionalUserSelectFactory::class,
-        ],
-        'aliases' => [
-            // Use aliases to keep core keys.
-            'Omeka\Form\Element\DataTypeSelect' => Form\Element\DataTypeSelect::class,
         ],
     ],
     'translator' => [

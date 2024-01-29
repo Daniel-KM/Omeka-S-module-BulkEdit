@@ -1,0 +1,2290 @@
+[
+  {
+    "ISO-2": "AD",
+    "ISO-3": "AND",
+    "ISO-#": 20,
+    "eng": "Andorra",
+    "fra": "Andorre",
+    "URI": "https://sws.geonames.org/3041565/"
+  },
+  {
+    "ISO-2": "AE",
+    "ISO-3": "ARE",
+    "ISO-#": 784,
+    "eng": "United Arab Emirates",
+    "fra": "Émirats arabes unis",
+    "URI": "https://sws.geonames.org/290557/"
+  },
+  {
+    "ISO-2": "AE",
+    "ISO-3": "ARE",
+    "ISO-#": 784,
+    "eng": "United Arab Emirates",
+    "fra": "Emirats arabes unis",
+    "URI": "https://sws.geonames.org/290557/"
+  },
+  {
+    "ISO-2": "AF",
+    "ISO-3": "AFG",
+    "ISO-#": 4,
+    "eng": "Afghanistan",
+    "fra": "Afghanistan",
+    "URI": "https://sws.geonames.org/1149361/"
+  },
+  {
+    "ISO-2": "AG",
+    "ISO-3": "ATG",
+    "ISO-#": 28,
+    "eng": "Antigua and Barbuda",
+    "fra": "Antigua-et-Barbuda",
+    "URI": "https://sws.geonames.org/3576396/"
+  },
+  {
+    "ISO-2": "AI",
+    "ISO-3": "AIA",
+    "ISO-#": 660,
+    "eng": "Anguilla",
+    "fra": "Anguilla",
+    "URI": "https://sws.geonames.org/3573511/"
+  },
+  {
+    "ISO-2": "AL",
+    "ISO-3": "ALB",
+    "ISO-#": 8,
+    "eng": "Albania",
+    "fra": "Albanie",
+    "URI": "https://sws.geonames.org/783754/"
+  },
+  {
+    "ISO-2": "AM",
+    "ISO-3": "ARM",
+    "ISO-#": 51,
+    "eng": "Armenia",
+    "fra": "Arménie",
+    "URI": "https://sws.geonames.org/174982/"
+  },
+  {
+    "ISO-2": "AO",
+    "ISO-3": "AGO",
+    "ISO-#": 24,
+    "eng": "Angola",
+    "fra": "Angola",
+    "URI": "https://sws.geonames.org/3351879/"
+  },
+  {
+    "ISO-2": "AQ",
+    "ISO-3": "ATA",
+    "ISO-#": 10,
+    "eng": "Antarctica",
+    "fra": "Antarctique",
+    "URI": "https://sws.geonames.org/6697173/"
+  },
+  {
+    "ISO-2": "AR",
+    "ISO-3": "ARG",
+    "ISO-#": 32,
+    "eng": "Argentina",
+    "fra": "Argentine",
+    "URI": "https://sws.geonames.org/3865483/"
+  },
+  {
+    "ISO-2": "AS",
+    "ISO-3": "ASM",
+    "ISO-#": 16,
+    "eng": "American Samoa",
+    "fra": "Samoa américaines",
+    "URI": "https://sws.geonames.org/5880801/"
+  },
+  {
+    "ISO-2": "AT",
+    "ISO-3": "AUT",
+    "ISO-#": 40,
+    "eng": "Austria",
+    "fra": "Autriche",
+    "URI": "https://sws.geonames.org/2782113/"
+  },
+  {
+    "ISO-2": "AU",
+    "ISO-3": "AUS",
+    "ISO-#": 36,
+    "eng": "Australia",
+    "fra": "Australie",
+    "URI": "https://sws.geonames.org/2077456/"
+  },
+  {
+    "ISO-2": "AW",
+    "ISO-3": "ABW",
+    "ISO-#": 533,
+    "eng": "Aruba",
+    "fra": "Aruba",
+    "URI": "https://sws.geonames.org/3577279/"
+  },
+  {
+    "ISO-2": "AX",
+    "ISO-3": "ALA",
+    "ISO-#": 248,
+    "eng": "Åland Islands",
+    "fra": "Ïles Åland",
+    "URI": "https://sws.geonames.org/661882/"
+  },
+  {
+    "ISO-2": "AX",
+    "ISO-3": "ALA",
+    "ISO-#": 248,
+    "eng": "Aland Islands",
+    "fra": "Iles Aland",
+    "URI": "https://sws.geonames.org/661882/"
+  },
+  {
+    "ISO-2": "AZ",
+    "ISO-3": "AZE",
+    "ISO-#": 31,
+    "eng": "Azerbaijan",
+    "fra": "Azerbaïdjan",
+    "URI": "https://sws.geonames.org/587116/"
+  },
+  {
+    "ISO-2": "BA",
+    "ISO-3": "BIH",
+    "ISO-#": 70,
+    "eng": "Bosnia and Herzegovina",
+    "fra": "Bosnie-Herzégovine",
+    "URI": "https://sws.geonames.org/3277605/"
+  },
+  {
+    "ISO-2": "BB",
+    "ISO-3": "BRB",
+    "ISO-#": 52,
+    "eng": "Barbados",
+    "fra": "Barbade",
+    "URI": "https://sws.geonames.org/3374084/"
+  },
+  {
+    "ISO-2": "BD",
+    "ISO-3": "BGD",
+    "ISO-#": 50,
+    "eng": "Bangladesh",
+    "fra": "Bangladesh",
+    "URI": "https://sws.geonames.org/1210997/"
+  },
+  {
+    "ISO-2": "BE",
+    "ISO-3": "BEL",
+    "ISO-#": 56,
+    "eng": "Belgium",
+    "fra": "Belgique",
+    "URI": "https://sws.geonames.org/2802361/"
+  },
+  {
+    "ISO-2": "BF",
+    "ISO-3": "BFA",
+    "ISO-#": 854,
+    "eng": "Burkina Faso",
+    "fra": "Burkina Faso",
+    "URI": "https://sws.geonames.org/2361809/"
+  },
+  {
+    "ISO-2": "BG",
+    "ISO-3": "BGR",
+    "ISO-#": 100,
+    "eng": "Bulgaria",
+    "fra": "Bulgarie",
+    "URI": "https://sws.geonames.org/732800/"
+  },
+  {
+    "ISO-2": "BH",
+    "ISO-3": "BHR",
+    "ISO-#": 48,
+    "eng": "Bahrain",
+    "fra": "Bahreïn",
+    "URI": "https://sws.geonames.org/290291/"
+  },
+  {
+    "ISO-2": "BI",
+    "ISO-3": "BDI",
+    "ISO-#": 108,
+    "eng": "Burundi",
+    "fra": "Burundi",
+    "URI": "https://sws.geonames.org/433561/"
+  },
+  {
+    "ISO-2": "BJ",
+    "ISO-3": "BEN",
+    "ISO-#": 204,
+    "eng": "Benin",
+    "fra": "Bénin",
+    "URI": "https://sws.geonames.org/2395170/"
+  },
+  {
+    "ISO-2": "BL",
+    "ISO-3": "BLM",
+    "ISO-#": 652,
+    "eng": "Saint Barthélemy",
+    "fra": "Saint-Barthélemy",
+    "URI": "https://sws.geonames.org/3578476/"
+  },
+  {
+    "ISO-2": "BM",
+    "ISO-3": "BMU",
+    "ISO-#": 60,
+    "eng": "Bermuda",
+    "fra": "Bermudes",
+    "URI": "https://sws.geonames.org/3573345/"
+  },
+  {
+    "ISO-2": "BN",
+    "ISO-3": "BRN",
+    "ISO-#": 96,
+    "eng": "Brunei Darussalam",
+    "fra": "Brunéi Darussalam",
+    "URI": "https://sws.geonames.org/1820814/"
+  },
+  {
+    "ISO-2": "BN",
+    "ISO-3": "BRN",
+    "ISO-#": 96,
+    "eng": "Brunei",
+    "fra": "Bruneï",
+    "URI": "https://sws.geonames.org/1820814/"
+  },
+  {
+    "ISO-2": "BO",
+    "ISO-3": "BOL",
+    "ISO-#": 68,
+    "eng": "Bolivia",
+    "fra": "Bolivie",
+    "URI": "https://sws.geonames.org/3923057/"
+  },
+  {
+    "ISO-2": "BQ",
+    "ISO-3": "BES",
+    "ISO-#": 535,
+    "eng": "Bonaire, Sint Eustatius and Saba",
+    "fra": "Bonaire, Saint-Eustache et Saba",
+    "URI": "https://sws.geonames.org/7626844/"
+  },
+  {
+    "ISO-2": "BR",
+    "ISO-3": "BRA",
+    "ISO-#": 76,
+    "eng": "Brazil",
+    "fra": "Brésil",
+    "URI": "https://sws.geonames.org/3469034/"
+  },
+  {
+    "ISO-2": "BS",
+    "ISO-3": "BHS",
+    "ISO-#": 44,
+    "eng": "Bahamas",
+    "fra": "Bahamas",
+    "URI": "https://sws.geonames.org/3572887/"
+  },
+  {
+    "ISO-2": "BT",
+    "ISO-3": "BTN",
+    "ISO-#": 64,
+    "eng": "Bhutan",
+    "fra": "Bhoutan",
+    "URI": "https://sws.geonames.org/1252634/"
+  },
+  {
+    "ISO-2": "BV",
+    "ISO-3": "BVT",
+    "ISO-#": 74,
+    "eng": "Bouvet Island",
+    "fra": "Bouvet",
+    "URI": "https://sws.geonames.org/3371123/"
+  },
+  {
+    "ISO-2": "BV",
+    "ISO-3": "BVT",
+    "ISO-#": 74,
+    "eng": "Bouvet Island",
+    "fra": "Ile Bouvet",
+    "URI": "https://sws.geonames.org/3371123/"
+  },
+  {
+    "ISO-2": "BV",
+    "ISO-3": "BVT",
+    "ISO-#": 74,
+    "eng": "Bouvet Island",
+    "fra": "Île Bouvet",
+    "URI": "https://sws.geonames.org/3371123/"
+  },
+  {
+    "ISO-2": "BW",
+    "ISO-3": "BWA",
+    "ISO-#": 72,
+    "eng": "Botswana",
+    "fra": "Botswana",
+    "URI": "https://sws.geonames.org/933860/"
+  },
+  {
+    "ISO-2": "BY",
+    "ISO-3": "BLR",
+    "ISO-#": 112,
+    "eng": "Belarus",
+    "fra": "Biélorussie",
+    "URI": "https://sws.geonames.org/630336/"
+  },
+  {
+    "ISO-2": "BZ",
+    "ISO-3": "BLZ",
+    "ISO-#": 84,
+    "eng": "Belize",
+    "fra": "Belize",
+    "URI": "https://sws.geonames.org/3582678/"
+  },
+  {
+    "ISO-2": "CA",
+    "ISO-3": "CAN",
+    "ISO-#": 124,
+    "eng": "Canada",
+    "fra": "Canada",
+    "URI": "https://sws.geonames.org/6251999/"
+  },
+  {
+    "ISO-2": "CC",
+    "ISO-3": "CCK",
+    "ISO-#": 166,
+    "eng": "Cocos Islands",
+    "fra": "Îles Cocos",
+    "URI": "https://sws.geonames.org/1547376/"
+  },
+  {
+    "ISO-2": "CC",
+    "ISO-3": "CCK",
+    "ISO-#": 166,
+    "eng": "Cocos Islands",
+    "fra": "Iles Cocos",
+    "URI": "https://sws.geonames.org/1547376/"
+  },
+  {
+    "ISO-2": "CC",
+    "ISO-3": "CCK",
+    "ISO-#": 166,
+    "eng": "Keeling Islands",
+    "fra": "Îles Keeling",
+    "URI": "https://sws.geonames.org/1547376/"
+  },
+  {
+    "ISO-2": "CC",
+    "ISO-3": "CCK",
+    "ISO-#": 166,
+    "eng": "Keeling Islands",
+    "fra": "Iles Keeling",
+    "URI": "https://sws.geonames.org/1547376/"
+  },
+  {
+    "ISO-2": "CD",
+    "ISO-3": "COD",
+    "ISO-#": 180,
+    "eng": "Congo DRC",
+    "fra": "Congo RDC",
+    "URI": "https://sws.geonames.org/203312/"
+  },
+  {
+    "ISO-2": "CF",
+    "ISO-3": "CAF",
+    "ISO-#": 140,
+    "eng": "Central African Republic",
+    "fra": "République centrafricaine",
+    "URI": "https://sws.geonames.org/239880/"
+  },
+  {
+    "ISO-2": "CF",
+    "ISO-3": "CAF",
+    "ISO-#": 140,
+    "eng": "Central African Republic",
+    "fra": "Centrafrique",
+    "URI": "https://sws.geonames.org/239880/"
+  },
+  {
+    "ISO-2": "CG",
+    "ISO-3": "COG",
+    "ISO-#": 178,
+    "eng": "Congo",
+    "fra": "Congo",
+    "URI": "https://sws.geonames.org/2260494/"
+  },
+  {
+    "ISO-2": "CH",
+    "ISO-3": "CHE",
+    "ISO-#": 756,
+    "eng": "Switzerland",
+    "fra": "Suisse",
+    "URI": "https://sws.geonames.org/2658434/"
+  },
+  {
+    "ISO-2": "CI",
+    "ISO-3": "CIV",
+    "ISO-#": 384,
+    "eng": "Côte d'Ivoire",
+    "fra": "Côte d'Ivoire",
+    "URI": "https://sws.geonames.org/2287781/"
+  },
+  {
+    "ISO-2": "CK",
+    "ISO-3": "COK",
+    "ISO-#": 184,
+    "eng": "Cook Islands",
+    "fra": "Îles Cook",
+    "URI": "https://sws.geonames.org/1899402/"
+  },
+  {
+    "ISO-2": "CK",
+    "ISO-3": "COK",
+    "ISO-#": 184,
+    "eng": "Cook Islands",
+    "fra": "Iles Cook",
+    "URI": "https://sws.geonames.org/1899402/"
+  },
+  {
+    "ISO-2": "CL",
+    "ISO-3": "CHL",
+    "ISO-#": 152,
+    "eng": "Chile",
+    "fra": "Chili",
+    "URI": "https://sws.geonames.org/3895114/"
+  },
+  {
+    "ISO-2": "CM",
+    "ISO-3": "CMR",
+    "ISO-#": 120,
+    "eng": "Cameroon",
+    "fra": "Cameroun",
+    "URI": "https://sws.geonames.org/2233387/"
+  },
+  {
+    "ISO-2": "CN",
+    "ISO-3": "CHN",
+    "ISO-#": 156,
+    "eng": "China",
+    "fra": "Chine",
+    "URI": "https://sws.geonames.org/1814991/"
+  },
+  {
+    "ISO-2": "CO",
+    "ISO-3": "COL",
+    "ISO-#": 170,
+    "eng": "Colombia",
+    "fra": "Colombie",
+    "URI": "https://sws.geonames.org/3686110/"
+  },
+  {
+    "ISO-2": "CR",
+    "ISO-3": "CRI",
+    "ISO-#": 188,
+    "eng": "Costa Rica",
+    "fra": "Costa Rica",
+    "URI": "https://sws.geonames.org/3624060/"
+  },
+  {
+    "ISO-2": "CU",
+    "ISO-3": "CUB",
+    "ISO-#": 192,
+    "eng": "Cuba",
+    "fra": "Cuba",
+    "URI": "https://sws.geonames.org/3562981/"
+  },
+  {
+    "ISO-2": "CV",
+    "ISO-3": "CPV",
+    "ISO-#": 132,
+    "eng": "Cabo Verde",
+    "fra": "Cap Vert",
+    "URI": "https://sws.geonames.org/3374766/"
+  },
+  {
+    "ISO-2": "CW",
+    "ISO-3": "CUW",
+    "ISO-#": 531,
+    "eng": "Curaçao",
+    "fra": "Curaçao",
+    "URI": "https://sws.geonames.org/7626836/"
+  },
+  {
+    "ISO-2": "CX",
+    "ISO-3": "CXR",
+    "ISO-#": 162,
+    "eng": "Christmas Island",
+    "fra": "Îles Christmas",
+    "URI": "https://sws.geonames.org/2078138/"
+  },
+  {
+    "ISO-2": "CX",
+    "ISO-3": "CXR",
+    "ISO-#": 162,
+    "eng": "Christmas Island",
+    "fra": "Iles Christmas",
+    "URI": "https://sws.geonames.org/2078138/"
+  },
+  {
+    "ISO-2": "CY",
+    "ISO-3": "CYP",
+    "ISO-#": 196,
+    "eng": "Cyprus",
+    "fra": "Chypre",
+    "URI": "https://sws.geonames.org/146669/"
+  },
+  {
+    "ISO-2": "CZ",
+    "ISO-3": "CZE",
+    "ISO-#": 203,
+    "eng": "Czechia",
+    "fra": "Tchéquie",
+    "URI": "https://sws.geonames.org/3077311/"
+  },
+  {
+    "ISO-2": "CZ",
+    "ISO-3": "CZE",
+    "ISO-#": 203,
+    "eng": "Czechia",
+    "fra": "République Tchéque",
+    "URI": "https://sws.geonames.org/3077311/"
+  },
+  {
+    "ISO-2": "DE",
+    "ISO-3": "DEU",
+    "ISO-#": 276,
+    "eng": "Germany",
+    "fra": "Allemagne",
+    "URI": "https://sws.geonames.org/2921044/"
+  },
+  {
+    "ISO-2": "DJ",
+    "ISO-3": "DJI",
+    "ISO-#": 262,
+    "eng": "Djibouti",
+    "fra": "Djibouti",
+    "URI": "https://sws.geonames.org/223816/"
+  },
+  {
+    "ISO-2": "DK",
+    "ISO-3": "DNK",
+    "ISO-#": 208,
+    "eng": "Denmark",
+    "fra": "Danemark",
+    "URI": "https://sws.geonames.org/2623032/"
+  },
+  {
+    "ISO-2": "DM",
+    "ISO-3": "DMA",
+    "ISO-#": 212,
+    "eng": "Dominica",
+    "fra": "Dominique",
+    "URI": "https://sws.geonames.org/3575830/"
+  },
+  {
+    "ISO-2": "DO",
+    "ISO-3": "DOM",
+    "ISO-#": 214,
+    "eng": "Dominican Republic",
+    "fra": "République dominicaine",
+    "URI": "https://sws.geonames.org/3508796/"
+  },
+  {
+    "ISO-2": "DZ",
+    "ISO-3": "DZA",
+    "ISO-#": 12,
+    "eng": "Algeria",
+    "fra": "Algérie",
+    "URI": "https://sws.geonames.org/2589581/"
+  },
+  {
+    "ISO-2": "EC",
+    "ISO-3": "ECU",
+    "ISO-#": 218,
+    "eng": "Ecuador",
+    "fra": "Équateur",
+    "URI": "https://sws.geonames.org/3658394/"
+  },
+  {
+    "ISO-2": "EC",
+    "ISO-3": "ECU",
+    "ISO-#": 218,
+    "eng": "Ecuador",
+    "fra": "Equateur",
+    "URI": "https://sws.geonames.org/3658394/"
+  },
+  {
+    "ISO-2": "EE",
+    "ISO-3": "EST",
+    "ISO-#": 233,
+    "eng": "Estonia",
+    "fra": "Estonie",
+    "URI": "https://sws.geonames.org/453733/"
+  },
+  {
+    "ISO-2": "EG",
+    "ISO-3": "EGY",
+    "ISO-#": 818,
+    "eng": "Egypt",
+    "fra": "Égypte",
+    "URI": "https://sws.geonames.org/357994/"
+  },
+  {
+    "ISO-2": "EG",
+    "ISO-3": "EGY",
+    "ISO-#": 818,
+    "eng": "Egypt",
+    "fra": "Egypte",
+    "URI": "https://sws.geonames.org/357994/"
+  },
+  {
+    "ISO-2": "EH",
+    "ISO-3": "ESH",
+    "ISO-#": 732,
+    "eng": "Western Sahara*",
+    "fra": "Sahara occidental",
+    "URI": "https://sws.geonames.org/2461445/"
+  },
+  {
+    "ISO-2": "ER",
+    "ISO-3": "ERI",
+    "ISO-#": 232,
+    "eng": "Eritrea",
+    "fra": "Érythrée",
+    "URI": "https://sws.geonames.org/338010/"
+  },
+  {
+    "ISO-2": "ER",
+    "ISO-3": "ERI",
+    "ISO-#": 232,
+    "eng": "Eritrea",
+    "fra": "Erythrée",
+    "URI": "https://sws.geonames.org/338010/"
+  },
+  {
+    "ISO-2": "ES",
+    "ISO-3": "ESP",
+    "ISO-#": 724,
+    "eng": "Spain",
+    "fra": "Espagne",
+    "URI": "https://sws.geonames.org/2510769/"
+  },
+  {
+    "ISO-2": "ET",
+    "ISO-3": "ETH",
+    "ISO-#": 231,
+    "eng": "Ethiopia",
+    "fra": "Éthiopie",
+    "URI": "https://sws.geonames.org/337996/"
+  },
+  {
+    "ISO-2": "FI",
+    "ISO-3": "FIN",
+    "ISO-#": 246,
+    "eng": "Finland",
+    "fra": "Finlande",
+    "URI": "https://sws.geonames.org/660013/"
+  },
+  {
+    "ISO-2": "FJ",
+    "ISO-3": "FJI",
+    "ISO-#": 242,
+    "eng": "Fiji",
+    "fra": "Fidji",
+    "URI": "https://sws.geonames.org/2205218/"
+  },
+  {
+    "ISO-2": "FK",
+    "ISO-3": "FLK",
+    "ISO-#": 238,
+    "eng": "Falkland Islands",
+    "fra": "Îles Falkland",
+    "URI": "https://sws.geonames.org/3474414/"
+  },
+  {
+    "ISO-2": "FK",
+    "ISO-3": "FLK",
+    "ISO-#": 238,
+    "eng": "Falkland Islands",
+    "fra": "Iles Falkland",
+    "URI": "https://sws.geonames.org/3474414/"
+  },
+  {
+    "ISO-2": "FK",
+    "ISO-3": "FLK",
+    "ISO-#": 238,
+    "eng": "Malvinas",
+    "fra": "Îles Malouines",
+    "URI": "https://sws.geonames.org/3474414/"
+  },
+  {
+    "ISO-2": "FK",
+    "ISO-3": "FLK",
+    "ISO-#": 238,
+    "eng": "Malvinas",
+    "fra": "Iles Malouines",
+    "URI": "https://sws.geonames.org/3474414/"
+  },
+  {
+    "ISO-2": "FK",
+    "ISO-3": "FLK",
+    "ISO-#": 238,
+    "eng": "Malvinas",
+    "fra": "Malouines",
+    "URI": "https://sws.geonames.org/3474414/"
+  },
+  {
+    "ISO-2": "FM",
+    "ISO-3": "FSM",
+    "ISO-#": 583,
+    "eng": "Micronesia",
+    "fra": "Micronésie",
+    "URI": "https://sws.geonames.org/2081918/"
+  },
+  {
+    "ISO-2": "FO",
+    "ISO-3": "FRO",
+    "ISO-#": 234,
+    "eng": "Faroe Islands",
+    "fra": "Îles Féroé",
+    "URI": "https://sws.geonames.org/2622320/"
+  },
+  {
+    "ISO-2": "FO",
+    "ISO-3": "FRO",
+    "ISO-#": 234,
+    "eng": "Faroe Islands",
+    "fra": "Iles Féroé",
+    "URI": "https://sws.geonames.org/2622320/"
+  },
+  {
+    "ISO-2": "FR",
+    "ISO-3": "FRA",
+    "ISO-#": 250,
+    "eng": "France",
+    "fra": "France",
+    "URI": "https://sws.geonames.org/3017382/"
+  },
+  {
+    "ISO-2": "GA",
+    "ISO-3": "GAB",
+    "ISO-#": 266,
+    "eng": "Gabon",
+    "fra": "Gabon",
+    "URI": "https://sws.geonames.org/2400553/"
+  },
+  {
+    "ISO-2": "GB",
+    "ISO-3": "GBR",
+    "ISO-#": 826,
+    "eng": "United Kingdom of Great Britain and Northern Ireland",
+    "fra": "Royaume-Uni de Grande-Bretagne et d'Irlande du Nord",
+    "URI": "https://sws.geonames.org/2635167/"
+  },
+  {
+    "ISO-2": "GB",
+    "ISO-3": "GBR",
+    "ISO-#": 826,
+    "eng": "United Kingdom",
+    "fra": "Royaume-Uni",
+    "URI": "https://sws.geonames.org/2635167/"
+  },
+  {
+    "ISO-2": "GD",
+    "ISO-3": "GRD",
+    "ISO-#": 308,
+    "eng": "Grenada",
+    "fra": "Grenade",
+    "URI": "https://sws.geonames.org/3580239/"
+  },
+  {
+    "ISO-2": "GE",
+    "ISO-3": "GEO",
+    "ISO-#": 268,
+    "eng": "Georgia",
+    "fra": "Géorgie",
+    "URI": "https://sws.geonames.org/614540/"
+  },
+  {
+    "ISO-2": "GF",
+    "ISO-3": "GUF",
+    "ISO-#": 254,
+    "eng": "French Guiana",
+    "fra": "Guyane française",
+    "URI": "https://sws.geonames.org/3381670/"
+  },
+  {
+    "ISO-2": "GG",
+    "ISO-3": "GGY",
+    "ISO-#": 831,
+    "eng": "Guernsey",
+    "fra": "Guernesey",
+    "URI": "https://sws.geonames.org/3042362/"
+  },
+  {
+    "ISO-2": "GH",
+    "ISO-3": "GHA",
+    "ISO-#": 288,
+    "eng": "Ghana",
+    "fra": "Ghana",
+    "URI": "https://sws.geonames.org/2300660/"
+  },
+  {
+    "ISO-2": "GI",
+    "ISO-3": "GIB",
+    "ISO-#": 292,
+    "eng": "Gibraltar",
+    "fra": "Gibraltar",
+    "URI": "https://sws.geonames.org/2411586/"
+  },
+  {
+    "ISO-2": "GL",
+    "ISO-3": "GRL",
+    "ISO-#": 304,
+    "eng": "Greenland",
+    "fra": "Groenland",
+    "URI": "https://sws.geonames.org/3425505/"
+  },
+  {
+    "ISO-2": "GM",
+    "ISO-3": "GMB",
+    "ISO-#": 270,
+    "eng": "Gambia",
+    "fra": "Gambie",
+    "URI": "https://sws.geonames.org/2413451/"
+  },
+  {
+    "ISO-2": "GN",
+    "ISO-3": "GIN",
+    "ISO-#": 324,
+    "eng": "Guinea",
+    "fra": "Guinée",
+    "URI": "https://sws.geonames.org/2420477/"
+  },
+  {
+    "ISO-2": "GP",
+    "ISO-3": "GLP",
+    "ISO-#": 312,
+    "eng": "Guadeloupe",
+    "fra": "Guadeloupe",
+    "URI": "https://sws.geonames.org/3579143/"
+  },
+  {
+    "ISO-2": "GQ",
+    "ISO-3": "GNQ",
+    "ISO-#": 226,
+    "eng": "Equatorial Guinea",
+    "fra": "Guinée équatoriale",
+    "URI": "https://sws.geonames.org/2309096/"
+  },
+  {
+    "ISO-2": "GR",
+    "ISO-3": "GRC",
+    "ISO-#": 300,
+    "eng": "Greece",
+    "fra": "Grèce",
+    "URI": "https://sws.geonames.org/390903/"
+  },
+  {
+    "ISO-2": "GS",
+    "ISO-3": "SGS",
+    "ISO-#": 239,
+    "eng": "South Georgia and the South Sandwich Islands",
+    "fra": "Géorgie du Sud-et-les Îles Sandwich du Sud",
+    "URI": "https://sws.geonames.org/3474415/"
+  },
+  {
+    "ISO-2": "GS",
+    "ISO-3": "SGS",
+    "ISO-#": 239,
+    "eng": "South Sandwich Islands",
+    "fra": "Îles Sandwich du Sud",
+    "URI": "https://sws.geonames.org/3474415/"
+  },
+  {
+    "ISO-2": "GT",
+    "ISO-3": "GTM",
+    "ISO-#": 320,
+    "eng": "Guatemala",
+    "fra": "Guatemala",
+    "URI": "https://sws.geonames.org/3595528/"
+  },
+  {
+    "ISO-2": "GU",
+    "ISO-3": "GUM",
+    "ISO-#": 316,
+    "eng": "Guam",
+    "fra": "Guam",
+    "URI": "https://sws.geonames.org/4043988/"
+  },
+  {
+    "ISO-2": "GW",
+    "ISO-3": "GNB",
+    "ISO-#": 624,
+    "eng": "Guinea-Bissau",
+    "fra": "Guinée-Bissau",
+    "URI": "https://sws.geonames.org/2372248/"
+  },
+  {
+    "ISO-2": "GY",
+    "ISO-3": "GUY",
+    "ISO-#": 328,
+    "eng": "Guyana",
+    "fra": "Guyana",
+    "URI": "https://sws.geonames.org/3378535/"
+  },
+  {
+    "ISO-2": "HK",
+    "ISO-3": "HKG",
+    "ISO-#": 344,
+    "eng": "Hong Kong",
+    "fra": "Hong Kong",
+    "URI": "https://sws.geonames.org/1819730/"
+  },
+  {
+    "ISO-2": "HM",
+    "ISO-3": "HMD",
+    "ISO-#": 334,
+    "eng": "Heard Island and McDonald Islands",
+    "fra": "Îles Heard-et-Îles MacDonald",
+    "URI": "https://sws.geonames.org/1547314/"
+  },
+  {
+    "ISO-2": "HM",
+    "ISO-3": "HMD",
+    "ISO-#": 334,
+    "eng": "Heard Island and McDonald Islands",
+    "fra": "Iles Heard-et-Îles MacDonald",
+    "URI": "https://sws.geonames.org/1547314/"
+  },
+  {
+    "ISO-2": "HN",
+    "ISO-3": "HND",
+    "ISO-#": 340,
+    "eng": "Honduras",
+    "fra": "Honduras",
+    "URI": "https://sws.geonames.org/3608932/"
+  },
+  {
+    "ISO-2": "HR",
+    "ISO-3": "HRV",
+    "ISO-#": 191,
+    "eng": "Croatia",
+    "fra": "Croatie",
+    "URI": "https://sws.geonames.org/3202326/"
+  },
+  {
+    "ISO-2": "HT",
+    "ISO-3": "HTI",
+    "ISO-#": 332,
+    "eng": "Haiti",
+    "fra": "Haïti",
+    "URI": "https://sws.geonames.org/3723988/"
+  },
+  {
+    "ISO-2": "HU",
+    "ISO-3": "HUN",
+    "ISO-#": 348,
+    "eng": "Hungary",
+    "fra": "Hongrie",
+    "URI": "https://sws.geonames.org/719819/"
+  },
+  {
+    "ISO-2": "ID",
+    "ISO-3": "IDN",
+    "ISO-#": 360,
+    "eng": "Indonesia",
+    "fra": "Indonésie",
+    "URI": "https://sws.geonames.org/1643084/"
+  },
+  {
+    "ISO-2": "IE",
+    "ISO-3": "IRL",
+    "ISO-#": 372,
+    "eng": "Ireland",
+    "fra": "Irlande",
+    "URI": "https://sws.geonames.org/2963597/"
+  },
+  {
+    "ISO-2": "IL",
+    "ISO-3": "ISR",
+    "ISO-#": 376,
+    "eng": "Israel",
+    "fra": "Israël",
+    "URI": "https://sws.geonames.org/294640/"
+  },
+  {
+    "ISO-2": "IM",
+    "ISO-3": "IMN",
+    "ISO-#": 833,
+    "eng": "Isle of Man",
+    "fra": "Île de Man",
+    "URI": "https://sws.geonames.org/3042225/"
+  },
+  {
+    "ISO-2": "IN",
+    "ISO-3": "IND",
+    "ISO-#": 356,
+    "eng": "India",
+    "fra": "Inde",
+    "URI": "https://sws.geonames.org/1269750/"
+  },
+  {
+    "ISO-2": "IO",
+    "ISO-3": "IOT",
+    "ISO-#": 86,
+    "eng": "British Indian Ocean Territory",
+    "fra": "Territoire britannique de l’Océan Indien",
+    "URI": "https://sws.geonames.org/1282588/"
+  },
+  {
+    "ISO-2": "IQ",
+    "ISO-3": "IRQ",
+    "ISO-#": 368,
+    "eng": "Iraq",
+    "fra": "Irak",
+    "URI": "https://sws.geonames.org/99237/"
+  },
+  {
+    "ISO-2": "IR",
+    "ISO-3": "IRN",
+    "ISO-#": 364,
+    "eng": "Iran",
+    "fra": "Iran",
+    "URI": "https://sws.geonames.org/130758/"
+  },
+  {
+    "ISO-2": "IS",
+    "ISO-3": "ISL",
+    "ISO-#": 352,
+    "eng": "Iceland",
+    "fra": "Islande",
+    "URI": "https://sws.geonames.org/2629691/"
+  },
+  {
+    "ISO-2": "IT",
+    "ISO-3": "ITA",
+    "ISO-#": 380,
+    "eng": "Italy",
+    "fra": "Italie",
+    "URI": "https://sws.geonames.org/3175395/"
+  },
+  {
+    "ISO-2": "JE",
+    "ISO-3": "JEY",
+    "ISO-#": 832,
+    "eng": "Jersey",
+    "fra": "Jersey",
+    "URI": "https://sws.geonames.org/3042142/"
+  },
+  {
+    "ISO-2": "JM",
+    "ISO-3": "JAM",
+    "ISO-#": 388,
+    "eng": "Jamaica",
+    "fra": "Jamaïque",
+    "URI": "https://sws.geonames.org/3489940/"
+  },
+  {
+    "ISO-2": "JO",
+    "ISO-3": "JOR",
+    "ISO-#": 400,
+    "eng": "Jordan",
+    "fra": "Jordanie",
+    "URI": "https://sws.geonames.org/248816/"
+  },
+  {
+    "ISO-2": "JP",
+    "ISO-3": "JPN",
+    "ISO-#": 392,
+    "eng": "Japan",
+    "fra": "Japon",
+    "URI": "https://sws.geonames.org/1861060/"
+  },
+  {
+    "ISO-2": "KE",
+    "ISO-3": "KEN",
+    "ISO-#": 404,
+    "eng": "Kenya",
+    "fra": "Kenya",
+    "URI": "https://sws.geonames.org/192950/"
+  },
+  {
+    "ISO-2": "KG",
+    "ISO-3": "KGZ",
+    "ISO-#": 417,
+    "eng": "Kyrgyzstan",
+    "fra": "Kirghizistan",
+    "URI": "https://sws.geonames.org/1527747/"
+  },
+  {
+    "ISO-2": "KH",
+    "ISO-3": "KHM",
+    "ISO-#": 116,
+    "eng": "Cambodia",
+    "fra": "Cambodge",
+    "URI": "https://sws.geonames.org/1831722/"
+  },
+  {
+    "ISO-2": "KI",
+    "ISO-3": "KIR",
+    "ISO-#": 296,
+    "eng": "Kiribati",
+    "fra": "Kiribati",
+    "URI": "https://sws.geonames.org/4030945/"
+  },
+  {
+    "ISO-2": "KM",
+    "ISO-3": "COM",
+    "ISO-#": 174,
+    "eng": "Comoros",
+    "fra": "Comores",
+    "URI": "https://sws.geonames.org/921929/"
+  },
+  {
+    "ISO-2": "KN",
+    "ISO-3": "KNA",
+    "ISO-#": 659,
+    "eng": "Saint Kitts and Nevis",
+    "fra": "Saint-Kitts-et-Nevis",
+    "URI": "https://sws.geonames.org/3575174/"
+  },
+  {
+    "ISO-2": "KP",
+    "ISO-3": "PRK",
+    "ISO-#": 408,
+    "eng": "Korea",
+    "fra": "Corée",
+    "URI": "https://sws.geonames.org/1873107/"
+  },
+  {
+    "ISO-2": "KP",
+    "ISO-3": "PRK",
+    "ISO-#": 408,
+    "eng": "North Korea",
+    "fra": "Corée du Nord",
+    "URI": "https://sws.geonames.org/1873107/"
+  },
+  {
+    "ISO-2": "KR",
+    "ISO-3": "KOR",
+    "ISO-#": 410,
+    "eng": "Korea",
+    "fra": "Corée",
+    "URI": "https://sws.geonames.org/1835841/"
+  },
+  {
+    "ISO-2": "KR",
+    "ISO-3": "KOR",
+    "ISO-#": 410,
+    "eng": "South Korea",
+    "fra": "Corée du Sud",
+    "URI": "https://sws.geonames.org/1835841/"
+  },
+  {
+    "ISO-2": "KW",
+    "ISO-3": "KWT",
+    "ISO-#": 414,
+    "eng": "Kuwait",
+    "fra": "Koweït",
+    "URI": "https://sws.geonames.org/285570/"
+  },
+  {
+    "ISO-2": "KY",
+    "ISO-3": "CYM",
+    "ISO-#": 136,
+    "eng": "Cayman Islands",
+    "fra": "Îles Caïmans",
+    "URI": "https://sws.geonames.org/3580718/"
+  },
+  {
+    "ISO-2": "KY",
+    "ISO-3": "CYM",
+    "ISO-#": 136,
+    "eng": "Cayman Islands",
+    "fra": "Iles Caïmans",
+    "URI": "https://sws.geonames.org/3580718/"
+  },
+  {
+    "ISO-2": "KZ",
+    "ISO-3": "KAZ",
+    "ISO-#": 398,
+    "eng": "Kazakhstan",
+    "fra": "Kazakhstan",
+    "URI": "https://sws.geonames.org/1522867/"
+  },
+  {
+    "ISO-2": "LA",
+    "ISO-3": "LAO",
+    "ISO-#": 418,
+    "eng": "Lao People's Democratic Republic",
+    "fra": "Lao",
+    "URI": "https://sws.geonames.org/1655842/"
+  },
+  {
+    "ISO-2": "LB",
+    "ISO-3": "LBN",
+    "ISO-#": 422,
+    "eng": "Lebanon",
+    "fra": "Liban",
+    "URI": "https://sws.geonames.org/272103/"
+  },
+  {
+    "ISO-2": "LC",
+    "ISO-3": "LCA",
+    "ISO-#": 662,
+    "eng": "Saint Lucia",
+    "fra": "Sainte-Lucie",
+    "URI": "https://sws.geonames.org/3576468/"
+  },
+  {
+    "ISO-2": "LI",
+    "ISO-3": "LIE",
+    "ISO-#": 438,
+    "eng": "Liechtenstein",
+    "fra": "Liechtenstein",
+    "URI": "https://sws.geonames.org/3042058/"
+  },
+  {
+    "ISO-2": "LK",
+    "ISO-3": "LKA",
+    "ISO-#": 144,
+    "eng": "Sri Lanka",
+    "fra": "Sri Lanka",
+    "URI": "https://sws.geonames.org/1227603/"
+  },
+  {
+    "ISO-2": "LR",
+    "ISO-3": "LBR",
+    "ISO-#": 430,
+    "eng": "Liberia",
+    "fra": "Libéria",
+    "URI": "https://sws.geonames.org/2275384/"
+  },
+  {
+    "ISO-2": "LS",
+    "ISO-3": "LSO",
+    "ISO-#": 426,
+    "eng": "Lesotho",
+    "fra": "Lesotho",
+    "URI": "https://sws.geonames.org/932692/"
+  },
+  {
+    "ISO-2": "LT",
+    "ISO-3": "LTU",
+    "ISO-#": 440,
+    "eng": "Lithuania",
+    "fra": "Lituanie",
+    "URI": "https://sws.geonames.org/597427/"
+  },
+  {
+    "ISO-2": "LU",
+    "ISO-3": "LUX",
+    "ISO-#": 442,
+    "eng": "Luxembourg",
+    "fra": "Luxembourg",
+    "URI": "https://sws.geonames.org/2960313/"
+  },
+  {
+    "ISO-2": "LV",
+    "ISO-3": "LVA",
+    "ISO-#": 428,
+    "eng": "Latvia",
+    "fra": "Lettonie",
+    "URI": "https://sws.geonames.org/458258/"
+  },
+  {
+    "ISO-2": "LY",
+    "ISO-3": "LBY",
+    "ISO-#": 434,
+    "eng": "Libya",
+    "fra": "Libye",
+    "URI": "https://sws.geonames.org/2215636/"
+  },
+  {
+    "ISO-2": "MA",
+    "ISO-3": "MAR",
+    "ISO-#": 504,
+    "eng": "Morocco",
+    "fra": "Maroc",
+    "URI": "https://sws.geonames.org/2542007/"
+  },
+  {
+    "ISO-2": "MC",
+    "ISO-3": "MCO",
+    "ISO-#": 492,
+    "eng": "Monaco",
+    "fra": "Monaco",
+    "URI": "https://sws.geonames.org/2993457/"
+  },
+  {
+    "ISO-2": "MD",
+    "ISO-3": "MDA",
+    "ISO-#": 498,
+    "eng": "Moldova",
+    "fra": "Moldavie",
+    "URI": "https://sws.geonames.org/617790/"
+  },
+  {
+    "ISO-2": "ME",
+    "ISO-3": "MNE",
+    "ISO-#": 499,
+    "eng": "Montenegro",
+    "fra": "Monténégro",
+    "URI": "https://sws.geonames.org/3194884/"
+  },
+  {
+    "ISO-2": "MF",
+    "ISO-3": "MAF",
+    "ISO-#": 663,
+    "eng": "Saint Martin",
+    "fra": "Saint-Martin",
+    "URI": "https://sws.geonames.org/3578421/"
+  },
+  {
+    "ISO-2": "MF",
+    "ISO-3": "MAF",
+    "ISO-#": 663,
+    "eng": "Saint Martin (French part)",
+    "fra": "Saint-Martin (partie française)",
+    "URI": "https://sws.geonames.org/3578421/"
+  },
+  {
+    "ISO-2": "MG",
+    "ISO-3": "MDG",
+    "ISO-#": 450,
+    "eng": "Madagascar",
+    "fra": "Madagascar",
+    "URI": "https://sws.geonames.org/1062947/"
+  },
+  {
+    "ISO-2": "MH",
+    "ISO-3": "MHL",
+    "ISO-#": 584,
+    "eng": "Marshall Islands",
+    "fra": "Îles Marshall",
+    "URI": "https://sws.geonames.org/2080185/"
+  },
+  {
+    "ISO-2": "MH",
+    "ISO-3": "MHL",
+    "ISO-#": 584,
+    "eng": "Marshall Islands",
+    "fra": "Iles Marshall",
+    "URI": "https://sws.geonames.org/2080185/"
+  },
+  {
+    "ISO-2": "MK",
+    "ISO-3": "MKD",
+    "ISO-#": 807,
+    "eng": "North Macedonia",
+    "fra": "Macédoine du Nord",
+    "URI": "https://sws.geonames.org/718075/"
+  },
+  {
+    "ISO-2": "ML",
+    "ISO-3": "MLI",
+    "ISO-#": 466,
+    "eng": "Mali",
+    "fra": "Mali",
+    "URI": "https://sws.geonames.org/2453866/"
+  },
+  {
+    "ISO-2": "MM",
+    "ISO-3": "MMR",
+    "ISO-#": 104,
+    "eng": "Myanmar",
+    "fra": "Myanmar",
+    "URI": "https://sws.geonames.org/1327865/"
+  },
+  {
+    "ISO-2": "MN",
+    "ISO-3": "MNG",
+    "ISO-#": 496,
+    "eng": "Mongolia",
+    "fra": "Mongolie",
+    "URI": "https://sws.geonames.org/2029969/"
+  },
+  {
+    "ISO-2": "MO",
+    "ISO-3": "MAC",
+    "ISO-#": 446,
+    "eng": "Macao",
+    "fra": "Macao",
+    "URI": "https://sws.geonames.org/1821275/"
+  },
+  {
+    "ISO-2": "MP",
+    "ISO-3": "MNP",
+    "ISO-#": 580,
+    "eng": "Northern Mariana Islands",
+    "fra": "Îles Mariannes du Nord",
+    "URI": "https://sws.geonames.org/4041468/"
+  },
+  {
+    "ISO-2": "MP",
+    "ISO-3": "MNP",
+    "ISO-#": 580,
+    "eng": "Northern Mariana Islands",
+    "fra": "Iles Mariannes du Nord",
+    "URI": "https://sws.geonames.org/4041468/"
+  },
+  {
+    "ISO-2": "MQ",
+    "ISO-3": "MTQ",
+    "ISO-#": 474,
+    "eng": "Martinique",
+    "fra": "Martinique",
+    "URI": "https://sws.geonames.org/3570311/"
+  },
+  {
+    "ISO-2": "MR",
+    "ISO-3": "MRT",
+    "ISO-#": 478,
+    "eng": "Mauritania",
+    "fra": "Mauritanie",
+    "URI": "https://sws.geonames.org/2378080/"
+  },
+  {
+    "ISO-2": "MS",
+    "ISO-3": "MSR",
+    "ISO-#": 500,
+    "eng": "Montserrat",
+    "fra": "Montserrat",
+    "URI": "https://sws.geonames.org/3578097/"
+  },
+  {
+    "ISO-2": "MT",
+    "ISO-3": "MLT",
+    "ISO-#": 470,
+    "eng": "Malta",
+    "fra": "Malte",
+    "URI": "https://sws.geonames.org/2562770/"
+  },
+  {
+    "ISO-2": "MU",
+    "ISO-3": "MUS",
+    "ISO-#": 480,
+    "eng": "Mauritius",
+    "fra": "Maurice",
+    "URI": "https://sws.geonames.org/934292/"
+  },
+  {
+    "ISO-2": "MV",
+    "ISO-3": "MDV",
+    "ISO-#": 462,
+    "eng": "Maldives",
+    "fra": "Maldives",
+    "URI": "https://sws.geonames.org/1282028/"
+  },
+  {
+    "ISO-2": "MW",
+    "ISO-3": "MWI",
+    "ISO-#": 454,
+    "eng": "Malawi",
+    "fra": "Malawi",
+    "URI": "https://sws.geonames.org/927384/"
+  },
+  {
+    "ISO-2": "MX",
+    "ISO-3": "MEX",
+    "ISO-#": 484,
+    "eng": "Mexico",
+    "fra": "Mexique",
+    "URI": "https://sws.geonames.org/3996063/"
+  },
+  {
+    "ISO-2": "MY",
+    "ISO-3": "MYS",
+    "ISO-#": 458,
+    "eng": "Malaysia",
+    "fra": "Malaisie",
+    "URI": "https://sws.geonames.org/1733045/"
+  },
+  {
+    "ISO-2": "MZ",
+    "ISO-3": "MOZ",
+    "ISO-#": 508,
+    "eng": "Mozambique",
+    "fra": "Mozambique",
+    "URI": "https://sws.geonames.org/1036973/"
+  },
+  {
+    "ISO-2": "NA",
+    "ISO-3": "NAM",
+    "ISO-#": 516,
+    "eng": "Namibia",
+    "fra": "Namibie",
+    "URI": "https://sws.geonames.org/3355338/"
+  },
+  {
+    "ISO-2": "NC",
+    "ISO-3": "NCL",
+    "ISO-#": 540,
+    "eng": "New Caledonia",
+    "fra": "Nouvelle-Calédonie",
+    "URI": "https://sws.geonames.org/2139685/"
+  },
+  {
+    "ISO-2": "NE",
+    "ISO-3": "NER",
+    "ISO-#": 562,
+    "eng": "Niger",
+    "fra": "Niger",
+    "URI": "https://sws.geonames.org/2440476/"
+  },
+  {
+    "ISO-2": "NF",
+    "ISO-3": "NFK",
+    "ISO-#": 574,
+    "eng": "Norfolk Island",
+    "fra": "Norfolk",
+    "URI": "https://sws.geonames.org/2155115/"
+  },
+  {
+    "ISO-2": "NG",
+    "ISO-3": "NGA",
+    "ISO-#": 566,
+    "eng": "Nigeria",
+    "fra": "Nigéria",
+    "URI": "https://sws.geonames.org/2328926/"
+  },
+  {
+    "ISO-2": "NI",
+    "ISO-3": "NIC",
+    "ISO-#": 558,
+    "eng": "Nicaragua",
+    "fra": "Nicaragua",
+    "URI": "https://sws.geonames.org/3617476/"
+  },
+  {
+    "ISO-2": "NL",
+    "ISO-3": "NLD",
+    "ISO-#": 528,
+    "eng": "Netherlands",
+    "fra": "Pays-Bas",
+    "URI": "https://sws.geonames.org/2750405/"
+  },
+  {
+    "ISO-2": "NO",
+    "ISO-3": "NOR",
+    "ISO-#": 578,
+    "eng": "Norway",
+    "fra": "Norvège",
+    "URI": "https://sws.geonames.org/3144096/"
+  },
+  {
+    "ISO-2": "NP",
+    "ISO-3": "NPL",
+    "ISO-#": 524,
+    "eng": "Nepal",
+    "fra": "Népal",
+    "URI": "https://sws.geonames.org/1282988/"
+  },
+  {
+    "ISO-2": "NR",
+    "ISO-3": "NRU",
+    "ISO-#": 520,
+    "eng": "Nauru",
+    "fra": "Nauru",
+    "URI": "https://sws.geonames.org/2110425/"
+  },
+  {
+    "ISO-2": "NU",
+    "ISO-3": "NIU",
+    "ISO-#": 570,
+    "eng": "Niue",
+    "fra": "Niue",
+    "URI": "https://sws.geonames.org/4036232/"
+  },
+  {
+    "ISO-2": "NZ",
+    "ISO-3": "NZL",
+    "ISO-#": 554,
+    "eng": "New Zealand",
+    "fra": "Nouvelle-Zélande",
+    "URI": "https://sws.geonames.org/2186224/"
+  },
+  {
+    "ISO-2": "OM",
+    "ISO-3": "OMN",
+    "ISO-#": 512,
+    "eng": "Oman",
+    "fra": "Oman",
+    "URI": "https://sws.geonames.org/286963/"
+  },
+  {
+    "ISO-2": "PA",
+    "ISO-3": "PAN",
+    "ISO-#": 591,
+    "eng": "Panama",
+    "fra": "Panama",
+    "URI": "https://sws.geonames.org/3703430/"
+  },
+  {
+    "ISO-2": "PE",
+    "ISO-3": "PER",
+    "ISO-#": 604,
+    "eng": "Peru",
+    "fra": "Pérou",
+    "URI": "https://sws.geonames.org/3932488/"
+  },
+  {
+    "ISO-2": "PF",
+    "ISO-3": "PYF",
+    "ISO-#": 258,
+    "eng": "French Polynesia",
+    "fra": "Polynésie française",
+    "URI": "https://sws.geonames.org/4030656/"
+  },
+  {
+    "ISO-2": "PG",
+    "ISO-3": "PNG",
+    "ISO-#": 598,
+    "eng": "Papua New Guinea",
+    "fra": "Papouasie-Nouvelle-Guinée",
+    "URI": "https://sws.geonames.org/2088628/"
+  },
+  {
+    "ISO-2": "PH",
+    "ISO-3": "PHL",
+    "ISO-#": 608,
+    "eng": "Philippines",
+    "fra": "Philippines",
+    "URI": "https://sws.geonames.org/1694008/"
+  },
+  {
+    "ISO-2": "PK",
+    "ISO-3": "PAK",
+    "ISO-#": 586,
+    "eng": "Pakistan",
+    "fra": "Pakistan",
+    "URI": "https://sws.geonames.org/1168579/"
+  },
+  {
+    "ISO-2": "PL",
+    "ISO-3": "POL",
+    "ISO-#": 616,
+    "eng": "Poland",
+    "fra": "Pologne",
+    "URI": "https://sws.geonames.org/798544/"
+  },
+  {
+    "ISO-2": "PM",
+    "ISO-3": "SPM",
+    "ISO-#": 666,
+    "eng": "Saint Pierre and Miquelon",
+    "fra": "Saint-Pierre-et-Miquelon",
+    "URI": "https://sws.geonames.org/3424932/"
+  },
+  {
+    "ISO-2": "PN",
+    "ISO-3": "PCN",
+    "ISO-#": 612,
+    "eng": "Pitcairn",
+    "fra": "Pitcairn",
+    "URI": "https://sws.geonames.org/4030699/"
+  },
+  {
+    "ISO-2": "PR",
+    "ISO-3": "PRI",
+    "ISO-#": 630,
+    "eng": "Puerto Rico",
+    "fra": "Porto Rico",
+    "URI": "https://sws.geonames.org/4566966/"
+  },
+  {
+    "ISO-2": "PS",
+    "ISO-3": "PSE",
+    "ISO-#": 275,
+    "eng": "Palestine, State of",
+    "fra": "Palestine, État de",
+    "URI": "https://sws.geonames.org/6254930/"
+  },
+  {
+    "ISO-2": "PS",
+    "ISO-3": "PSE",
+    "ISO-#": 275,
+    "eng": "Palestine",
+    "fra": "Palestine",
+    "URI": "https://sws.geonames.org/6254930/"
+  },
+  {
+    "ISO-2": "PT",
+    "ISO-3": "PRT",
+    "ISO-#": 620,
+    "eng": "Portugal",
+    "fra": "Portugal",
+    "URI": "https://sws.geonames.org/2264397/"
+  },
+  {
+    "ISO-2": "PW",
+    "ISO-3": "PLW",
+    "ISO-#": 585,
+    "eng": "Palau",
+    "fra": "Palaos",
+    "URI": "https://sws.geonames.org/1559582/"
+  },
+  {
+    "ISO-2": "PY",
+    "ISO-3": "PRY",
+    "ISO-#": 600,
+    "eng": "Paraguay",
+    "fra": "Paraguay",
+    "URI": "https://sws.geonames.org/3437598/"
+  },
+  {
+    "ISO-2": "QA",
+    "ISO-3": "QAT",
+    "ISO-#": 634,
+    "eng": "Qatar",
+    "fra": "Qatar",
+    "URI": "https://sws.geonames.org/289688/"
+  },
+  {
+    "ISO-2": "RE",
+    "ISO-3": "REU",
+    "ISO-#": 638,
+    "eng": "Réunion",
+    "fra": "Réunion",
+    "URI": "https://sws.geonames.org/935317/"
+  },
+  {
+    "ISO-2": "RO",
+    "ISO-3": "ROU",
+    "ISO-#": 642,
+    "eng": "Romania",
+    "fra": "Roumanie",
+    "URI": "https://sws.geonames.org/798549/"
+  },
+  {
+    "ISO-2": "RS",
+    "ISO-3": "SRB",
+    "ISO-#": 688,
+    "eng": "Serbia",
+    "fra": "Serbie",
+    "URI": "https://sws.geonames.org/6290252/"
+  },
+  {
+    "ISO-2": "RU",
+    "ISO-3": "RUS",
+    "ISO-#": 643,
+    "eng": "Russian Federation",
+    "fra": "Russie",
+    "URI": "https://sws.geonames.org/2017370/"
+  },
+  {
+    "ISO-2": "RW",
+    "ISO-3": "RWA",
+    "ISO-#": 646,
+    "eng": "Rwanda",
+    "fra": "Rwanda",
+    "URI": "https://sws.geonames.org/49518/"
+  },
+  {
+    "ISO-2": "SA",
+    "ISO-3": "SAU",
+    "ISO-#": 682,
+    "eng": "Saudi Arabia",
+    "fra": "Arabie saoudite",
+    "URI": "https://sws.geonames.org/102358/"
+  },
+  {
+    "ISO-2": "SB",
+    "ISO-3": "SLB",
+    "ISO-#": 90,
+    "eng": "Solomon Islands",
+    "fra": "Salomon",
+    "URI": "https://sws.geonames.org/2103350/"
+  },
+  {
+    "ISO-2": "SC",
+    "ISO-3": "SYC",
+    "ISO-#": 690,
+    "eng": "Seychelles",
+    "fra": "Seychelles",
+    "URI": "https://sws.geonames.org/241170/"
+  },
+  {
+    "ISO-2": "SD",
+    "ISO-3": "SDN",
+    "ISO-#": 729,
+    "eng": "Sudan",
+    "fra": "Soudan",
+    "URI": "https://sws.geonames.org/366755/"
+  },
+  {
+    "ISO-2": "SE",
+    "ISO-3": "SWE",
+    "ISO-#": 752,
+    "eng": "Sweden",
+    "fra": "Suède",
+    "URI": "https://sws.geonames.org/2661886/"
+  },
+  {
+    "ISO-2": "SG",
+    "ISO-3": "SGP",
+    "ISO-#": 702,
+    "eng": "Singapore",
+    "fra": "Singapour",
+    "URI": "https://sws.geonames.org/1880251/"
+  },
+  {
+    "ISO-2": "SH",
+    "ISO-3": "SHN",
+    "ISO-#": 654,
+    "eng": "Saint Helena, Ascension and Tristan da Cunha",
+    "fra": "Sainte-Hélène, Ascension et Tristan da Cunha",
+    "URI": "https://sws.geonames.org/3370751/"
+  },
+  {
+    "ISO-2": "SI",
+    "ISO-3": "SVN",
+    "ISO-#": 705,
+    "eng": "Slovenia",
+    "fra": "Slovénie",
+    "URI": "https://sws.geonames.org/3190538/"
+  },
+  {
+    "ISO-2": "SJ",
+    "ISO-3": "SJM",
+    "ISO-#": 744,
+    "eng": "Svalbard and Jan Mayen",
+    "fra": "Svalbard et l'Île Jan Mayen",
+    "URI": "https://sws.geonames.org/607072/"
+  },
+  {
+    "ISO-2": "SK",
+    "ISO-3": "SVK",
+    "ISO-#": 703,
+    "eng": "Slovakia",
+    "fra": "Slovaquie",
+    "URI": "https://sws.geonames.org/3057568/"
+  },
+  {
+    "ISO-2": "SL",
+    "ISO-3": "SLE",
+    "ISO-#": 694,
+    "eng": "Sierra Leone",
+    "fra": "Sierra Leone",
+    "URI": "https://sws.geonames.org/2403846/"
+  },
+  {
+    "ISO-2": "SM",
+    "ISO-3": "SMR",
+    "ISO-#": 674,
+    "eng": "San Marino",
+    "fra": "Saint-Marin",
+    "URI": "https://sws.geonames.org/3168068/"
+  },
+  {
+    "ISO-2": "SN",
+    "ISO-3": "SEN",
+    "ISO-#": 686,
+    "eng": "Senegal",
+    "fra": "Sénégal",
+    "URI": "https://sws.geonames.org/2245662/"
+  },
+  {
+    "ISO-2": "SO",
+    "ISO-3": "SOM",
+    "ISO-#": 706,
+    "eng": "Somalia",
+    "fra": "Somalie",
+    "URI": "https://sws.geonames.org/51537/"
+  },
+  {
+    "ISO-2": "SR",
+    "ISO-3": "SUR",
+    "ISO-#": 740,
+    "eng": "Suriname",
+    "fra": "Suriname",
+    "URI": "https://sws.geonames.org/3382998/"
+  },
+  {
+    "ISO-2": "SS",
+    "ISO-3": "SSD",
+    "ISO-#": 728,
+    "eng": "South Sudan",
+    "fra": "Soudan du Sud",
+    "URI": "https://sws.geonames.org/7909807/"
+  },
+  {
+    "ISO-2": "ST",
+    "ISO-3": "STP",
+    "ISO-#": 678,
+    "eng": "Sao Tome and Principe",
+    "fra": "Sao Tomé-et-Principe",
+    "URI": "https://sws.geonames.org/2410758/"
+  },
+  {
+    "ISO-2": "SV",
+    "ISO-3": "SLV",
+    "ISO-#": 222,
+    "eng": "El Salvador",
+    "fra": "El Salvador",
+    "URI": "https://sws.geonames.org/3585968/"
+  },
+  {
+    "ISO-2": "SX",
+    "ISO-3": "SXM",
+    "ISO-#": 534,
+    "eng": "Sint Maarten",
+    "fra": "Saint-Martin",
+    "URI": "https://sws.geonames.org/7609695/"
+  },
+  {
+    "ISO-2": "SX",
+    "ISO-3": "SXM",
+    "ISO-#": 534,
+    "eng": "Sint Maarten (Dutch part)",
+    "fra": "Saint-Martin (partie néerlandaise)",
+    "URI": "https://sws.geonames.org/7609695/"
+  },
+  {
+    "ISO-2": "SY",
+    "ISO-3": "SYR",
+    "ISO-#": 760,
+    "eng": "Syrian Arab Republic",
+    "fra": "République arabe syrienne",
+    "URI": "https://sws.geonames.org/163843/"
+  },
+  {
+    "ISO-2": "SZ",
+    "ISO-3": "SWZ",
+    "ISO-#": 748,
+    "eng": "Eswatini",
+    "fra": "Eswatini",
+    "URI": "https://sws.geonames.org/934841/"
+  },
+  {
+    "ISO-2": "TC",
+    "ISO-3": "TCA",
+    "ISO-#": 796,
+    "eng": "Turks and Caicos Islands",
+    "fra": "Îles Turks-et-Caïcos",
+    "URI": "https://sws.geonames.org/3576916/"
+  },
+  {
+    "ISO-2": "TC",
+    "ISO-3": "TCA",
+    "ISO-#": 796,
+    "eng": "Turks and Caicos Islands",
+    "fra": "Iles Turks-et-Caïcos",
+    "URI": "https://sws.geonames.org/3576916/"
+  },
+  {
+    "ISO-2": "TD",
+    "ISO-3": "TCD",
+    "ISO-#": 148,
+    "eng": "Chad",
+    "fra": "Tchad",
+    "URI": "https://sws.geonames.org/2434508/"
+  },
+  {
+    "ISO-2": "TF",
+    "ISO-3": "ATF",
+    "ISO-#": 260,
+    "eng": "French Southern Territories",
+    "fra": "Terres australes françaises",
+    "URI": "https://sws.geonames.org/1546748/"
+  },
+  {
+    "ISO-2": "TG",
+    "ISO-3": "TGO",
+    "ISO-#": 768,
+    "eng": "Togo",
+    "fra": "Togo",
+    "URI": "https://sws.geonames.org/2363686/"
+  },
+  {
+    "ISO-2": "TH",
+    "ISO-3": "THA",
+    "ISO-#": 764,
+    "eng": "Thailand",
+    "fra": "Thaïlande",
+    "URI": "https://sws.geonames.org/1605651/"
+  },
+  {
+    "ISO-2": "TJ",
+    "ISO-3": "TJK",
+    "ISO-#": 762,
+    "eng": "Tajikistan",
+    "fra": "Tadjikistan",
+    "URI": "https://sws.geonames.org/1220409/"
+  },
+  {
+    "ISO-2": "TK",
+    "ISO-3": "TKL",
+    "ISO-#": 772,
+    "eng": "Tokelau",
+    "fra": "Tokelau",
+    "URI": "https://sws.geonames.org/4031074/"
+  },
+  {
+    "ISO-2": "TL",
+    "ISO-3": "TLS",
+    "ISO-#": 626,
+    "eng": "Timor-Leste",
+    "fra": "Timor oriental",
+    "URI": "https://sws.geonames.org/1966436/"
+  },
+  {
+    "ISO-2": "TM",
+    "ISO-3": "TKM",
+    "ISO-#": 795,
+    "eng": "Turkmenistan",
+    "fra": "Turkménistan",
+    "URI": "https://sws.geonames.org/1218197/"
+  },
+  {
+    "ISO-2": "TN",
+    "ISO-3": "TUN",
+    "ISO-#": 788,
+    "eng": "Tunisia",
+    "fra": "Tunisie",
+    "URI": "https://sws.geonames.org/2464461/"
+  },
+  {
+    "ISO-2": "TO",
+    "ISO-3": "TON",
+    "ISO-#": 776,
+    "eng": "Tonga",
+    "fra": "Tonga",
+    "URI": "https://sws.geonames.org/4032283/"
+  },
+  {
+    "ISO-2": "TR",
+    "ISO-3": "TUR",
+    "ISO-#": 792,
+    "eng": "Turkey",
+    "fra": "Turquie",
+    "URI": "https://sws.geonames.org/298795/"
+  },
+  {
+    "ISO-2": "TT",
+    "ISO-3": "TTO",
+    "ISO-#": 780,
+    "eng": "Trinidad and Tobago",
+    "fra": "Trinité-et-Tobago",
+    "URI": "https://sws.geonames.org/3573591/"
+  },
+  {
+    "ISO-2": "TV",
+    "ISO-3": "TUV",
+    "ISO-#": 798,
+    "eng": "Tuvalu",
+    "fra": "Tuvalu",
+    "URI": "https://sws.geonames.org/2110297/"
+  },
+  {
+    "ISO-2": "TW",
+    "ISO-3": "TWN",
+    "ISO-#": 158,
+    "eng": "Taiwan",
+    "fra": "Taïwan",
+    "URI": "https://sws.geonames.org/1668284/"
+  },
+  {
+    "ISO-2": "TZ",
+    "ISO-3": "TZA",
+    "ISO-#": 834,
+    "eng": "Tanzania, the United Republic of",
+    "fra": "Tanzanie",
+    "URI": "https://sws.geonames.org/149590/"
+  },
+  {
+    "ISO-2": "UA",
+    "ISO-3": "UKR",
+    "ISO-#": 804,
+    "eng": "Ukraine",
+    "fra": "Ukraine",
+    "URI": "https://sws.geonames.org/690791/"
+  },
+  {
+    "ISO-2": "UG",
+    "ISO-3": "UGA",
+    "ISO-#": 800,
+    "eng": "Uganda",
+    "fra": "Ouganda",
+    "URI": "https://sws.geonames.org/226074/"
+  },
+  {
+    "ISO-2": "UM",
+    "ISO-3": "UMI",
+    "ISO-#": 581,
+    "eng": "United States Minor Outlying Islands",
+    "fra": "Îles mineures éloignées des États-Unis",
+    "URI": "https://sws.geonames.org/5854968/"
+  },
+  {
+    "ISO-2": "US",
+    "ISO-3": "USA",
+    "ISO-#": 840,
+    "eng": "United States of America",
+    "fra": "États-Unis d'Amérique",
+    "URI": "https://sws.geonames.org/6252001/"
+  },
+  {
+    "ISO-2": "US",
+    "ISO-3": "USA",
+    "ISO-#": 840,
+    "eng": "United States",
+    "fra": "États-Unis",
+    "URI": "https://sws.geonames.org/6252001/"
+  },
+  {
+    "ISO-2": "US",
+    "ISO-3": "USA",
+    "ISO-#": 840,
+    "eng": "United States",
+    "fra": "Etats-Unis",
+    "URI": "https://sws.geonames.org/6252001/"
+  },
+  {
+    "ISO-2": "UY",
+    "ISO-3": "URY",
+    "ISO-#": 858,
+    "eng": "Uruguay",
+    "fra": "Uruguay",
+    "URI": "https://sws.geonames.org/3439705/"
+  },
+  {
+    "ISO-2": "UZ",
+    "ISO-3": "UZB",
+    "ISO-#": 860,
+    "eng": "Uzbekistan",
+    "fra": "Ouzbékistan",
+    "URI": "https://sws.geonames.org/1512440/"
+  },
+  {
+    "ISO-2": "VA",
+    "ISO-3": "VAT",
+    "ISO-#": 336,
+    "eng": "Holy See",
+    "fra": "Saint-Siège",
+    "URI": "https://sws.geonames.org/3164670/"
+  },
+  {
+    "ISO-2": "VC",
+    "ISO-3": "VCT",
+    "ISO-#": 670,
+    "eng": "Saint Vincent and the Grenadines",
+    "fra": "Saint-Vincent-et-les Grenadines",
+    "URI": "https://sws.geonames.org/3577815/"
+  },
+  {
+    "ISO-2": "VE",
+    "ISO-3": "VEN",
+    "ISO-#": 862,
+    "eng": "Venezuela",
+    "fra": "Venezuela",
+    "URI": "https://sws.geonames.org/3625428/"
+  },
+  {
+    "ISO-2": "VG",
+    "ISO-3": "VGB",
+    "ISO-#": 92,
+    "eng": "Virgin Islands",
+    "fra": "Îles Vierges britanniques",
+    "URI": "https://sws.geonames.org/3577718/"
+  },
+  {
+    "ISO-2": "VG",
+    "ISO-3": "VGB",
+    "ISO-#": 92,
+    "eng": "Virgin Islands",
+    "fra": "Iles Vierges britanniques",
+    "URI": "https://sws.geonames.org/3577718/"
+  },
+  {
+    "ISO-2": "VI",
+    "ISO-3": "VIR",
+    "ISO-#": 850,
+    "eng": "Virgin Islands",
+    "fra": "Îles Vierges des États-Unis",
+    "URI": "https://sws.geonames.org/4796775/"
+  },
+  {
+    "ISO-2": "VI",
+    "ISO-3": "VIR",
+    "ISO-#": 850,
+    "eng": "Virgin Islands",
+    "fra": "Iles Vierges des États-Unis",
+    "URI": "https://sws.geonames.org/4796775/"
+  },
+  {
+    "ISO-2": "VN",
+    "ISO-3": "VNM",
+    "ISO-#": 704,
+    "eng": "Viet Nam",
+    "fra": "Viet Nam",
+    "URI": "https://sws.geonames.org/1562822/"
+  },
+  {
+    "ISO-2": "VN",
+    "ISO-3": "VNM",
+    "ISO-#": 704,
+    "eng": "Viet-nam",
+    "fra": "Vietnam",
+    "URI": "https://sws.geonames.org/1562822/"
+  },
+  {
+    "ISO-2": "VU",
+    "ISO-3": "VUT",
+    "ISO-#": 548,
+    "eng": "Vanuatu",
+    "fra": "Vanuatu",
+    "URI": "https://sws.geonames.org/2134431/"
+  },
+  {
+    "ISO-2": "WF",
+    "ISO-3": "WLF",
+    "ISO-#": 876,
+    "eng": "Wallis and Futuna",
+    "fra": "Wallis-et-Futuna",
+    "URI": "https://sws.geonames.org/4034749/"
+  },
+  {
+    "ISO-2": "WS",
+    "ISO-3": "WSM",
+    "ISO-#": 882,
+    "eng": "Samoa",
+    "fra": "Samoa",
+    "URI": "https://sws.geonames.org/4034894/"
+  },
+  {
+    "ISO-2": "YE",
+    "ISO-3": "YEM",
+    "ISO-#": 887,
+    "eng": "Yemen",
+    "fra": "Yémen",
+    "URI": "https://sws.geonames.org/69543/"
+  },
+  {
+    "ISO-2": "YT",
+    "ISO-3": "MYT",
+    "ISO-#": 175,
+    "eng": "Mayotte",
+    "fra": "Mayotte",
+    "URI": "https://sws.geonames.org/1024031/"
+  },
+  {
+    "ISO-2": "ZA",
+    "ISO-3": "ZAF",
+    "ISO-#": 710,
+    "eng": "South Africa",
+    "fra": "Afrique du Sud",
+    "URI": "https://sws.geonames.org/953987/"
+  },
+  {
+    "ISO-2": "ZM",
+    "ISO-3": "ZMB",
+    "ISO-#": 894,
+    "eng": "Zambia",
+    "fra": "Zambie",
+    "URI": "https://sws.geonames.org/895949/"
+  },
+  {
+    "ISO-2": "ZW",
+    "ISO-3": "ZWE",
+    "ISO-#": 716,
+    "eng": "Zimbabwe",
+    "fra": "Zimbabwe",
+    "URI": "https://sws.geonames.org/878675/"
+  }
+]

@@ -9,6 +9,8 @@ if (!class_exists(\Generic\AbstractModule::class)) {
 }
 
 use BulkEdit\Form\BulkEditFieldset;
+use DOMDocument;
+use DOMXPath;
 use Generic\AbstractModule;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
@@ -1244,8 +1246,8 @@ class Module extends AbstractModule
             $api = $plugins->get('api');
             $logger = $services->get('Omeka\Logger');
             $findResourcesFromIdentifiers = $plugins->has('findResourcesFromIdentifiers') ? $plugins->get('findResourcesFromIdentifiers') : null;
-            $fromDatatype = $params['from'];
-            $toDatatype = $params['to'];
+            $fromDatatype = (string) $params['from'];
+            $toDatatype = (string) $params['to'];
             $properties = $params['properties'];
             $literalValue = $params['literal_value'];
             $literalExtractHtmlText = !empty($params['literal_extract_html_text']);
@@ -1273,6 +1275,9 @@ class Module extends AbstractModule
 
             $toDatatypeItem = $toDatatype === 'resource:item'
                 || (substr($toDatatype, 0, 11) === 'customvocab' && $toDatatypeMain === 'resource');
+
+            $toDatatypeCustomVocab = strtok($toDatatype, ':') === 'customvocab';
+            $toDatatypeValueSuggest = strtok($toDatatype, ':') === 'valuesuggest' || strtok($toDatatype, ':') === 'valuesuggestall' ;
 
             $processAllProperties = in_array('all', $properties);
 
@@ -1305,6 +1310,8 @@ class Module extends AbstractModule
             $settings['fromDatatypeMain'] = $fromDatatypeMain;
             $settings['toDatatypeMain'] = $toDatatypeMain;
             $settings['toDatatypeItem'] = $toDatatypeItem;
+            $settings['toDatatypeCustomVocab'] = $toDatatypeCustomVocab;
+            $settings['toDatatypeValueSuggest'] = $toDatatypeValueSuggest;
             $settings['fromToMain'] = $fromToMain;
             $settings['fromTo'] = $fromTo;
             $settings['properties'] = $properties;
@@ -1527,8 +1534,33 @@ class Module extends AbstractModule
                         }
                         switch ($toDatatypeMain) {
                             case 'uri':
-                                // For custom vocab or value suggest.
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => $value['o:label'] ?? null];
+                                // Get data rdf from geonames and convert it.
+                                if ($toDatatype === 'place') {
+                                    if ($fromDatatype === 'valuesuggest:geonames:geonames') {
+                                        // The geoname id is not the real uri, but a shortcut.
+                                        $geonameUri = $this->cleanRemoteUri($value['@id'], 'valuesuggest:geonames:geonames');
+                                        $record = $this->fetchUrlXml($geonameUri);
+                                        if ($record) {
+                                            $place = $this->extractPlace($record);
+                                            if ($place) {
+                                                unset($place['uri']);
+                                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => null, 'o:data' => $place];
+                                            }  else {
+                                                $logger->info(new Message(
+                                                    'For resource #%1$s, property "%2$s", the uri "%3$s" do not return a valid place.', // @translate
+                                                    $resource->id(), $property, $value['@id']
+                                                ));
+                                            }
+                                        } else {
+                                            $logger->info(new Message(
+                                                'For resource #%1$s, property "%2$s", the uri "%3$s" do not return a record.', // @translate
+                                                $resource->id(), $property, $value['@id']
+                                            ));
+                                        }
+                                    }
+                                } else {
+                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => $value['o:label'] ?? null];
+                                }
                                 break;
                             case 'literal':
                                 switch ($literalValue) {
@@ -2914,7 +2946,7 @@ SQL;
             return null;
         }
 
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
 
         switch ($datatype) {
             case 'valuesuggest:geonames:geonames':
@@ -3117,7 +3149,7 @@ SQL;
         switch ($datatype) {
             case 'valuesuggest:geonames:geonames':
                 // Extract the id.
-                $id = preg_replace('~.*/(?<id>[0-9]+).*~m', '$1', $uri);
+                $id = preg_replace('~.*/(?<id>[\d]+).*~m', '$1', $uri);
                 if (!$id) {
                     $logger = $this->getServiceLocator()->get('Omeka\Logger');
                     $logger->err(new Message(
@@ -3138,7 +3170,7 @@ SQL;
         return $url;
     }
 
-    protected function fetchUrl(string $url): ?string
+    protected function fetchUrl(?string $url): ?string
     {
         /**
          * @var \Laminas\Log\Logger $logger
@@ -3155,6 +3187,10 @@ SQL;
             // Use omeka http client instead of the simple static client.
             $httpClient = $services->get('Omeka\HttpClient');
             $errorReporting = error_reporting();
+        }
+
+        if (!$url) {
+            return null;
         }
 
         $headers = [
@@ -3204,7 +3240,7 @@ SQL;
         return $string;
     }
 
-    protected function fetchUrlXml(string $url): ?\DOMDocument
+    protected function fetchUrlXml(?string $url): ?DOMDocument
     {
         static $logger = null;
 
@@ -3221,7 +3257,7 @@ SQL;
         //     | /* LIBXML_NOCDATA | */ LIBXML_NOENT | LIBXML_PARSEHUGE);
 
         libxml_use_internal_errors(true);
-        $doc = new \DOMDocument();
+        $doc = new DOMDocument();
         try {
             $doc->loadXML($xml);
         } catch (\Exception $e) {
@@ -3241,6 +3277,99 @@ SQL;
         }
 
         return $doc;
+    }
+
+    /**
+     * Get data (id, toponym, country, latitude, longitude) from rdf geonames.
+     *
+     * @see \DataTypePlace\DataType\Place
+     */
+    protected function extractPlace(DOMDocument $rdfGeoname, ?string $language = null): ?array
+    {
+        static $countryCodes = [];
+
+        $language = mb_strtolower(mb_substr((string) $language, 0, 2));
+
+        if (empty($countryCodes)) {
+            $countryCodes = file_get_contents(__DIR__ . '/data/tables/iso_3166.countries.json');
+            $countryCodes = json_decode($countryCodes, true);
+            // There are only two languages for country codes: English and French.
+            $countryCodes = array_column($countryCodes, $language === 'fr' ? 'fra' : 'eng', 'ISO-2');
+        }
+
+        // It is useless to check if data type place is present: check only id and toponym.
+
+        $result = [
+            'geonameId' => null,
+            'toponym' => null,
+            'country' => null,
+            'latitude' => null,
+            'longitude' => null,
+            'uri' => null,
+        ];
+
+        $allQueries = [
+            'geonameId' => [
+                '/rdf:RDF/gn:Feature/@rdf:about',
+            ],
+            'toponym' => [
+                $language ? '/rdf:RDF/gn:Feature/gn:officialName[@xml:lang="' . $language . '"][1]' : null,
+                $language ? '/rdf:RDF/gn:Feature/gn:alternateName[@xml:lang="' . $language . '"][1]' : null,
+                '/rdf:RDF/gn:Feature/gn:name[1]',
+                '/rdf:RDF/gn:Feature/gn:shortName[1]',
+                '/rdf:RDF/gn:Feature/gn:officialName[1]',
+                '/rdf:RDF/gn:Feature/gn:alternateName[1]',
+            ],
+            'country' => [
+                '/rdf:RDF/gn:Feature/gn:countryCode',
+            ],
+            'latitude' => [
+                '/rdf:RDF/gn:Feature/wgs84_pos:lat',
+            ],
+            'longitude' => [
+                '/rdf:RDF/gn:Feature/wgs84_pos:long',
+            ],
+            'uri' => [
+                '/rdf:RDF/gn:Feature/@rdf:about',
+            ],
+        ];
+
+        $xpath = new DOMXPath($rdfGeoname);
+
+        foreach ($allQueries as $key => $queries) {
+            foreach (array_filter($queries) as $query) {
+                // Useless: xpaths include prefixes. It should be applied for each xpath.
+                // $xpath->registerNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+                // $xpath->registerNamespace('gn', 'http://www.geonames.org/ontology#');
+                $nodeList = $xpath->query($query);
+                if (!$nodeList || !$nodeList->length) {
+                    continue;
+                }
+                $value = trim((string) $nodeList->item(0)->nodeValue);
+                if ($value === '') {
+                    continue;
+                }
+                // Exception: in the module, the geonameId is the number only.
+                if ($key === 'geonameId') {
+                    $value = (int) preg_replace('~.*/(?<id>[\d]+).*~m', '$1', $value);
+                    if ($value === 0) {
+                        continue;
+                    }
+                } elseif ($key === 'country') {
+                    $value = $countryCodes[mb_strtoupper($value)] ?? $value;
+                }
+                $result[$key] = $value;
+                break;
+            }
+        }
+
+        // Check validity.
+        /** @see \DataTypePlace\DataType\Place::isValid() */
+        if (!$result['geonameId'] || !$result['toponym']) {
+            return [];
+        }
+
+        return $result;
     }
 
     protected function orderWithTwoCriteria($toOrder): array

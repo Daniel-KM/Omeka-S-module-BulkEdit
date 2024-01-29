@@ -519,6 +519,7 @@ class Module extends AbstractModule
                 'resource_properties' => $params['resource_properties'],
                 'uri_extract_label' => !empty($params['uri_extract_label']),
                 'uri_label' => $params['uri_label'],
+                'uri_language' => $params['uri_language'],
                 'uri_base_site' => $params['uri_base_site'],
                 'contains' => $params['contains'],
             ];
@@ -1256,6 +1257,7 @@ class Module extends AbstractModule
             $resourceProperties = $params['resource_properties'];
             $uriExtractLabel = !empty($params['uri_extract_label']);
             $uriLabel = strlen($params['uri_label']) ? $params['uri_label'] : null;
+            $uriLanguage = empty($params['uri_language']) ? null : $params['uri_language'];
 
             $contains = (string) $params['contains'];
 
@@ -1323,6 +1325,7 @@ class Module extends AbstractModule
             $settings['resourceProperties'] = $resourceProperties;
             $settings['uriExtractLabel'] = $uriExtractLabel;
             $settings['uriLabel'] = $uriLabel;
+            $settings['uriLanguage'] = $uriLanguage;
             $settings['uriBasePath'] = $uriBasePath;
             $settings['uriBaseResource'] = $uriBaseResource;
             $settings['uriIsApi'] = $uriIsApi;
@@ -1541,7 +1544,7 @@ class Module extends AbstractModule
                                         $geonameUri = $this->cleanRemoteUri($value['@id'], 'valuesuggest:geonames:geonames');
                                         $record = $this->fetchUrlXml($geonameUri);
                                         if ($record) {
-                                            $place = $this->extractPlace($record);
+                                            $place = $this->extractPlace($record, $uriLanguage);
                                             if ($place) {
                                                 unset($place['uri']);
                                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => null, 'o:data' => $place];

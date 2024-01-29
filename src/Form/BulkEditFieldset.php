@@ -812,6 +812,23 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
+                'name' => 'uri_language',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => 'Convert to place: Language', // @translate
+                    'value_options' => [
+                        'eng' => 'English', // @translate
+                        'fra' => 'French', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'convert_uri_language',
+                    'data-info-datatype' => 'uri',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'uri_base_site',
                 'type' => BulkEditElement\OptionalSiteSelect::class,
                 'options' => [

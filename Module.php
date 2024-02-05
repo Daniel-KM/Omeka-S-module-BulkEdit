@@ -2992,7 +2992,7 @@ SQL;
         }
 
         $logger->err(
-            'The label for uri "{ur}" was not found.', // @translate
+            'The label for uri "{uri}" was not found.', // @translate
             ['uri' => $uri]
         );
         $filleds[$uri] = null;
@@ -3236,7 +3236,7 @@ SQL;
 
         if (!$response->isSuccess()) {
             $logger->err(
-                'Connection issue when fetching url "{ur}": {message}', // @translate
+                'Connection issue when fetching url "{url}": {message}', // @translate
                 ['url' => $url, 'message' => $response->getReasonPhrase()]
             );
             return null;

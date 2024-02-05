@@ -1626,7 +1626,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'List of media types to order first', // @translate
-                    'value_separator' => ' ', // @translate
+                    'value_separator' => ' ',
                 ],
                 'attributes' => [
                     'id' => 'mediaorder_mediatypes',

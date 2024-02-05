@@ -2931,6 +2931,15 @@ SQL;
             $logger = $this->getServiceLocator()->get('Omeka\Logger');
         }
 
+        $originalUri = $uri;
+        $uri = trim($uri);
+        if ($uri !== $originalUri) {
+            $logger->warn(
+                'The provided uri "{uri}" is not trimmed.', // @translate
+                ['uri' => $uri]
+            );
+        }
+
         $featuredSubject = !empty($options['featured_subject']);
         $language = $options['language'] ?? '';
 
@@ -3015,6 +3024,15 @@ SQL;
 
         if (array_key_exists($label, $filleds)) {
             return $filleds[$label];
+        }
+
+        $originalLabel = $label;
+        $label = trim($label);
+        if ($label !== $originalLabel) {
+            $logger->warn(
+                'The provided label "{label}" is not trimmed.', // @translate
+                ['label' => $label]
+            );
         }
 
         if (!strlen($label)) {

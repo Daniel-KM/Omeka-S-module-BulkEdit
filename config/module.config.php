@@ -3,6 +3,11 @@
 namespace BulkEdit;
 
 return [
+    'service_manager' => [
+        'factories' => [
+            'BulkEdit' => Service\Stdlib\BulkEditFactory::class,
+        ],
+    ],
     'view_helpers' => [
         'invokables' => [
             'formNote' => Form\View\Helper\FormNote::class,

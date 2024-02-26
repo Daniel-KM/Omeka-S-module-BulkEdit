@@ -24,6 +24,14 @@ $connection = $services->get('Omeka\Connection');
 $settings = $services->get('Omeka\Settings');
 $messenger = $services->get('ControllerPluginManager')->get('messenger');
 
+if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.54')) {
+    $message = new Message(
+        'The module %1$s should be upgraded to version %2$s or later.', // @translate
+        'Common', '3.4.54'
+    );
+    throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+}
+
 if (version_compare($oldVersion, '3.3.13.5', '<')) {
     $settings->set('bulkedit_deduplicate_on_save', true);
 }
@@ -52,14 +60,4 @@ if (version_compare($oldVersion, '3.3.16', '<')) {
         'It’s now possible to get the Value Suggest uri from a label, when the remote endpoint returns a single result.' // @translate
     );
     $messenger->addSuccess($message);
-}
-
-if (version_compare($oldVersion, '3.4.23', '<')) {
-    if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.50')) {
-        $message = new Message(
-            'The module %1$s should be upgraded to version %2$s or later.', // @translate
-            'Common', '3.4.50'
-        );
-        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
-    }
 }

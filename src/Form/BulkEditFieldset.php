@@ -14,6 +14,10 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     // TODO Fix translation of fieldset legend in core.
     use TranslatorAwareTrait;
 
+    protected $elementGroups = [
+        'advanced' => 'Advanced', // @translate
+    ];
+
     /**
      * @var array
      */
@@ -53,6 +57,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $this
             ->setName('bulkedit')
             ->setAttribute('id', 'bulk-edit')
+            // TODO Currently, the elements groups of fieldset are not take in account in bulk edit.
+            ->setOption('element_groups', $this->elementGroups)
             // TODO Remove all the attributes for each field. May still be used in previous versions (< 2.0).
             ->setAttribute('data-collection-action', 'replace')
             ->appendFieldsetCleaning()
@@ -93,18 +99,24 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
 
         // Omeka doesn't display fieldsets, so add them via a hidden input
         // managed by js.
+        // TODO The element groups are not take in account currently.
         $fieldsets = [];
         foreach ($this->getFieldsets() as $fieldset) {
             $name = $fieldset->getName();
-            $fieldsets[$fieldset->getName()] = $fieldset->getLabel();
+            $fieldsets[$name] = $fieldset->getLabel();
+            $fieldset->setOption('element_group', 'advanced');
             foreach ($fieldset->getElements() as $element) {
                 $element->setAttribute('data-bulkedit-fieldset', $name);
+                $fieldset->setOption('element_group', 'advanced');
             }
         }
         $this
             ->add([
                 'name' => 'bulkedit-fieldsets',
                 'type' => Element\Hidden::class,
+                'options' => [
+                    'element_group' => 'advanced',
+                ],
                 'attributes' => [
                     'id' => 'bulkedit-fieldsets',
                     'data-bulkedit-fieldsets' => json_encode($fieldsets, 320),

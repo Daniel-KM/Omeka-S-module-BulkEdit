@@ -11,7 +11,7 @@ $(document).ready(function() {
     $(nav).insertAfter('.batch-edit #page-actions');
 
     // Recreate missing bulk edit fieldsets.
-    const bulkeditFieldsets = $('#bulkedit-fieldsets').data('bulkedit-fieldsets');
+    const bulkeditFieldsets = $('#bulkedit-fieldsets').data('bulkedit-fieldsets') || {};
     $('#bulkedit-fieldsets').remove();
     Object.entries(bulkeditFieldsets).forEach(([fieldsetName, fieldsetLabel]) => {
         $('[data-bulkedit-fieldset=' + fieldsetName + ']').closest('.field')

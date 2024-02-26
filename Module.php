@@ -129,6 +129,18 @@ class Module extends AbstractModule
         $fieldset = $formElementManager->get(BulkEditFieldset::class, [
             'resource_type' => $resourceType,
         ]);
+
+        /* TODO Finalize use of element groups (keeping fieldsets, that is the normal way to group elements). And keep sub-fieldsets.
+        $fieldsetElementGroups = $fieldset->getOption('element_groups');
+        $form->setOption('element_groups', array_merge($form->getOption('element_groups') ?: [], $fieldsetElementGroups));
+        foreach ($fieldset->getFieldsets() as $subFieldset) {
+            $form->add($subFieldset);
+        }
+        foreach ($fieldset->getElements() as $element) {
+            $form->add($element);
+        }
+        */
+
         $form->add($fieldset);
     }
 

@@ -25,6 +25,13 @@ Current processes are:
 - Convert a value to another data type
 - Update or remove the owner
 - Update value suggest labels
+- apply visibility for values
+- fill label for Value Suggest values
+- remove specified values
+- update order of media
+- explode item into multiple items by media
+- explode pdf into multiple images (mainly for iiif)
+- update media visibility
 - Update the media html via item or media
 - Update the media type (mime-type) of a media
 
@@ -35,12 +42,28 @@ is saved.
 Installation
 ------------
 
-This module is dependant of module [Common], that should be installed first.
+### Module
 
-Uncompress files and rename plugin folder `BulkEdit`.
+See general end user documentation for [installing a module].
 
-See general end user documentation for [Installing a module] and follow the
-config instructions.
+This module requires the module [Common], that should be installed first.
+
+* From the zip
+
+Download the last release [BulkEdit.zip] from the list of releases, and
+uncompress it in the `modules` directory.
+
+* From the source and for development
+
+If the module was installed from the source, rename the name of the folder of
+the module to `BulkEdit`.
+
+Then install it like any other Omeka module and follow the config instructions.
+
+### Libraries
+
+If you want to explode a pdf, you need either the command `pdftoppm` (poppler)
+(recommended) or `gs` (ghostscript).
 
 
 Usage
@@ -175,6 +198,11 @@ Simply set the user to use or set "Remove user" in the select.
 Select the source datatype and the new datatype. Only some datatype are managed
 currently .
 
+### Explode pdf into images, mainly for iiif
+
+To explode a pdf, you need either the command `pdftoppm` (poppler) (recommended)
+or `gs` (ghostscript).
+
 ### Update media html from item or media
 
 Select the items or medias and update media html, then update it like an item
@@ -250,7 +278,7 @@ then improved for various projects.
 
 [Bulk Edit]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit
 [Omeka S]: https://omeka.org/s
-[Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
+[installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [Advanced Search]: https://gitlab.com/Daniel-KM/Omeka-S-module-AdvancedSearch
 [Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
 [omeka/omeka-s#1258]: https://github.com/omeka/omeka-s/issues/1258

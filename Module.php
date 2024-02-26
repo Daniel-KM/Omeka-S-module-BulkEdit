@@ -179,7 +179,7 @@ class Module extends AbstractModule
             }
             foreach ($values as &$value) {
                 if (isset($value['@value'])) {
-                    // Some datatypes may have an array for value.
+                    // Some data types may have an array for value.
                     if (is_string($value['@value'])) {
                         $v = $trimUnicode($value['@value']);
                         $value['@value'] = mb_strlen($v) ? $v : null;
@@ -761,7 +761,7 @@ class Module extends AbstractModule
                 $this->mergeValuesForResource($resource, $data, $params);
                 break;
             case 'convert':
-                $this->convertDatatypeForResource($resource, $data, $params);
+                $this->convertDataTypeForResource($resource, $data, $params);
                 break;
             case 'order_values':
                 $this->orderValuesForResource($resource, $data, $params);
@@ -1018,7 +1018,7 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $fromProperties = $params['from'];
             $toProperty = $params['to'];
-            $datatypes = array_filter($params['datatypes'] ?? []);
+            $dataTypes = array_filter($params['datatypes'] ?? []);
             $languages = $params['languages'];
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $contains = (string) $params['contains'];
@@ -1033,7 +1033,7 @@ class Module extends AbstractModule
             }
 
             $processAllProperties = in_array('all', $fromProperties);
-            $checkDatatype = !empty($datatypes);
+            $checkDataType = !empty($dataTypes);
             $checkLanguage = !empty($languages);
             $checkVisibility = !is_null($visibility);
             $checkContains = (bool) mb_strlen($contains);
@@ -1042,14 +1042,15 @@ class Module extends AbstractModule
             $toId = $api->searchOne('properties', ['term' => $toProperty], ['returnScalar' => 'id'])->getContent();
 
             $settings = $params;
+            unset($settings['datatypes']);
             $settings['fromProperties'] = $fromProperties;
             $settings['toProperty'] = $toProperty;
-            $settings['datatypes'] = $datatypes;
+            $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
             $settings['contains'] = $contains;
             $settings['to'] = $to;
             $settings['processAllProperties'] = $processAllProperties;
-            $settings['checkDatatype'] = $checkDatatype;
+            $settings['checkDataType'] = $checkDataType;
             $settings['checkLanguage'] = $checkLanguage;
             $settings['checkVisibility'] = $checkVisibility;
             $settings['checkContains'] = $checkContains;
@@ -1082,7 +1083,7 @@ class Module extends AbstractModule
             }
             foreach ($data[$property] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null];
-                if ($checkDatatype && !in_array($value['type'], $datatypes)) {
+                if ($checkDataType && !in_array($value['type'], $dataTypes)) {
                     continue;
                 }
                 if ($checkLanguage && !in_array($value['@language'], $languages)) {
@@ -1263,9 +1264,9 @@ class Module extends AbstractModule
     }
 
     /**
-     * Convert datatype of a list of properties to another one.
+     * Convert dataType of a list of properties to another one.
      */
-    protected function convertDatatypeForResource(
+    protected function convertDataTypeForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
         array $params
@@ -1277,8 +1278,8 @@ class Module extends AbstractModule
             $api = $plugins->get('api');
             $logger = $services->get('Omeka\Logger');
             $findResourcesFromIdentifiers = $plugins->has('findResourcesFromIdentifiers') ? $plugins->get('findResourcesFromIdentifiers') : null;
-            $fromDatatype = (string) $params['from'];
-            $toDatatype = (string) $params['to'];
+            $fromDataType = (string) $params['from'];
+            $toDataType = (string) $params['to'];
             $properties = $params['properties'];
             $literalValue = $params['literal_value'];
             $literalExtractHtmlText = !empty($params['literal_extract_html_text']);
@@ -1293,23 +1294,24 @@ class Module extends AbstractModule
 
             $checkContains = (bool) mb_strlen($contains);
 
-            /** @var \Omeka\DataType\DataTypeInterface $toDatatypeAdapter */
-            $toDatatypeAdapter = $services->get('Omeka\DataTypeManager')->has($toDatatype)
-                ? $services->get('Omeka\DataTypeManager')->get($toDatatype)
+            /** @var \Omeka\DataType\DataTypeInterface $toDataTypeAdapter */
+            $toDataTypeAdapter = $services->get('Omeka\DataTypeManager')->has($toDataType)
+                ? $services->get('Omeka\DataTypeManager')->get($toDataType)
                 : null;
 
-            $mainDataType = $services->get('ViewHelperManager')->get('mainDataType');
-            $fromDatatypeMain = $mainDataType($fromDatatype);
-            $toDatatypeMain = $mainDataType($toDatatype);
+            /**  @var \Common\Stdlib\EasyMeta $easyMeta */
+            $easyMeta = $services->get('EasyMeta');
+            $fromDataTypeMain = $easyMeta->dataTypeMain($fromDataType);
+            $toDataTypeMain = $easyMeta->dataTypeMain($toDataType);
 
-            $fromToMain = $fromDatatypeMain . ' => ' . $toDatatypeMain;
-            $fromTo = $fromDatatype . ' => ' . $toDatatype;
+            $fromToMain = $fromDataTypeMain . ' => ' . $toDataTypeMain;
+            $fromTo = $fromDataType . ' => ' . $toDataType;
 
-            $toDatatypeItem = $toDatatype === 'resource:item'
-                || (substr($toDatatype, 0, 11) === 'customvocab' && $toDatatypeMain === 'resource');
+            $toDataTypeItem = $toDataType === 'resource:item'
+                || (substr($toDataType, 0, 11) === 'customvocab' && $toDataTypeMain === 'resource');
 
-            $toDatatypeCustomVocab = strtok($toDatatype, ':') === 'customvocab';
-            $toDatatypeValueSuggest = strtok($toDatatype, ':') === 'valuesuggest' || strtok($toDatatype, ':') === 'valuesuggestall' ;
+            $toDataTypeCustomVocab = strtok($toDataType, ':') === 'customvocab';
+            $toDataTypeValueSuggest = strtok($toDataType, ':') === 'valuesuggest' || strtok($toDataType, ':') === 'valuesuggestall' ;
 
             $processAllProperties = in_array('all', $properties);
 
@@ -1336,14 +1338,14 @@ class Module extends AbstractModule
             $settings['api'] = $api;
             $settings['logger'] = $logger;
             $settings['findResourcesFromIdentifiers'] = $findResourcesFromIdentifiers;
-            $settings['fromDatatype'] = $fromDatatype;
-            $settings['toDatatype'] = $toDatatype;
-            $settings['toDatatypeAdapter'] = $toDatatypeAdapter;
-            $settings['fromDatatypeMain'] = $fromDatatypeMain;
-            $settings['toDatatypeMain'] = $toDatatypeMain;
-            $settings['toDatatypeItem'] = $toDatatypeItem;
-            $settings['toDatatypeCustomVocab'] = $toDatatypeCustomVocab;
-            $settings['toDatatypeValueSuggest'] = $toDatatypeValueSuggest;
+            $settings['fromDataType'] = $fromDataType;
+            $settings['toDataType'] = $toDataType;
+            $settings['toDataTypeAdapter'] = $toDataTypeAdapter;
+            $settings['fromDataTypeMain'] = $fromDataTypeMain;
+            $settings['toDataTypeMain'] = $toDataTypeMain;
+            $settings['toDataTypeItem'] = $toDataTypeItem;
+            $settings['toDataTypeCustomVocab'] = $toDataTypeCustomVocab;
+            $settings['toDataTypeValueSuggest'] = $toDataTypeValueSuggest;
             $settings['fromToMain'] = $fromToMain;
             $settings['fromTo'] = $fromTo;
             $settings['properties'] = $properties;
@@ -1364,7 +1366,7 @@ class Module extends AbstractModule
             extract($settings);
         }
 
-        if ($fromDatatype === $toDatatype) {
+        if ($fromDataType === $toDataType) {
             return;
         }
 
@@ -1377,9 +1379,9 @@ class Module extends AbstractModule
             return;
         }
 
-        if (!$fromDatatypeMain || !$toDatatypeMain || !$toDatatypeAdapter) {
+        if (!$fromDataTypeMain || !$toDataTypeMain || !$toDataTypeAdapter) {
             $logger->warn(
-                'A conversion requires valid "from" datatype and "to" datatype.' // @translate
+                'A conversion requires valid "from" dataType and "to" dataType.' // @translate
             );
             return;
         }
@@ -1395,19 +1397,19 @@ class Module extends AbstractModule
             if (empty($resourceProperties)) {
                 $logger->warn(
                     'To convert into the data type "{datatype}", the properties where to find the identifier should be set.', // @translate
-                    ['datatype' => $toDatatype]
+                    ['datatype' => $toDataType]
                 );
                 return;
             }
         } elseif ($fromToMain === 'resource => uri' && !$uriBaseResource) {
             $logger->warn(
                 'The conversion from data type "{datatype_1}" to "{datatype_2}" requires a site or api to create the url.', // @translate
-                ['datatype_1' => $fromDatatype, 'datatype_2' => $toDatatype]
+                ['datatype_1' => $fromDataType, 'datatype_2' => $toDataType]
             );
             return;
         }
 
-        $datatypeToValueKeys = [
+        $dataTypeToValueKeys = [
             'literal' => '@value',
             'resource' => 'value_resource_id',
             'uri' => '@id',
@@ -1425,7 +1427,7 @@ class Module extends AbstractModule
             }
         };
 
-        $checkResourceNameAndToDatatype = function ($vr, $valueResourceName, $property) use ($resource, $toDatatype, $toDatatypeItem, $logger) {
+        $checkResourceNameAndToDataType = function ($vr, $valueResourceName, $property) use ($resource, $toDataType, $toDataTypeItem, $logger) {
             $resourceControllerNames = [
                 'resource' => 'resources',
                 'resources' => 'resources',
@@ -1448,11 +1450,11 @@ class Module extends AbstractModule
                 );
                 return false;
             }
-            if (($toDatatypeItem && $vrResourceName !== 'items')
-                || ($toDatatype === 'resource:itemset' && $vrResourceName !== 'item_sets')
-                || ($toDatatype === 'resource:media' && $vrResourceName !== 'media')
-                || ($toDatatype === 'resource:annotation' && $vrResourceName !== 'annotations')
-                || ($toDatatype === 'annotation' && $vrResourceName !== 'annotations')
+            if (($toDataTypeItem && $vrResourceName !== 'items')
+                || ($toDataType === 'resource:itemset' && $vrResourceName !== 'item_sets')
+                || ($toDataType === 'resource:media' && $vrResourceName !== 'media')
+                || ($toDataType === 'resource:annotation' && $vrResourceName !== 'annotations')
+                || ($toDataType === 'annotation' && $vrResourceName !== 'annotations')
             ) {
                 return false;
             }
@@ -1461,38 +1463,38 @@ class Module extends AbstractModule
 
         foreach ($properties as $property) {
             foreach ($data[$property] as $key => $value) {
-                if ($value['type'] !== $fromDatatype
-                    || $value['type'] === $toDatatype
+                if ($value['type'] !== $fromDataType
+                    || $value['type'] === $toDataType
                 ) {
                     continue;
                 }
                 if ($checkContains) {
-                    if ($fromDatatype === 'literal' && mb_strpos($value['@value'], $contains) === false) {
+                    if ($fromDataType === 'literal' && mb_strpos($value['@value'], $contains) === false) {
                         continue;
                     }
-                    if ($fromDatatype === 'uri' && mb_strpos($value['@id'], $contains) === false) {
+                    if ($fromDataType === 'uri' && mb_strpos($value['@id'], $contains) === false) {
                         continue;
                     }
                 }
                 $newValue = null;
-                switch ($fromDatatypeMain) {
+                switch ($fromDataTypeMain) {
                     case 'literal':
                         if (!isset($value['@value'])) {
                             continue 2;
                         }
                         if ($literalHtmlOnlyTaggedString
-                            && in_array($toDatatype, ['html', 'xml'])
+                            && in_array($toDataType, ['html', 'xml'])
                             && (substr(trim((string) $value['@value']), 0, 1) !== '<' || substr(trim((string) $value['@value']), -1) !== '>')
                         ) {
                             continue 2;
                         }
-                        if ($literalExtractHtmlText && in_array($fromDatatype, ['html', 'xml'])) {
+                        if ($literalExtractHtmlText && in_array($fromDataType, ['html', 'xml'])) {
                             $value['@value'] = strip_tags($value['@value']);
                         }
-                        switch ($toDatatypeMain) {
+                        switch ($toDataTypeMain) {
                             case 'literal':
                                 // For custom vocab or specific data type.
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => (string) $value['@value'], '@id' => null, 'o:label' => null];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => (string) $value['@value'], '@id' => null, 'o:label' => null];
                                 break;
                             case 'resource':
                                 $val = $value['@value'];
@@ -1510,19 +1512,19 @@ class Module extends AbstractModule
                                     continue 3;
                                 }
                                 $vr = $api->read('resources', ['id' => $valueResourceId])->getContent();
-                                if (!$checkResourceNameAndToDatatype($vr, null, $property)) {
+                                if (!$checkResourceNameAndToDataType($vr, null, $property)) {
                                     continue 3;
                                 }
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
                                 break;
                             case 'uri':
                                 if ($uriExtractLabel) {
                                     [$uri, $label] = explode(' ', $value['@value'] . ' ', 2);
                                     $label = trim($label);
                                     $label = strlen($label) ? $label : $uriLabel;
-                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $uri, 'o:label' => $label];
+                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $uri, 'o:label' => $label];
                                 } else {
-                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel];
+                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@value'], 'o:label' => $uriLabel];
                                 }
                                 break;
                             default:
@@ -1539,22 +1541,22 @@ class Module extends AbstractModule
                         if (!$vr) {
                             continue 2;
                         }
-                        switch ($toDatatypeMain) {
+                        switch ($toDataTypeMain) {
                             case 'resource':
                                 // For custom vocab or specific resource type.
-                                if (!$checkResourceNameAndToDatatype($vr, null, $property)) {
+                                if (!$checkResourceNameAndToDataType($vr, null, $property)) {
                                     continue 3;
                                 }
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $value['value_resource_id']];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $value['value_resource_id']];
                                 break;
                             case 'literal':
                                 $label = isset($value['display_title']) && strlen($value['display_title']) ? $value['display_title'] : $vr->displayTitle();
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
                                 break;
                             case 'uri':
                                 $uri = $uriBaseResource . ($uriIsApi ? $vr->resourceName() : $vr->getControllerName()) . '/' . $value['value_resource_id'];
                                 $label = $uriLabel ?? (isset($value['display_title']) && strlen($value['display_title']) ? $value['display_title'] : $vr->displayTitle());
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $uri, 'o:label' => $label];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $uri, 'o:label' => $label];
                                 break;
                             default:
                                 return;
@@ -1565,11 +1567,11 @@ class Module extends AbstractModule
                         if (!isset($value['@id'])) {
                             continue 2;
                         }
-                        switch ($toDatatypeMain) {
+                        switch ($toDataTypeMain) {
                             case 'uri':
                                 // Get data rdf from geonames and convert it.
-                                if ($toDatatype === 'place') {
-                                    if ($fromDatatype === 'valuesuggest:geonames:geonames') {
+                                if ($toDataType === 'place') {
+                                    if ($fromDataType === 'valuesuggest:geonames:geonames') {
                                         // The geoname id is not the real uri, but a shortcut.
                                         $geonameUri = $this->cleanRemoteUri($value['@id'], 'valuesuggest:geonames:geonames');
                                         $record = $this->fetchUrlXml($geonameUri);
@@ -1577,8 +1579,8 @@ class Module extends AbstractModule
                                             $place = $this->extractPlace($record, $uriLanguage);
                                             if ($place) {
                                                 unset($place['uri']);
-                                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => null, 'o:data' => $place];
-                                            }  else {
+                                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => null, 'o:data' => $place];
+                                            } else {
                                                 $logger->info(
                                                     'For resource #{resource_id}, property "{property}", the uri "{uri}" do not return a valid place.', // @translate
                                                     ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@id']]
@@ -1592,32 +1594,32 @@ class Module extends AbstractModule
                                         }
                                     }
                                 } else {
-                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => $value['o:label'] ?? null];
+                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => $value['o:label'] ?? null];
                                 }
                                 break;
                             case 'literal':
                                 switch ($literalValue) {
                                     case 'label_uri':
                                         $label = isset($value['o:label']) && strlen($value['o:label']) ? $value['o:label'] . ' (' . $value['@id'] . ')' : $value['@id'];
-                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
                                         break;
                                     case 'uri_label':
                                         $label = isset($value['o:label']) && strlen($value['o:label']) ? $value['@id'] . ' (' . $value['o:label'] . ')' : $value['@id'];
-                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
                                         break;
                                     case 'label_or_uri':
                                         $label = isset($value['o:label']) && strlen($value['o:label']) ? $value['o:label'] : $value['@id'];
-                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
                                         break;
                                     case 'label':
                                         if (!isset($value['o:label']) || !strlen($value['o:label'])) {
                                             continue 4;
                                         }
                                         $label = $value['o:label'];
-                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => $label, '@id' => null, 'o:label' => null];
                                         break;
                                     case 'uri':
-                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => $value['@id'], '@id' => null, 'o:label' => null];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => $value['@id'], '@id' => null, 'o:label' => null];
                                         break;
                                     default:
                                         return;
@@ -1637,10 +1639,10 @@ class Module extends AbstractModule
                                     );
                                     continue 3;
                                 }
-                                if (!$checkResourceNameAndToDatatype($vr, $valueResourceName, $property)) {
+                                if (!$checkResourceNameAndToDataType($vr, $valueResourceName, $property)) {
                                     continue 3;
                                 }
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDatatype, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
+                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => null, 'o:label' => null, 'value_resource_id' => $valueResourceId];
                                 break;
                             default:
                                 return;
@@ -1652,10 +1654,10 @@ class Module extends AbstractModule
                 }
 
                 if ($newValue) {
-                    if (!$toDatatypeAdapter->isValid($newValue)) {
+                    if (!$toDataTypeAdapter->isValid($newValue)) {
                         $logger->notice(
                             'Conversion from data type "{datatype_1}" to "{datatype_2}" is not possible in resource #{resource_id} for value: {value}', // @translate
-                            ['datatype_1' => $fromDatatype, 'datatype_2' => $toDatatype, 'resource_id' => $resource->id(), 'value' => $value[$datatypeToValueKeys[$fromDatatypeMain]]]
+                            ['datatype_1' => $fromDataType, 'datatype_2' => $toDataType, 'resource_id' => $resource->id(), 'value' => $value[$dataTypeToValueKeys[$fromDataTypeMain]]]
                         );
                         continue;
                     }
@@ -1722,19 +1724,20 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $visibility = (int) (bool) $params['visibility'];
             $properties = $params['properties'];
-            $datatypes = array_filter($params['datatypes'] ?? []);
+            $dataTypes = array_filter($params['datatypes'] ?? []);
             $languages = $params['languages'];
             $contains = (string) $params['contains'];
 
-            $checkDatatype = !empty($datatypes);
+            $checkDataType = !empty($dataTypes);
             $checkLanguage = !empty($languages);
             $checkContains = (bool) mb_strlen($contains);
 
             $settings = $params;
+            unset($settings['datatypes']);
             $settings['properties'] = $properties;
-            $settings['datatypes'] = $datatypes;
+            $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
-            $settings['checkDatatype'] = $checkDatatype;
+            $settings['checkDataType'] = $checkDataType;
             $settings['checkLanguage'] = $checkLanguage;
             $settings['checkContains'] = $checkContains;
         } else {
@@ -1761,7 +1764,7 @@ class Module extends AbstractModule
                 if ($currentVisibility === $visibility) {
                     continue;
                 }
-                if ($checkDatatype && !in_array($value['type'], $datatypes)) {
+                if ($checkDataType && !in_array($value['type'], $dataTypes)) {
                     continue;
                 }
                 if ($checkLanguage && !in_array($value['@language'], $languages)) {
@@ -1816,7 +1819,7 @@ class Module extends AbstractModule
 
         // TODO Only geonames and idref are managed.
         // TODO Add a query for a single value in ValueSuggest (or dereferenceable).
-        $managedDatatypes = [
+        $managedDataTypes = [
             'literal',
             'uri',
             'valuesuggest:geonames:geonames',
@@ -1841,8 +1844,8 @@ class Module extends AbstractModule
         if (is_null($settings)) {
             $mode = $params['mode'];
             $properties = $params['properties'] ?? [];
-            $datatypes = $params['datatypes'] ?? [];
-            $datatype = empty($params['datatype']) ? null : $params['datatype'];
+            $dataTypes = $params['datatypes'] ?? [];
+            $dataType = empty($params['datatype']) ? null : $params['datatype'];
             $featuredSubject = !empty($params['featured_subject']);
             $language = $params['language'] ?? '';
             $updateLanguage = empty($params['update_language'])
@@ -1852,7 +1855,7 @@ class Module extends AbstractModule
                 : $params['update_language'];
 
             $processAllProperties = in_array('all', $properties);
-            $processAllDatatypes = in_array('all', $datatypes);
+            $processAllDataTypes = in_array('all', $dataTypes);
 
             $skip = false;
             if (!in_array($mode, ['label_missing', 'label_all', 'label_remove', 'uri_missing', 'uri_all'])) {
@@ -1864,26 +1867,26 @@ class Module extends AbstractModule
                 $skip = true;
             }
 
-            // Flat the list of datatypes.
+            // Flat the list of dataTypes.
             $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
-            $datatypes = $processAllDatatypes
-                ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDatatypes)
-                : array_intersect($dataTypeManager->getRegisteredNames(), $datatypes, $managedDatatypes);
+            $dataTypes = $processAllDataTypes
+                ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDataTypes)
+                : array_intersect($dataTypeManager->getRegisteredNames(), $dataTypes, $managedDataTypes);
 
-            if (!$datatype && count($datatypes) === 1 && in_array(reset($datatypes), $managedDatatypes)) {
-                $datatype = reset($datatypes);
+            if (!$dataType && count($dataTypes) === 1 && in_array(reset($dataTypes), $managedDataTypes)) {
+                $dataType = reset($dataTypes);
             }
 
-            if ((in_array('literal', $datatypes) || in_array('uri', $datatypes)) && in_array($datatype, [null, 'literal', 'uri'])) {
+            if ((in_array('literal', $dataTypes) || in_array('uri', $dataTypes)) && in_array($dataType, [null, 'literal', 'uri'])) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->warn('When "literal" or "uri" is used, the precise datatype should be specified.'); // @translate
+                $logger->warn('When "literal" or "uri" is used, the precise dataType should be specified.'); // @translate
                 $skip = true;
             }
 
             $isModeUri = $mode === 'uri_missing' || $mode === 'uri_all';
-            if ($isModeUri && (!in_array($datatype, $datatypes) || in_array($datatype, [null, 'literal', 'uri']))) {
+            if ($isModeUri && (!in_array($dataType, $dataTypes) || in_array($dataType, [null, 'literal', 'uri']))) {
                 $logger = $this->getServiceLocator()->get('Omeka\Logger');
-                $logger->warn('When filling an uri, the precise datatype should be specified.'); // @translate
+                $logger->warn('When filling an uri, the precise dataType should be specified.'); // @translate
                 $skip = true;
             }
 
@@ -1899,13 +1902,15 @@ class Module extends AbstractModule
             ];
 
             $settings = $params;
+            unset($settings['datatypes']);
+            unset($settings['datatype']);
             $settings['mode'] = $mode;
             $settings['properties'] = $properties;
             $settings['featuredSubject'] = $featuredSubject;
             $settings['processAllProperties'] = $processAllProperties;
-            $settings['datatypes'] = $datatypes;
-            $settings['datatype'] = $datatype;
-            $settings['processAllDatatypes'] = $processAllDatatypes;
+            $settings['dataTypes'] = $dataTypes;
+            $settings['dataType'] = $dataType;
+            $settings['processAllDataTypes'] = $processAllDataTypes;
             $settings['labelAndUriOptions'] = $labelAndUriOptions;
             $settings['language'] = $language;
             $settings['updateLanguage'] = $updateLanguage;
@@ -1930,7 +1935,7 @@ class Module extends AbstractModule
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
                     if ($value['type'] === 'literal'
-                        || !in_array($value['type'], $datatypes)
+                        || !in_array($value['type'], $dataTypes)
                     ) {
                         continue;
                     }
@@ -1964,8 +1969,8 @@ class Module extends AbstractModule
                     if (empty($value['@id'])) {
                         $data[$property][$key]['@id'] = $value['@id'] = null;
                     }
-                    if (!in_array($value['type'], $datatypes)
-                        || !in_array($value['type'], ['literal', 'uri', $datatype])
+                    if (!in_array($value['type'], $dataTypes)
+                        || !in_array($value['type'], ['literal', 'uri', $dataType])
                     ) {
                         continue;
                     }
@@ -1979,7 +1984,7 @@ class Module extends AbstractModule
                     if ($onlyMissing && strlen((string) $vvalue)) {
                         continue;
                     }
-                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $datatype : $value['type'];
+                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $dataType : $value['type'];
                     $vvalueNew = $this->getLabelForUri($vuri, $vtype, $labelAndUriOptions);
                     if (is_null($vvalueNew)) {
                         continue;
@@ -2006,8 +2011,8 @@ class Module extends AbstractModule
                     if (empty($value['@id'])) {
                         $data[$property][$key]['@id'] = $value['@id'] = null;
                     }
-                    if (!in_array($value['type'], $datatypes)
-                        || !in_array($value['type'], ['literal', 'uri', $datatype])
+                    if (!in_array($value['type'], $dataTypes)
+                        || !in_array($value['type'], ['literal', 'uri', $dataType])
                     ) {
                         continue;
                     }
@@ -2022,7 +2027,7 @@ class Module extends AbstractModule
                     if (empty($vvalue)) {
                         continue;
                     }
-                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $datatype: $value['type'];
+                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $dataType : $value['type'];
                     $vuri = $this->getValueSuggestUriForLabel($vvalue, $vtype, $language);
                     if (!$vuri) {
                         continue;
@@ -2052,7 +2057,7 @@ class Module extends AbstractModule
         static $settings;
         if (is_null($settings)) {
             $properties = $params['properties'];
-            $datatypes = array_filter($params['datatypes'] ?? []);
+            $dataTypes = array_filter($params['datatypes'] ?? []);
             $languages = $params['languages'];
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $equal = (string) $params['equal'];
@@ -2063,7 +2068,7 @@ class Module extends AbstractModule
             }
 
             $processAllProperties = in_array('all', $properties);
-            $checkDatatype = !empty($datatypes);
+            $checkDataType = !empty($dataTypes);
             $checkLanguage = !empty($languages);
             $checkVisibility = !is_null($visibility);
             $checkEqual = (bool) mb_strlen($equal);
@@ -2071,17 +2076,18 @@ class Module extends AbstractModule
 
             $mainDataType = $this->getServiceLocator()->get('ViewHelperManager')->get('mainDataType');
             $mainDataTypes = [];
-            foreach ($datatypes as $datatype) {
-                $mainDataTypes[$datatype] = $mainDataType($datatype);
+            foreach ($dataTypes as $dataType) {
+                $mainDataTypes[$dataType] = $mainDataType($dataType);
             }
 
             $settings = $params;
-            $settings['datatypes'] = $datatypes;
+            unset($settings['datatypes']);
+            $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
             $settings['mainDataType'] = $mainDataType;
             $settings['mainDataTypes'] = $mainDataTypes;
             $settings['processAllProperties'] = $processAllProperties;
-            $settings['checkDatatype'] = $checkDatatype;
+            $settings['checkDataType'] = $checkDataType;
             $settings['checkLanguage'] = $checkLanguage;
             $settings['checkVisibility'] = $checkVisibility;
             $settings['checkEqual'] = $checkEqual;
@@ -2101,7 +2107,7 @@ class Module extends AbstractModule
             ? array_keys($resource->values())
             : array_intersect($properties, array_keys($resource->values()));
 
-        if (!$checkDatatype
+        if (!$checkDataType
             && !$checkLanguage
             && !$checkVisibility
             && !$checkEqual
@@ -2114,7 +2120,7 @@ class Module extends AbstractModule
         foreach ($properties as $property) {
             foreach ($data[$property] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null, 'value_resource_id' => null, '@id' => null];
-                if ($checkDatatype && !in_array($value['type'], $datatypes)) {
+                if ($checkDataType && !in_array($value['type'], $dataTypes)) {
                     continue;
                 }
                 if ($checkLanguage && !in_array($value['@language'], $languages)) {
@@ -2124,7 +2130,7 @@ class Module extends AbstractModule
                     continue;
                 }
                 if ($checkEqual || $checkContains) {
-                    $valueMainDataType = $mainDataType($value['type']);
+                    $valueMainDataType = $easyMeta->dataTypeMain($value['type']);
                     if ($checkEqual) {
                         if (($valueMainDataType === 'literal' && $value['@value'] !== $equal)
                             || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $equal)
@@ -2934,7 +2940,7 @@ SQL;
         }
     }
 
-    protected function getLabelForUri(string $uri, string $datatype, array $options = []): ?string
+    protected function getLabelForUri(string $uri, string $dataType, array $options = []): ?string
     {
         static $filleds = [];
         static $logger = null;
@@ -2955,7 +2961,7 @@ SQL;
         $featuredSubject = !empty($options['featured_subject']);
         $language = $options['language'] ?? '';
 
-        $endpointData = $this->endpointDatatype($datatype, $language, $featuredSubject);
+        $endpointData = $this->endpointDataType($dataType, $language, $featuredSubject);
         if (!$endpointData) {
             return null;
         }
@@ -2965,7 +2971,7 @@ SQL;
         }
 
         // So get the url from the uri.
-        $url = $this->cleanRemoteUri($uri, $datatype, $language, $featuredSubject);
+        $url = $this->cleanRemoteUri($uri, $dataType, $language, $featuredSubject);
         if (!$url) {
             $filleds[$uri] = null;
             return null;
@@ -2982,7 +2988,7 @@ SQL;
 
         $xpath = new DOMXPath($dom);
 
-        switch ($datatype) {
+        switch ($dataType) {
             case 'valuesuggest:geonames:geonames':
                 // Probably useless.
                 $xpath->registerNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
@@ -3023,7 +3029,7 @@ SQL;
     /**
      * @see \ValueSuggest\Controller\IndexController::proxyAction()
      */
-    protected function getValueSuggestUriForLabel(string $label, string $datatype, ?string $language = null): ?string
+    protected function getValueSuggestUriForLabel(string $label, string $dataType, ?string $language = null): ?string
     {
         static $filleds = [];
         static $logger = null;
@@ -3051,11 +3057,11 @@ SQL;
             return null;
         }
 
-        if (!$datatype || !$dataTypeManager->has($datatype)) {
+        if (!$dataType || !$dataTypeManager->has($dataType)) {
             return null;
         }
 
-        $dataType = $dataTypeManager->get($datatype);
+        $dataType = $dataTypeManager->get($dataType);
         if (!$dataType instanceof \ValueSuggest\DataType\DataTypeInterface) {
             return null;
         }
@@ -3081,13 +3087,13 @@ SQL;
     /**
      * @todo Move these hard-coded mappings into the form.
      */
-    protected function endpointDatatype(string $datatype, ?string $language = null, bool $featuredSubject = false): array
+    protected function endpointDataType(string $dataType, ?string $language = null, bool $featuredSubject = false): array
     {
         $baseurlIdref = [
             'idref.fr/',
         ];
 
-        $endpointDatatypes = [
+        $endpointDataTypes = [
             'valuesuggest:geonames:geonames' => [
                 'base_url' => [
                     'geonames.org/',
@@ -3151,9 +3157,9 @@ SQL;
             'valuesuggest:idref:library' => null,
         ];
 
-        // Fix datatypes for rameau.
-        if ($featuredSubject && $datatype === 'valuesuggest:idref:rameau') {
-            $endpointDatatypes['valuesuggest:idref:rameau']['path'] = [
+        // Fix dataTypes for rameau.
+        if ($featuredSubject && $dataType === 'valuesuggest:idref:rameau') {
+            $endpointDataTypes['valuesuggest:idref:rameau']['path'] = [
                 '/record/datafield[@tag="250"]/subfield[@code="a"][1]',
                 '/record/datafield[@tag="915"]/subfield[@code="a"][1]',
                 // If featured subject is missing, use the current subject.
@@ -3162,16 +3168,16 @@ SQL;
             ];
         }
 
-        return $endpointDatatypes[$datatype] ?? [];
+        return $endpointDataTypes[$dataType] ?? [];
     }
 
-    protected function cleanRemoteUri(string $uri, string $datatype, ?string $language = null, bool $featuredSubject = false): ?string
+    protected function cleanRemoteUri(string $uri, string $dataType, ?string $language = null, bool $featuredSubject = false): ?string
     {
         if (!$uri) {
             return null;
         }
 
-        $endpointData = $this->endpointDatatype($datatype, $language, $featuredSubject);
+        $endpointData = $this->endpointDataType($dataType, $language, $featuredSubject);
         if (!$endpointData) {
             return null;
         }
@@ -3189,7 +3195,7 @@ SQL;
             return null;
         }
 
-        switch ($datatype) {
+        switch ($dataType) {
             case 'valuesuggest:geonames:geonames':
                 // Extract the id.
                 $id = preg_replace('~.*/(?<id>[\d]+).*~m', '$1', $uri);
@@ -3203,7 +3209,7 @@ SQL;
                 }
                 $url = "https://sws.geonames.org/$id/about.rdf";
                 break;
-            case substr($datatype, 0, 18) === 'valuesuggest:idref':
+            case substr($dataType, 0, 18) === 'valuesuggest:idref':
                 $url = mb_substr($uri, -4) === '.xml' ? $uri : $uri . '.xml';
                 break;
             default:

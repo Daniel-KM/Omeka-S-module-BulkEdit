@@ -1725,6 +1725,46 @@ SQL;
 
         $mode = $params['mode'] ?? 'all';
         $process = $params['process'] ?? 'all';
+        $processor = $params['processor'] ?? 'auto';
+
+        $processor = in_array($processor, ['gs', 'pdftoppm']) ? $processor : 'auto';
+        if ($processor === 'auto') {
+            $commandPath = $cli->getCommandPath('pdftoppm');
+            if ($commandPath === false) {
+                $commandPath = $cli->getCommandPath('gs');
+                if ($commandPath === false) {
+                    $logger->err(
+                        'The command "pdftoppm" (poppler) or "gs" (ghostscript) should be available to convert pdf to images.', // @translate
+                    );
+                    return;
+                }
+                $processor = 'gs';
+                $logger->notice(
+                    'The command "gs" (ghostscript) will be used to convert pdf to images.', // @translate
+                );
+            } else {
+                $processor = 'pdftoppm';
+                $logger->notice(
+                    'The command "pdftoppm" (poppler) will be used to convert pdf to images.', // @translate
+                );
+            }
+        } elseif ($processor === 'gs') {
+            $commandPath = $cli->getCommandPath('gs');
+            if ($commandPath === false) {
+                $logger->err(
+                    'The command "gs" (ghostscript) is not available to convert pdf to images.', // @translate
+                );
+                return;
+            }
+        } elseif ($processor === 'pdftoppm') {
+            $commandPath = $cli->getCommandPath('pdftoppm');
+            if ($commandPath === false) {
+                $logger->err(
+                    'The command "pdftoppm" (poppler) is not available to convert pdf to images.', // @translate
+                );
+                return;
+            }
+        }
 
         $baseUri = empty($params['base_uri']) ? $this->getBaseUri() : $params['base_uri'];
 
@@ -1819,13 +1859,25 @@ SQL;
                 // double quote).
                 $tmpPath = escapeshellarg($tmpDirResource . '/' . $storage);
                 $wrap = mb_substr($tmpPath, -1);
-                $command = sprintf(
-                    'gs -sDEVICE=jpeg -sOutputFile=%s -r%s -dNOTRANSPARENCY -dNOPAUSE -dQUIET -dBATCH %s',
-                    $wrap . mb_substr($tmpPath, 1, -1) . '%04d.jpg' . $wrap,
-                    (int) $resolution,
-                    escapeshellarg($filepath)
-                );
-                $result = $cli->execute($command);
+                if ($processor === 'gs') {
+                    $outputFilename = $wrap . mb_substr($tmpPath, 1, -1) . '%04d.jpg' . $wrap;
+                    $command = sprintf(
+                        'gs -dNOTRANSPARENCY -dNOPAUSE -dQUIET -dBATCH -sDEVICE=jpeg -r%1$d -sOutputFile=%2$s %3$s',
+                        (int) $resolution,
+                        $outputFilename,
+                        escapeshellarg($filepath)
+                    );
+                    $result = $cli->execute($command);
+                } elseif ($processor === 'pdftoppm') {
+                    $outputFilenameBase = $wrap . mb_substr($tmpPath, 1, -1) . $wrap;
+                    $command = sprintf(
+                        'pdftoppm -aa yes -aaVector yes -jpeg -jpegopt quality=85 -r %1$d %2$s %3$s',
+                        (int) $resolution,
+                        escapeshellarg($filepath),
+                        $outputFilenameBase
+                    );
+                    $result = $cli->execute($command);
+                }
                 if ($result === false) {
                     $logger->err(
                         'Unable to extract images from item #{item_id} pdf #{media_id}.', // @translate
@@ -1834,15 +1886,25 @@ SQL;
                     continue;
                 }
 
-                $index = 0;
-                $totalImages = 0;
-                while (++$index) {
-                    $source = sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index);
-                    if (!file_exists($source)) {
-                        break;
+                if ($processor === 'gs') {
+                    $index = 0;
+                    $totalImages = 0;
+                    while (++$index) {
+                        $source = sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index);
+                        if (!file_exists($source)) {
+                            break;
+                        }
+                        ++$totalImages;
                     }
-                    ++$totalImages;
+                } else {
+                    $command = sprintf(
+                        // https://stackoverflow.com/questions/14644353/get-the-number-of-pages-in-a-pdf-document#answer-74743532
+                        'pdfinfo %1$s | grep Pages | cut -f 2 -d":" | xargs',
+                        escapeshellarg($filepath)
+                    );
+                    $totalImages = $cli->execute($command);
                 }
+
 
                 if (!$totalImages) {
                     $logger->warn(
@@ -1861,7 +1923,9 @@ SQL;
                 $index = 0;
                 // $hasError = false;
                 while (++$index) {
-                    $source = sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index);
+                    $source = $processor === 'gs'
+                        ? sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index)
+                        : sprintf('%s/%s%0' . strlen((string) $totalImages) . 'd.jpg', $tmpDirResource, $storage, $index);
                     if (!file_exists($source)) {
                         break;
                     }

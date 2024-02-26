@@ -1544,6 +1544,24 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
+            ])
+            ->add([
+                'name' => 'processor',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Processor', // @translate
+                    'value_options' => [
+                        'auto' => 'Auto', // @translate
+                        'pdftoppm' => 'pdftoppm (poppler)', // @translate
+                        'gs' => 'gs (ghostscript)', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'explode_pdf_processor',
+                    'value' => 'auto',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
             ]);
 
         return $this;

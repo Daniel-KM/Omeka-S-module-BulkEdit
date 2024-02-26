@@ -626,6 +626,7 @@ class Module extends AbstractModule
                 'mode' => $params['mode'],
                 'process' => $params['process'] ?? null,
                 'resolution' => (int) $params['resolution'] ?? null,
+                'processor' => $params['processor'] ?? 'auto',
                 // TODO Use server-url from job.
                 'base_uri' => $this->getBaseUri(),
             ];

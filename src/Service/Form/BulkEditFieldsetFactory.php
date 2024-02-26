@@ -18,22 +18,17 @@ class BulkEditFieldsetFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
+        /**  @var \Common\Stdlib\EasyMeta $easyMeta */
+        $easyMeta = $services->get('EasyMeta');
+
         // Append some infos about datatypes for js.
-        /** @var \BulkEdit\View\Helper\MainDataType $mainDataType */
-        $viewHelpers = $services->get('ViewHelperManager');
-        $mainDataType = $viewHelpers->get('mainDataType');
-        $dataTypeManager = $services->get('Omeka\DataTypeManager');
-        $datatypesMain = [];
-        $datatypesLabels = [];
-        foreach ($dataTypeManager->getRegisteredNames() as $datatype) {
-            $datatypesMain[$datatype] = $mainDataType($datatype);
-            $datatypesLabels[$datatype] = $dataTypeManager->get($datatype)->getLabel();
+        // TODO Use Common 3.4.55.
+        $dataTypesMain = [];
+        foreach ($easyMeta->dataTypeNames() as $dataType) {
+            $dataTypesMain[$dataType] = $easyMeta->dataTypeMain($dataType);
         }
 
         $connection = $services->get('Omeka\Connection');
-
-        $result = $connection->executeQuery('SELECT DISTINCT(media_type) FROM media WHERE media_type IS NOT NULL AND media_type != "" ORDER BY media_type ASC')->fetchFirstColumn();
-        $mediaTypes = array_combine($result, $result);
 
         $result = $connection->executeQuery('SELECT DISTINCT(ingester) FROM media ORDER BY ingester ASC')->fetchFirstColumn();
         $ingesters = array_combine($result, $result);
@@ -45,9 +40,8 @@ class BulkEditFieldsetFactory implements FactoryInterface
         return $fieldset
             // TODO Fix translation of fieldset legend in core.
             ->setTranslator($services->get('MvcTranslator'))
-            ->setDataTypesMain($datatypesMain)
-            ->setDataTypesLabels($datatypesLabels)
-            ->setMediaTypes($mediaTypes)
+            ->setDataTypesMain($dataTypesMain)
+            ->setDataTypesLabels($easyMeta->dataTypeLabels())
             ->setIngesters($ingesters)
             ->setRenderers($renderers)
         ;

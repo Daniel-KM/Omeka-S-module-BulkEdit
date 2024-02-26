@@ -31,11 +31,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     /**
      * @var array
      */
-    protected $mediaTypes = [];
-
-    /**
-     * @var array
-     */
     protected $ingesters = [];
 
     /**
@@ -1854,11 +1849,10 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'media_types',
-                'type' => CommonElement\OptionalSelect::class,
+                'type' => CommonElement\MediaTypeSelect::class,
                 'options' => [
                     'label' => 'Limit to media types', // @translate
                     'empty_option' => 'All media types', // @translate
-                    'value_options' => $this->mediaTypes,
                 ],
                 'attributes' => [
                     'id' => 'mediavis_media_types',
@@ -1919,12 +1913,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     public function setDataTypesLabels(array $dataTypesLabels): self
     {
         $this->dataTypesLabels = $dataTypesLabels;
-        return $this;
-    }
-
-    public function setMediaTypes(array $mediaTypes): self
-    {
-        $this->mediaTypes = $mediaTypes;
         return $this;
     }
 

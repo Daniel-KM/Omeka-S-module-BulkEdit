@@ -2074,17 +2074,20 @@ class Module extends AbstractModule
             $checkEqual = (bool) mb_strlen($equal);
             $checkContains = (bool) mb_strlen($contains);
 
-            $mainDataType = $this->getServiceLocator()->get('ViewHelperManager')->get('mainDataType');
+            /**  @var \Common\Stdlib\EasyMeta $easyMeta */
+            $services = $this->getServiceLocator();
+            $easyMeta = $services->get('EasyMeta');
+            // TODO Use Common 3.4.55.
             $mainDataTypes = [];
             foreach ($dataTypes as $dataType) {
-                $mainDataTypes[$dataType] = $mainDataType($dataType);
+                $mainDataTypes[$dataType] = $easyMeta->dataTypeMain($dataType);
             }
 
             $settings = $params;
             unset($settings['datatypes']);
             $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
-            $settings['mainDataType'] = $mainDataType;
+            $settings['easyMeta'] = $easyMeta;
             $settings['mainDataTypes'] = $mainDataTypes;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDataType'] = $checkDataType;

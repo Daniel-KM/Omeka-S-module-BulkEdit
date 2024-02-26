@@ -31,7 +31,7 @@ class SpecifyDataTypeResources extends AbstractPlugin
     }
 
     /**
-     * Replace data type "resource" by the specific one.
+     * Replace data type "resource" by the specific ones ("resource:item" etc.).
      *
      * @param array|null $resourceIds Passing an empty array means that there is
      * no ids to process. To process all values, pass a null or no argument.

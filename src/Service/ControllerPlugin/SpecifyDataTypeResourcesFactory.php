@@ -2,15 +2,15 @@
 
 namespace BulkEdit\Service\ControllerPlugin;
 
-use BulkEdit\Mvc\Controller\Plugin\SpecifyDatatypes;
+use BulkEdit\Mvc\Controller\Plugin\SpecifyDataTypeResources;
 use Interop\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
-class SpecifyDatatypesFactory implements FactoryInterface
+class SpecifyDataTypeResourcesFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
-        return new SpecifyDatatypes(
+        return new SpecifyDataTypeResources(
             $services->get('Omeka\EntityManager'),
             $services->get('Omeka\Logger')
         );

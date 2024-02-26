@@ -6,7 +6,7 @@ use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 
-class SpecifyDatatypes extends AbstractPlugin
+class SpecifyDataTypeResources extends AbstractPlugin
 {
     /**
      * @var EntityManager

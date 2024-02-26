@@ -808,9 +808,9 @@ class Module extends AbstractModule
                 $trimValues($resourceIds);
                 break;
             case 'specify_datatypes':
-                /** @var \BulkEdit\Mvc\Controller\Plugin\SpecifyDatatypes $specifyDatatypes */
-                $specifyDatatypes = $plugins->get('specifyDatatypes');
-                $specifyDatatypes($resourceIds);
+                /** @var \BulkEdit\Mvc\Controller\Plugin\SpecifyDataTypeResources $specifyDataTypeResources */
+                $specifyDataTypeResources = $plugins->get('specifyDataTypeResources');
+                $specifyDataTypeResources($resourceIds);
                 break;
             case 'clean_languages':
                 /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguages $cleanLanguages */

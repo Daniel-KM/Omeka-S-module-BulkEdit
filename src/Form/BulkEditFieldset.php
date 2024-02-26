@@ -477,7 +477,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'languages',
-                'type' => Element\Text::class,
+                'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'Only languages', // @translate
                 ],
@@ -892,7 +892,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'languages',
-                'type' => Element\Text::class,
+                'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'Order by language', // @translate
                     'info' => 'List the language you want to order before other values.', // @translate
@@ -1003,7 +1003,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'languages',
-                'type' => Element\Text::class,
+                'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'Only languages', // @translate
                 ],
@@ -1351,7 +1351,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'languages',
-                'type' => Element\Text::class,
+                'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'Only languages', // @translate
                 ],

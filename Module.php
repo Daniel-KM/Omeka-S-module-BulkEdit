@@ -506,7 +506,7 @@ class Module extends AbstractModule
                     'from' => $params['from'],
                     'to' => $to,
                     'datatypes' => $params['datatypes'] ?: [],
-                    'languages' => $this->stringToList($params['languages']),
+                    'languages' => $params['languages'] ?: [],
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
                 ];
@@ -557,8 +557,7 @@ class Module extends AbstractModule
 
         $params = $bulkedit['order_values'] ?? [];
         if (!empty($params['languages'])) {
-            $languages = preg_replace('/[^a-zA-Z-]/', "\n", $params['languages']);
-            $languages = array_filter(explode("\n", $languages));
+            $languages = array_filter($params['languages']);
             $properties = $params['properties'];
             if ($languages && $properties) {
                 $processes['order_values'] = [
@@ -578,7 +577,7 @@ class Module extends AbstractModule
                 'visibility' => $visibility,
                 'properties' => $params['properties'],
                 'datatypes' => $params['datatypes'] ?: [],
-                'languages' => $this->stringToList($params['languages']),
+                'languages' => $params['languages'] ?: [],
                 'contains' => $params['contains'],
             ];
         }
@@ -613,7 +612,7 @@ class Module extends AbstractModule
             $processes['remove'] = [
                 'properties' => $params['properties'],
                 'datatypes' => $params['datatypes'] ?? [],
-                'languages' => $this->stringToList($params['languages']),
+                'languages' => $params['languages'] ?? [],
                 'visibility' => $params['visibility'],
                 'equal' => $params['equal'],
                 'contains' => $params['contains'],
@@ -3683,23 +3682,5 @@ SQL;
         $string = preg_replace('#\&[^;]+\;#', '_', $string);
         $string = preg_replace('/[^[:alnum:]\[\]_\-\.#~@+:]/', '_', $string);
         return substr(preg_replace('/_+/', '_', $string), -180);
-    }
-
-    /**
-     * Get each line of a string separately.
-     */
-    protected function stringToList($string): array
-    {
-        return array_filter(array_map('trim', explode("\n", $this->fixEndOfLine($string))), 'strlen');
-    }
-
-    /**
-     * Clean the text area from end of lines.
-     *
-     * This method fixes Windows and Apple copy/paste from a textarea input.
-     */
-    protected function fixEndOfLine($string): string
-    {
-        return str_replace(["\r\n", "\n\r", "\r"], ["\n", "\n", "\n"], (string) $string);
     }
 }

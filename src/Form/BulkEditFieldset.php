@@ -1480,7 +1480,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-collection-action' => 'replace',
                 ],
             ]);
-            $fieldset = $this->get('explode_pdf');
+        $fieldset = $this->get('explode_pdf');
         $fieldset
             ->add([
                 'name' => 'note_process',

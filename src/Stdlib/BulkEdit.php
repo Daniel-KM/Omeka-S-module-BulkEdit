@@ -455,10 +455,9 @@ class BulkEdit
     ): void {
         static $settings;
         if (is_null($settings)) {
-            $services = $this->getServiceLocator();
-            $plugins = $services->get('ControllerPluginManager');
+            $plugins = $this->services->get('ControllerPluginManager');
             $api = $plugins->get('api');
-            $logger = $services->get('Omeka\Logger');
+            $logger = $this->services->get('Omeka\Logger');
             $findResourcesFromIdentifiers = $plugins->has('findResourcesFromIdentifiers') ? $plugins->get('findResourcesFromIdentifiers') : null;
             $fromDataType = (string) $params['from'];
             $toDataType = (string) $params['to'];
@@ -477,12 +476,12 @@ class BulkEdit
             $checkContains = (bool) mb_strlen($contains);
 
             /** @var \Omeka\DataType\DataTypeInterface $toDataTypeAdapter */
-            $toDataTypeAdapter = $services->get('Omeka\DataTypeManager')->has($toDataType)
-                ? $services->get('Omeka\DataTypeManager')->get($toDataType)
+            $toDataTypeAdapter = $this->services->get('Omeka\DataTypeManager')->has($toDataType)
+                ? $this->services->get('Omeka\DataTypeManager')->get($toDataType)
                 : null;
 
             /**  @var \Common\Stdlib\EasyMeta $easyMeta */
-            $easyMeta = $services->get('EasyMeta');
+            $easyMeta = $this->services->get('EasyMeta');
             $fromDataTypeMain = $easyMeta->dataTypeMain($fromDataType);
             $toDataTypeMain = $easyMeta->dataTypeMain($toDataType);
 
@@ -1257,8 +1256,7 @@ class BulkEdit
             $checkContains = (bool) mb_strlen($contains);
 
             /**  @var \Common\Stdlib\EasyMeta $easyMeta */
-            $services = $this->getServiceLocator();
-            $easyMeta = $services->get('EasyMeta');
+            $easyMeta = $this->services->get('EasyMeta');
             // TODO Use Common 3.4.55.
             $mainDataTypes = [];
             foreach ($dataTypes as $dataType) {
@@ -1557,12 +1555,11 @@ class BulkEdit
          * @var \Common\Stdlib\EasyMeta $easyMeta
          * @var \Doctrine\DBAL\Connection $connection
          */
-        $services = $this->getServiceLocator();
-        $api = $services->get('Omeka\ApiManager');
-        $logger = $services->get('Omeka\Logger');
-        $easyMeta = $services->get('EasyMeta');
+        $api = $this->services->get('Omeka\ApiManager');
+        $logger = $this->services->get('Omeka\Logger');
+        $easyMeta = $this->services->get('EasyMeta');
         $properties = $easyMeta->propertyIds();
-        $connection = $services->get('Omeka\Connection');
+        $connection = $this->services->get('Omeka\Connection');
 
         $sqlMedia = <<<'SQL'
 UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
@@ -1691,11 +1688,10 @@ SQL;
          * @var \Laminas\Log\Logger $logger
          * @var \Omeka\File\TempFileFactory $tempFileFactory
          */
-        $services = $this->getServiceLocator();
-        $cli = $services->get('Omeka\Cli');
-        $api = $services->get('Omeka\ApiManager');
-        $logger = $services->get('Omeka\Logger');
-        $tempFileFactory = $services->get('Omeka\File\TempFileFactory');
+        $cli = $this->services->get('Omeka\Cli');
+        $api = $this->services->get('Omeka\ApiManager');
+        $logger = $this->services->get('Omeka\Logger');
+        $tempFileFactory = $this->services->get('Omeka\File\TempFileFactory');
 
         $commandPath = $cli->validateCommand('/usr/bin', 'gs');
         if (!$commandPath) {
@@ -1703,8 +1699,8 @@ SQL;
             return;
         }
 
-        $tmpDir = $services->get('Config')['temp_dir'];
-        $basePath = $services->get('Config')['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
+        $tmpDir = $this->services->get('Config')['temp_dir'];
+        $basePath = $this->services->get('Config')['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
 
         /**@see \ExtractOcr\Job\ExtractOcr::extractOcrForMedia() */
         // It's not possible to save a local file via the "upload" ingester. So
@@ -2480,10 +2476,9 @@ SQL;
         static $errorReporting;
 
         if (!$logger) {
-            $services = $this->getServiceLocator();
-            $logger = $services->get('Omeka\Logger');
+            $logger = $this->services->get('Omeka\Logger');
             // Use omeka http client instead of the simple static client.
-            $httpClient = $services->get('Omeka\HttpClient');
+            $httpClient = $this->services->get('Omeka\HttpClient');
             $errorReporting = error_reporting();
         }
 
@@ -2869,16 +2864,15 @@ SQL;
      */
     protected function getBaseUri()
     {
-        $services = $this->getServiceLocator();
-        $config = $services->get('Config');
+        $config = $this->services->get('Config');
         $baseUri = $config['file_store']['local']['base_uri'];
         if (!$baseUri) {
-            $helpers = $services->get('ViewHelperManager');
+            $helpers = $this->services->get('ViewHelperManager');
             $serverUrlHelper = $helpers->get('serverUrl');
             $basePathHelper = $helpers->get('basePath');
             $baseUri = $serverUrlHelper($basePathHelper('files'));
             if ($baseUri === 'http:///files' || $baseUri === 'https:///files') {
-                $t = $services->get('MvcTranslator');
+                $t = $this->services->get('MvcTranslator');
                 throw new \Omeka\Mvc\Exception\RuntimeException(
                     sprintf(
                         $t->translate('The base uri is not set (key [file_store][local][base_uri]) in the config file of Omeka "config/local.config.php". It must be set for now (key [file_store][local][base_uri]) in order to process background jobs.'), //@translate

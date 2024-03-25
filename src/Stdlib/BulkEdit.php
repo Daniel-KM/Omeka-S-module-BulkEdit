@@ -220,7 +220,7 @@ class BulkEdit
             $checkVisibility = !is_null($visibility);
             $checkContains = (bool) mb_strlen($contains);
 
-            $api = $this->getServiceLocator()->get('ControllerPluginManager')->get('api');
+            $api = $this->services->get('ControllerPluginManager')->get('api');
             $toId = $api->searchOne('properties', ['term' => $toProperty], ['returnScalar' => 'id'])->getContent();
 
             $settings = $params;
@@ -1040,7 +1040,7 @@ class BulkEdit
 
             $skip = false;
             if (!in_array($mode, ['label_missing', 'label_all', 'label_remove', 'uri_missing', 'uri_all'])) {
-                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger = $this->services->get('Omeka\Logger');
                 $logger->warn(
                     'Process is skipped: mode "{mode}" is unmanaged', // @translate
                     ['mode' => $mode]
@@ -1049,7 +1049,7 @@ class BulkEdit
             }
 
             // Flat the list of dataTypes.
-            $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
+            $dataTypeManager = $this->services->get('Omeka\DataTypeManager');
             $dataTypes = $processAllDataTypes
                 ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDataTypes)
                 : array_intersect($dataTypeManager->getRegisteredNames(), $dataTypes, $managedDataTypes);
@@ -1059,20 +1059,20 @@ class BulkEdit
             }
 
             if ((in_array('literal', $dataTypes) || in_array('uri', $dataTypes)) && in_array($dataType, [null, 'literal', 'uri'])) {
-                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger = $this->services->get('Omeka\Logger');
                 $logger->warn('When "literal" or "uri" is used, the precise dataType should be specified.'); // @translate
                 $skip = true;
             }
 
             $isModeUri = $mode === 'uri_missing' || $mode === 'uri_all';
             if ($isModeUri && (!in_array($dataType, $dataTypes) || in_array($dataType, [null, 'literal', 'uri']))) {
-                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger = $this->services->get('Omeka\Logger');
                 $logger->warn('When filling an uri, the precise dataType should be specified.'); // @translate
                 $skip = true;
             }
 
             if ($isModeUri && !$this->isModuleActive('ValueSuggest')) {
-                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger = $this->services->get('Omeka\Logger');
                 $logger->warn('When filling an uri, the module Value Suggest should be available.'); // @translate
                 $skip = true;
             }
@@ -1370,7 +1370,7 @@ class BulkEdit
             if (!in_array($mainOrder, $orders)
                 || ($subOrder && !in_array($subOrder, $orders))
             ) {
-                $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                $logger = $this->services->get('Omeka\Logger');
                 $logger->err(
                     'Order "{order}" is invalid.', // @translate
                     ['order' => $order]
@@ -2013,7 +2013,7 @@ SQL;
                     // Check the validity of the regex.
                     $isValidRegex = @preg_match($from, '') !== false;
                     if (!$isValidRegex) {
-                        $this->getServiceLocator()->get('Omeka\Logger')
+                        $this->services->get('Omeka\Logger')
                             ->err('Update media html: Invalid regex.'); // @translate
                         return;
                     }
@@ -2037,7 +2037,7 @@ SQL;
          * @var \Doctrine\ORM\EntityManager $entityManager
          * @var \Doctrine\ORM\EntityRepository $repository
          */
-        $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
+        $entityManager = $this->services->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
         foreach ($resourceIds as $resourceId) {
             $medias = $isMediaIds
@@ -2115,7 +2115,7 @@ SQL;
          * @var \Doctrine\ORM\EntityManager $entityManager
          * @var \Doctrine\ORM\EntityRepository $repository
          */
-        $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
+        $entityManager = $this->services->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
         foreach ($resourceIds as $resourceId) {
             $medias = $repository->findBy([
@@ -2168,7 +2168,7 @@ SQL;
          * @var \Doctrine\ORM\EntityManager $entityManager
          * @var \Doctrine\ORM\EntityRepository $repository
          */
-        $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
+        $entityManager = $this->services->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
         foreach ($resourceIds as $resourceId) {
             $args = $defaultArgs;
@@ -2191,7 +2191,7 @@ SQL;
         static $logger = null;
 
         if (!$logger) {
-            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+            $logger = $this->services->get('Omeka\Logger');
         }
 
         $originalUri = $uri;
@@ -2281,8 +2281,8 @@ SQL;
         static $dataTypeManager = null;
 
         if (!$logger) {
-            $logger = $this->getServiceLocator()->get('Omeka\Logger');
-            $dataTypeManager = $this->getServiceLocator()->get('Omeka\DataTypeManager');
+            $logger = $this->services->get('Omeka\Logger');
+            $dataTypeManager = $this->services->get('Omeka\DataTypeManager');
         }
 
         if (array_key_exists($label, $filleds)) {
@@ -2445,7 +2445,7 @@ SQL;
                 // Extract the id.
                 $id = preg_replace('~.*/(?<id>[\d]+).*~m', '$1', $uri);
                 if (!$id) {
-                    $logger = $this->getServiceLocator()->get('Omeka\Logger');
+                    $logger = $this->services->get('Omeka\Logger');
                     $logger->err(
                         'The label for uri "{uri}" was not found.', // @translate
                         ['uri' => $uri]
@@ -2538,7 +2538,7 @@ SQL;
         static $logger = null;
 
         if (!$logger) {
-            $logger = $this->getServiceLocator()->get('Omeka\Logger');
+            $logger = $this->services->get('Omeka\Logger');
         }
 
         $xml = $this->fetchUrl($url);
@@ -2839,7 +2839,7 @@ SQL;
             if (!file_exists($destination)) {
                 $result = @copy($source, $destination);
                 if (!$result) {
-                    $this->getServiceLocator()->get('Omeka\Logger')->err(
+                    $this->services->get('Omeka\Logger')->err(
                         'File cannot be saved in temporary directory "{dir}" (temp file: "{file}")', // @translate
                         ['dir' => $destination, 'file' => $source]
                     );

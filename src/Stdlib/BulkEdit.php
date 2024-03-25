@@ -20,7 +20,7 @@ class BulkEdit
     protected $services;
 
     public function __construct(
-        ServiceLocatorInterface $services,
+        ServiceLocatorInterface $services
     ) {
         $this->services = $services;
     }

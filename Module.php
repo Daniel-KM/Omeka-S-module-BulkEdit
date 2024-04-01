@@ -157,7 +157,7 @@ class Module extends AbstractModule
         $request = $event->getParam('request');
         $data = $request->getContent();
 
-        $trimUnicode = fn ($v): string => (string) preg_replace('/^[\s\h\v[:blank:][:space:]]+|[\s\h\v[:blank:][:space:]]+$/u', '', $v);
+        $trimUnicode = fn ($v): string => (string) preg_replace('/^[\s\h\v[:blank:][:space:]]+|[\s\h\v[:blank:][:space:]]+$/u', '', (string) $v);
 
         // Trimming.
         foreach ($data as $term => &$values) {

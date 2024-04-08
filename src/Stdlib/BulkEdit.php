@@ -124,6 +124,13 @@ class BulkEdit
                     switch ($mode) {
                         case 'regex':
                             $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
+                            if (is_null($newValue)) {
+                                $this->services->get('Omeka\Logger')->err(
+                                    'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
+                                    ['resource' => $resource->id(), 'property' => $property]
+                                );
+                                return;
+                            }
                             break;
                         case 'raw_i':
                             $newValue = str_ireplace($from, $to, $data[$property][$key]['@value']);
@@ -2075,6 +2082,13 @@ SQL;
                     switch ($mode) {
                         case 'regex':
                             $html = preg_replace($from, $to, $html);
+                            if (is_null($html)) {
+                                $this->services->get('Omeka\Logger')->err(
+                                    'An error occurred on resource #{resource_id} for html with preg_replace.', // @translate
+                                    ['resource_id' => $resourceId]
+                                );
+                                return;
+                            }
                             break;
                         case 'raw_i':
                             $html = str_ireplace($from, $to, $html);

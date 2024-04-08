@@ -1021,7 +1021,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'info' => 'List the language you want to order before other values.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'order_languages',
+                    'id' => 'ordervalues_languages',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1039,7 +1039,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'used_terms' => true,
                 ],
                 'attributes' => [
-                    'id' => 'order_properties',
+                    'id' => 'ordervalues_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
                     'data-placeholder' => 'Select properties', // @translate
@@ -1182,7 +1182,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     ],
                 ],
                 'attributes' => [
-                    'id' => 'fill_data_owner',
+                    'id' => 'filldata_owner',
                     'class' => 'chosen-select',
                     'multiple' => false,
                     'data-placeholder' => 'Select a user…', // @translate
@@ -1614,7 +1614,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'text' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'explode_pdf_note_process',
+                    'id' => 'explodepdf_note_process',
                     'class' => 'field',
                     'style' => 'display_block',
                 ],
@@ -1632,7 +1632,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     ],
                 ],
                 'attributes' => [
-                    'id' => 'explode_pdf_mode',
+                    'id' => 'explodepdf_mode',
                     'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -1662,7 +1662,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'label' => 'Resolution, generally 72, 96, 150, 300, 400 (default), 600 or more', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'explode_pdf_resolution',
+                    'id' => 'explodepdf_resolution',
                     'min' => '0',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -1680,7 +1680,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     ],
                 ],
                 'attributes' => [
-                    'id' => 'explode_pdf_processor',
+                    'id' => 'explodepdf_processor',
                     'value' => 'auto',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',

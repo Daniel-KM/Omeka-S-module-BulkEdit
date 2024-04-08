@@ -189,14 +189,25 @@ class BulkEdit
     }
 
     /**
-     * Displace values from a list of properties to another one.
+     * Copy or displace values from a list of properties to another one.
      */
-    public function displaceValuesForResource(
+    public function copyOrDisplaceValuesForResource(
         AbstractResourceEntityRepresentation $resource,
         array &$data,
-        array $params
+        array $params,
+        bool $displace = false
     ): void {
+        static $isDisplace;
         static $settings;
+
+        // Allow to have a copy and a displace in the same process, even if it
+        // is not recommended, and to process multiple batch loops.
+        if ($isDisplace !== $displace) {
+            $settings = null;
+        }
+
+        $isDisplace = $displace;
+
         if (is_null($settings)) {
             $fromProperties = $params['from'];
             $toProperty = $params['to'];
@@ -280,7 +291,9 @@ class BulkEdit
                 $value['property_id'] = $toId;
                 unset($value['property_label']);
                 $data[$toProperty][] = $value;
-                unset($data[$property][$key]);
+                if ($displace) {
+                    unset($data[$property][$key]);
+                }
             }
         }
     }

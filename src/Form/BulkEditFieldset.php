@@ -58,6 +58,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ->setAttribute('data-collection-action', 'replace')
             ->appendFieldsetCleaning()
             ->appendFieldsetReplace()
+            ->appendFieldsetCopy()
             ->appendFieldsetDisplace()
             ->appendFieldsetExplode()
             ->appendFieldsetMerge()
@@ -406,6 +407,128 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
+    /**
+     * Copy is the same than displace, except it does not remove source.
+     */
+    protected function appendFieldsetCopy()
+    {
+        $this
+            ->add([
+                'name' => 'copy',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => $this->translator->translate('Copy values'), // @translate
+                ],
+                'attributes' => [
+                    'id' => 'copy',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('copy');
+        $fieldset
+            ->add([
+                'name' => 'from',
+                'type' => CommonElement\OptionalPropertySelect::class,
+                'options' => [
+                    'label' => 'From properties', // @translate
+                    'term_as_value' => true,
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'copy_from',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'to',
+                'type' => CommonElement\OptionalPropertySelect::class,
+                'options' => [
+                    'label' => 'To property', // @translate
+                    'term_as_value' => true,
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'copy_to',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-placeholder' => 'Select property', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'datatypes',
+                'type' => CommonElement\DataTypeSelect::class,
+                'options' => [
+                    'label' => 'Only data types', // @translate
+                    'empty_option' => '[All data types]', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'copy_datatypes',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select data types…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'languages',
+                'type' => CommonElement\ArrayText::class,
+                'options' => [
+                    'label' => 'Only languages', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'copy_languages',
+                    // 'class' => 'value-language active',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'visibility',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Only visibility', // @translate
+                    'value_options' => [
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                        '' => 'Any', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'copy_visibility',
+                    'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'contains',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only containing', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'copy_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    /**
+     * Copy is the same than displace, except it does not remove source.
+     */
     protected function appendFieldsetDisplace()
     {
         $this

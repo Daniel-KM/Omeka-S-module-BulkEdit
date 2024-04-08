@@ -38,10 +38,10 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         $translate = $services->get('ControllerPluginManager')->get('translate');
 
-        if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.54')) {
+        if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.55')) {
             $message = new \Omeka\Stdlib\Message(
                 $translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
-                'Common', '3.4.54'
+                'Common', '3.4.55'
             );
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
@@ -437,6 +437,7 @@ class Module extends AbstractModule
         $processes = [
             'replace' => null,
             'displace' => null,
+            'copy' => null,
             'explode' => null,
             'merge' => null,
             'convert' => null,
@@ -486,6 +487,21 @@ class Module extends AbstractModule
                     'language' => $language,
                     'language_clear' => $languageClear,
                     'properties' => $params['properties'],
+                ];
+            }
+        }
+
+        $params = $bulkedit['copy'] ?? [];
+        if (!empty($params['from'])) {
+            $to = $params['to'];
+            if (mb_strlen($to)) {
+                $processes['copy'] = [
+                    'from' => $params['from'],
+                    'to' => $to,
+                    'datatypes' => $params['datatypes'] ?: [],
+                    'languages' => $params['languages'] ?: [],
+                    'visibility' => $params['visibility'],
+                    'contains' => $params['contains'],
                 ];
             }
         }
@@ -746,8 +762,11 @@ class Module extends AbstractModule
             case 'replace':
                 $bulkEdit->updateValuesForResource($resource, $data, $params);
                 break;
+            case 'copy':
+                $bulkEdit->copyOrDisplaceValuesForResource($resource, $data, $params, false);
+                break;
             case 'displace':
-                $bulkEdit->displaceValuesForResource($resource, $data, $params);
+                $bulkEdit->copyOrDisplaceValuesForResource($resource, $data, $params, true);
                 break;
             case 'explode':
                 $bulkEdit->explodeValuesForResource($resource, $data, $params);

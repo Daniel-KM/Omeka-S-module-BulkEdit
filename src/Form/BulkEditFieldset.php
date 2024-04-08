@@ -463,14 +463,14 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatypes',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Only datatypes', // @translate
-                    'empty_option' => '[All datatypes]', // @translate
+                    'label' => 'Only data types', // @translate
+                    'empty_option' => '[All data types]', // @translate
                 ],
                 'attributes' => [
                     'id' => 'displace_datatypes',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select datatypes…', // @translate
+                    'data-placeholder' => 'Select data types…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -594,7 +594,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => Fieldset::class,
                 'options' => [
                     'label' => $this->translator->translate('Merge values as uri and label'), // @translate
-                    'info' => 'The values are merged two by two, whatever order and initial datatype. The number of values must be even and clean.', // @translate
+                    'info' => 'The values are merged two by two, whatever order and initial data type. The number of values must be even and clean.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'merge',
@@ -634,7 +634,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'convert',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Convert datatype'), // @translate
+                    'label' => $this->translator->translate('Convert data type'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'convert',
@@ -649,7 +649,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'from',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'From datatype', // @translate
+                    'label' => 'From data type', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -657,7 +657,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'class' => 'chosen-select',
                     'multiple' => false,
                     'data-datatypes' => json_encode($this->dataTypesMain, 320),
-                    'data-placeholder' => 'Select datatype', // @translate
+                    'data-placeholder' => 'Select data type', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -666,14 +666,14 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'to',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'To datatype', // @translate
+                    'label' => 'To data type', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'convert_to',
                     'class' => 'chosen-select',
                     'multiple' => false,
-                    'data-placeholder' => 'Select datatype', // @translate
+                    'data-placeholder' => 'Select data type', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -989,14 +989,14 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatypes',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Only datatypes', // @translate
-                    'empty_option' => '[All datatypes]', // @translate
+                    'label' => 'Only data types', // @translate
+                    'empty_option' => '[All data types]', // @translate
                 ],
                 'attributes' => [
                     'id' => 'propvis_datatypes',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select datatypes…', // @translate
+                    'data-placeholder' => 'Select data types…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1209,7 +1209,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'value_options' => array_merge([
                         [
                             'value' => 'all',
-                            'label' => '[All datatypes]', // @translate
+                            'label' => '[All data types]', // @translate
                         ],
                         [
                             'value' => 'literal',
@@ -1225,7 +1225,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'fill_datatypes',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select datatypes…', // @translate
+                    'data-placeholder' => 'Select data types…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1242,7 +1242,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'fill_datatype',
                     'class' => 'chosen-select',
                     'multiple' => false,
-                    'data-placeholder' => 'Select a datatype…', // @translate
+                    'data-placeholder' => 'Select a data type…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1337,14 +1337,14 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatypes',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Only datatypes', // @translate
-                    'empty_option' => '[All datatypes]', // @translate
+                    'label' => 'Only data types', // @translate
+                    'empty_option' => '[All data types]', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove_datatypes',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select datatypes…', // @translate
+                    'data-placeholder' => 'Select data types…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

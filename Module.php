@@ -77,6 +77,7 @@ class Module extends AbstractModule
 
             // Batch update is designed to do the same process to all resources,
             // but BulkEdit needs to check each data separately.
+            // TODO Checks api.preprocess_batch_update and api.update.pre. See module Access.
             $sharedEventManager->attach(
                 $adapter,
                 'api.update.pre',

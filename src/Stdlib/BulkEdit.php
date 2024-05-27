@@ -10,7 +10,6 @@ use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Adapter\MediaAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
-use Omeka\File\TempFile;
 
 class BulkEdit
 {

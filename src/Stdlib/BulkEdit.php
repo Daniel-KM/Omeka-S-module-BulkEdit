@@ -19,9 +19,8 @@ class BulkEdit
      */
     protected $services;
 
-    public function __construct(
-        ServiceLocatorInterface $services
-    ) {
+    public function __construct(ServiceLocatorInterface $services)
+    {
         $this->services = $services;
     }
 
@@ -1091,7 +1090,8 @@ class BulkEdit
                 $skip = true;
             }
 
-            if ($isModeUri && !$this->isModuleActive('ValueSuggest')) {
+            // Check any ValueSuggest data type to see if the module is enabled.
+            if ($isModeUri && !$this->services->get('EasyMeta')->dataTypeName('valuesuggest:geonames:geonames')) {
                 $logger = $this->services->get('Omeka\Logger');
                 $logger->warn('When filling an uri, the module Value Suggest should be available.'); // @translate
                 $skip = true;
@@ -1277,11 +1277,7 @@ class BulkEdit
 
             /**  @var \Common\Stdlib\EasyMeta $easyMeta */
             $easyMeta = $this->services->get('EasyMeta');
-            // TODO Use Common 3.4.55.
-            $mainDataTypes = [];
-            foreach ($dataTypes as $dataType) {
-                $mainDataTypes[$dataType] = $easyMeta->dataTypeMain($dataType);
-            }
+            $mainDataTypes = $easyMeta->dataTypeMains();
 
             $settings = $params;
             unset($settings['datatypes']);
@@ -1727,8 +1723,6 @@ SQL;
         // the ingester "url" can be used, but it requires the file to be in the
         // omeka files directory.
         // Else, use module FileSideload or inject sql.
-
-        $this->basePath = $basePath;
 
         if (!$this->checkDestinationDir($tmpDir . '/bulkedit')) {
             return;
@@ -2837,53 +2831,6 @@ SQL;
         uasort($toOrder, $cmp);
 
         return $toOrder;
-    }
-
-    /**
-     * Save a temp file into the files/temp directory.
-     *
-     * @see \DerivativeMedia\Module::makeTempFileDownloadable()
-     * @see \Ebook\Mvc\Controller\Plugin\Ebook::saveFile()
-     * @see \ExtractOcr\Job\ExtractOcr::makeTempFileDownloadable()
-     */
-    protected function makeTempFileDownloadable(TempFile $tempFile, $base = '')
-    {
-        $baseDestination = '/temp';
-        $destinationDir = $this->basePath . $baseDestination . $base;
-        if (!$this->checkDestinationDir($destinationDir)) {
-            return null;
-        }
-
-        $source = $tempFile->getTempPath();
-
-        // Find a unique meaningful filename instead of a hash.
-        $name = date('Ymd_His') . '_pdf2jpg';
-        $extension = 'jpg';
-        $i = 0;
-        do {
-            $filename = $name . ($i ? '-' . $i : '') . '.' . $extension;
-            $destination = $destinationDir . '/' . $filename;
-            if (!file_exists($destination)) {
-                $result = @copy($source, $destination);
-                if (!$result) {
-                    $this->services->get('Omeka\Logger')->err(
-                        'File cannot be saved in temporary directory "{dir}" (temp file: "{file}")', // @translate
-                        ['dir' => $destination, 'file' => $source]
-                    );
-                    return null;
-                }
-                $storageId = $base . $name . ($i ? '-' . $i : '');
-                break;
-            }
-        } while (++$i);
-
-        return [
-            'filepath' => $destination,
-            'filename' => $filename,
-            'url' => $this->baseUri . $baseDestination . $base . '/' . $filename,
-            'url_file' => $baseDestination . $base . '/' . $filename,
-            'storageId' => $storageId,
-        ];
     }
 
     /**

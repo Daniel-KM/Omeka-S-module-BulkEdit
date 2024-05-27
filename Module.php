@@ -28,11 +28,6 @@ class Module extends AbstractModule
 
     const NAMESPACE = __NAMESPACE__;
 
-    /**
-     * @var string
-     */
-    protected $basePath;
-
     protected function preInstall(): void
     {
         $services = $this->getServiceLocator();

@@ -77,8 +77,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     ->appendFieldsetExplodeItem()
                     ->appendFieldsetExplodePdf()
                     ->appendFieldsetMediaOrder()
+                    ->appendFieldsetMediaHtml()
+                    ->appendFieldsetMediaType()
+                    ->appendFieldsetMediaVisibility()
                 ;
-                // no break.
+                break;
             case 'media':
                 $this
                     ->appendFieldsetMediaHtml()
@@ -121,7 +124,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         ;
     }
 
-    protected function appendFieldsetCleaning()
+    protected function appendFieldsetCleaning(): self
     {
         $this
             ->add([
@@ -259,7 +262,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetReplace()
+    protected function appendFieldsetReplace(): self
     {
         $this
             ->add([
@@ -410,7 +413,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     /**
      * Copy is the same than displace, except it does not remove source.
      */
-    protected function appendFieldsetCopy()
+    protected function appendFieldsetCopy(): self
     {
         $this
             ->add([
@@ -529,7 +532,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     /**
      * Copy is the same than displace, except it does not remove source.
      */
-    protected function appendFieldsetDisplace()
+    protected function appendFieldsetDisplace(): self
     {
         $this
             ->add([
@@ -645,7 +648,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetExplode()
+    protected function appendFieldsetExplode(): self
     {
         $this
             ->add([
@@ -709,7 +712,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetMerge()
+    protected function appendFieldsetMerge(): self
     {
         $this
             ->add([
@@ -750,7 +753,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetConvert()
+    protected function appendFieldsetConvert(): self
     {
         $this
             ->add([
@@ -995,7 +998,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetOrderValues()
+    protected function appendFieldsetOrderValues(): self
     {
         $this
             ->add([
@@ -1051,7 +1054,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetPropertiesVisibility()
+    protected function appendFieldsetPropertiesVisibility(): self
     {
         $this
             ->add([
@@ -1153,7 +1156,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetFillData()
+    protected function appendFieldsetFillData(): self
     {
         $this
             ->add([
@@ -1193,7 +1196,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetFillValues()
+    protected function appendFieldsetFillValues(): self
     {
         $managedDatatypes = [
             'valuesuggest:geonames:geonames' => 'Geonames',
@@ -1417,7 +1420,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetRemove()
+    protected function appendFieldsetRemove(): self
     {
         $this
             ->add([
@@ -1531,7 +1534,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetExplodeItem()
+    protected function appendFieldsetExplodeItem(): self
     {
         $this
             ->add([
@@ -1587,7 +1590,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetExplodePdf()
+    protected function appendFieldsetExplodePdf(): self
     {
         $this
             ->add([
@@ -1690,7 +1693,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetMediaOrder()
+    protected function appendFieldsetMediaOrder(): self
     {
         $this
             ->add([
@@ -1804,7 +1807,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetMediaHtml()
+    protected function appendFieldsetMediaHtml(): self
     {
         $this
             ->add([
@@ -1906,7 +1909,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetMediaType()
+    protected function appendFieldsetMediaType(): self
     {
         $this
             ->add([
@@ -1952,7 +1955,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
-    protected function appendFieldsetMediaVisibility()
+    protected function appendFieldsetMediaVisibility(): self
     {
         $this
             ->add([

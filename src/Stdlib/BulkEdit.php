@@ -2859,6 +2859,62 @@ SQL;
     }
 
     /**
+     * Check or create the destination folder.
+     *
+     * @param string $dirPath Absolute path.
+     * @return string|null
+     */
+    protected function checkDestinationDir(string $dirPath): ?string
+    {
+        if (file_exists($dirPath)) {
+            if (!is_dir($dirPath) || !is_readable($dirPath) || !is_writeable($dirPath)) {
+                $this->services->get('Omeka\Logger')->err(
+                    'The directory "{path}" is not writeable.', // @translate
+                    ['path' => $dirPath]
+                );
+                return null;
+            }
+            return $dirPath;
+        }
+
+        $result = @mkdir($dirPath, 0775, true);
+        if (!$result) {
+            $this->services->get('Omeka\Logger')->err(
+                'The directory "{path}" is not writeable: {error}.', // @translate
+                ['path' => $dirPath, 'error' => error_get_last()['message']]
+            );
+            return null;
+        }
+        return $dirPath;
+    }
+
+    /**
+     * Remove a dir from filesystem.
+     *
+     * @param string $dirpath Absolute path.
+     * @return bool
+     */
+    protected function rmDir(string $dirPath): bool
+    {
+        if (!file_exists($dirPath)) {
+            return true;
+        }
+        if (strpos($dirPath, '/..') !== false || substr($dirPath, 0, 1) !== '/') {
+            return false;
+        }
+        $files = array_diff(scandir($dirPath), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dirPath . '/' . $file;
+            if (is_dir($path)) {
+                $this->rmDir($path);
+            } else {
+                unlink($path);
+            }
+        }
+        return rmdir($dirPath);
+    }
+
+    /**
      * Returns a sanitized string for folder or file path.
      *
      * The string should be a simple name, not a full path or url, because "/",

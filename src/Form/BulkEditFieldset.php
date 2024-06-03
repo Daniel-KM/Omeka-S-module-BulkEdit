@@ -69,6 +69,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ->appendFieldsetFillData()
             ->appendFieldsetFillValues()
             ->appendFieldsetRemove()
+            ->appendFieldsetRemoveMedia()
             ->appendFieldsetThumbnail()
         ;
 
@@ -1750,6 +1751,94 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-collection-action' => 'replace',
                 ],
             ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetRemoveMedia(): self
+    {
+        $this
+            ->add([
+                'name' => 'media_remove',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => $this->translator->translate('Remove media'), // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_remove',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('media_remove');
+        $fieldset
+            ->add([
+                'name' => 'mode',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Select media', // @translate
+                    'value_options' => [
+                        '' => 'None', // @translate
+                        'media_type' => 'Limited with media types below', // @translate
+                        'media_extension' => 'Limited with media extensions below', // @translate
+                        // 'media_query' => 'Limited with query on media below', // @translate
+                        'all' => 'All medias', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'mediaremove_mode',
+                    'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'mediatypes',
+                'type' => CommonElement\MediaTypeSelect::class,
+                'options' => [
+                    'label' => 'List of media types to remove', // @translate
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'mediaremove_mediatypes',
+                    'multiple' => true,
+                    'class' => 'chosen-select',
+                    'data-placeholder' => 'Select media-types', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'extensions',
+                'type' => CommonElement\ArrayText::class,
+                'options' => [
+                    'label' => 'List of extensions to remove', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'mediaremove_extensions',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            /* // Too much risky.
+            ->add([
+                'type' => OmekaElement\Query::class,
+                'name' => 'query',
+                'options' => [
+                    'label' => 'Media query', // @translate
+                    'info' => 'Limit the media to remove (Warning: check your query)', // @translate
+                    'query_resource_type' => 'media',
+                    'query_partial_excludelist' => [],
+                ],
+                'attributes' => [
+                    'id' => 'mediaremove_query',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            */
+        ;
 
         return $this;
     }

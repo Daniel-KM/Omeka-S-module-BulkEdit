@@ -445,6 +445,7 @@ class Module extends AbstractModule
             'thumbnails' => null,
             'explode_item' => null,
             'explode_pdf' => null,
+            'media_remove' => null,
             'media_order' => null,
             'media_html' => null,
             'media_type' => null,
@@ -653,6 +654,17 @@ class Module extends AbstractModule
             ];
         }
 
+        $params = $bulkedit['media_remove'] ?? [];
+        $mode = $params['mode'] ?? '';
+        if ($mode) {
+            $processes['media_remove'] = [
+                'mode' => $mode,
+                'mediatypes' => $params['mediatypes'] ?? [],
+                'extensions' => $params['extensions'] ?? [],
+                // 'query' => $params['query'] ?? '',
+            ];
+        }
+
         $params = $bulkedit['media_order'] ?? [];
         $order = $params['order'] ?? '';
         if (mb_strlen($order)) {
@@ -801,6 +813,9 @@ class Module extends AbstractModule
                 break;
             case 'thumbnails':
                 $bulkEdit->manageThumbnail($resource, $data, $params);
+                break;
+            case 'media_remove':
+                $bulkEdit->removeMediaFromItems($resource, $data, $params);
                 break;
             case 'media_order':
                 $bulkEdit->updateMediaOrderForResource($resource, $data, $params);

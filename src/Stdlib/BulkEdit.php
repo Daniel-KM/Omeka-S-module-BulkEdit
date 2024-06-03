@@ -1435,6 +1435,99 @@ class BulkEdit
     }
 
     /**
+     * Remove selected media from items.
+     */
+    public function removeMediaFromItems(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        static $settings;
+
+        if (is_null($settings)) {
+            $mode = $params['mode'];
+            $mediaTypes = $params['mediatypes'] ?? [];
+            $extensions = $params['extensions'] ?? [];
+
+            if (!in_array($mode, ['media_type', 'media_extension', 'all'])) {
+                $this->services->get('Omeka\Logger')->err(
+                    'The select mode "{mode}" is not supported.', // @translate
+                    ['mode' => $mode]
+                );
+                $mode = '';
+            } elseif ($mode === 'media_type' && !count($mediaTypes)) {
+                $this->services->get('Omeka\Logger')->err(
+                    'The select mode "Media types" require to specify at least one media type.' // @translate
+                );
+                $mode = '';
+            } elseif ($mode === 'media_extension' && !count($extensions)) {
+                $this->services->get('Omeka\Logger')->err(
+                    'The select mode "Extensions" require to specify at least one extension.' // @translate
+                );
+                $mode = '';
+            }
+
+            /*
+            $queryArray = $query;
+            if (!is_array($query)) {
+                parse_str($query, $queryArray);
+            }
+            */
+
+            $settings = [];
+            $settings['mode'] = $mode;
+            $settings['mediaTypes'] = $mediaTypes;
+            $settings['extensions'] = $extensions;
+        } else {
+            extract($settings);
+        }
+
+        if (!$mode || !$resource instanceof ItemRepresentation) {
+            return;
+        }
+
+        if (!count($data['o:media'])) {
+            return;
+        }
+
+        /** @var \Omeka\Api\Representation\MediaRepresentation $media */
+        switch ($mode) {
+            default:
+            case 'all':
+                $data['o:media'] = [];
+                break;
+            case 'media_type':
+                $medias = $resource->media();
+                $mediaIds = [];
+                foreach ($medias as $media) {
+                    if (in_array($media->mediaType(), $mediaTypes)) {
+                        $mediaIds[$media->id()] = true;
+                    }
+                }
+                foreach ($data['o:media'] as $key => $media) {
+                    if (isset($mediaIds[$media['o:id']])) {
+                        unset($data['o:media'][$key]);
+                    }
+                }
+                break;
+            case 'media_extension':
+                $medias = $resource->media();
+                $mediaIds = [];
+                foreach ($medias as $media) {
+                    if (in_array($media->extension(), $extensions)) {
+                        $mediaIds[$media->id()] = true;
+                    }
+                }
+                foreach ($data['o:media'] as $key => $media) {
+                    if (isset($mediaIds[$media['o:id']])) {
+                        unset($data['o:media'][$key]);
+                    }
+                }
+                break;
+        }
+    }
+
+    /**
      * Update the media positions for an item.
      */
     public function updateMediaOrderForResource(

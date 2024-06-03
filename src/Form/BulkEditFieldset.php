@@ -1563,8 +1563,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                         '' => 'No process', // @translate
                         'fill' => 'Attach the thumbnail to all resources', // @translate
                         'append' => 'Attach the thumbnail only if the resource has no thumbnail', // @translate
+                        'append_no_primary' => 'Attach the thumbnail only if the resource has no primary media', // @translate
+                        'append_no_primary_no_thumbnail' => 'Attach the thumbnail only if the resource has no thumbnail and no primary media', // @translate
                         'replace' => 'Attach the thumbnail only if the resource has already a thumbnail', // @translate
                         'remove' => 'Remove the specified thumbnail only if the resource has it', // @translate
+                        'remove_primary' => 'Remove any thumbnail if the resource has a primary media', // @translate
                         'delete' => 'Remove any thumbnail from all resources', // @translate
                     ],
                 ],

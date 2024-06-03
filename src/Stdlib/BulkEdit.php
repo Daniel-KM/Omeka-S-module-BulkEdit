@@ -1365,7 +1365,7 @@ class BulkEdit
             $mode = $params['mode'];
             $asset = (int) $params['asset'];
 
-            if (!in_array($mode, ['fill', 'append', 'replace', 'remove', 'delete'])) {
+            if (!in_array($mode, ['fill', 'append', 'append_no_primary', 'append_no_primary_no_thumbnail', 'replace', 'remove', 'remove_primary', 'delete'])) {
                 $logger = $this->services->get('Omeka\Logger');
                 $logger->err(
                     'The mode "{mode}" is invalid.', // @translate
@@ -1373,7 +1373,7 @@ class BulkEdit
                 );
                 $mode = '';
             }
-            if (empty($asset) && $mode !== 'delete') {
+            if (empty($asset) && !in_array($mode, ['remove_primary', 'delete'])) {
                 $logger = $this->services->get('Omeka\Logger');
                 $logger->err(
                     'The asset is missing.' // @translate
@@ -1393,7 +1393,19 @@ class BulkEdit
                 $data['o:thumbnail']['o:id'] = $asset;
                 break;
             case 'append':
-                if (empty($data['o:thumbnail'])) {
+                if (empty($data['o:thumbnail']['o:id'])) {
+                    $data['o:thumbnail']['o:id'] = $asset;
+                }
+                break;
+            case 'append_no_primary':
+                if (empty($data['o:primary_media']['o:id'])) {
+                    $data['o:thumbnail']['o:id'] = $asset;
+                }
+                break;
+            case 'append_no_primary_no_thumbnail':
+                if (empty($data['o:primary_media']['o:id'])
+                    && empty($data['o:thumbnail']['o:id'])
+                ) {
                     $data['o:thumbnail']['o:id'] = $asset;
                 }
                 break;
@@ -1406,6 +1418,11 @@ class BulkEdit
                 if (!empty($data['o:thumbnail']['o:id'])
                     && $asset === (int) $data['o:thumbnail']['o:id']
                 ) {
+                    $data['o:thumbnail']['o:id'] = null;
+                }
+                break;
+            case 'remove_primary':
+                if (!empty($data['o:primary_media']['o:id'])) {
                     $data['o:thumbnail']['o:id'] = null;
                 }
                 break;

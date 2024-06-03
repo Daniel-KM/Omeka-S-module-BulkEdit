@@ -626,7 +626,7 @@ class Module extends AbstractModule
 
         $params = $bulkedit['thumbnails'] ?? [];
         if (!empty($params['mode'])
-            && in_array($params['mode'], ['fill', 'append', 'replace', 'remove', 'delete'])
+            && in_array($params['mode'], ['fill', 'append', 'append_no_primary', 'append_no_primary_no_thumbnail', 'replace', 'remove', 'remove_primary', 'delete'])
         ) {
             $processes['thumbnails'] = [
                 'mode' => $params['mode'],

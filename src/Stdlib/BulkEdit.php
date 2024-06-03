@@ -1352,6 +1352,72 @@ class BulkEdit
     }
 
     /**
+     * Add or remove thumbnail of resources.
+     */
+    public function manageThumbnail(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        static $settings;
+
+        if (is_null($settings)) {
+            $mode = $params['mode'];
+            $asset = (int) $params['asset'];
+
+            if (!in_array($mode, ['fill', 'append', 'replace', 'remove', 'delete'])) {
+                $logger = $this->services->get('Omeka\Logger');
+                $logger->err(
+                    'The mode "{mode}" is invalid.', // @translate
+                    ['mode' => $mode]
+                );
+                $mode = '';
+            }
+            if (empty($asset) && $mode !== 'delete') {
+                $logger = $this->services->get('Omeka\Logger');
+                $logger->err(
+                    'The asset is missing.' // @translate
+                );
+                $mode = '';
+            }
+
+            $settings = $params;
+            $settings['mode'] = $mode;
+            $settings['asset'] = $asset;
+        } else {
+            extract($settings);
+        }
+
+        switch ($mode) {
+            case 'fill':
+                $data['o:thumbnail']['o:id'] = $asset;
+                break;
+            case 'append':
+                if (empty($data['o:thumbnail'])) {
+                    $data['o:thumbnail']['o:id'] = $asset;
+                }
+                break;
+            case 'replace':
+                if (!empty($data['o:thumbnail'])) {
+                    $data['o:thumbnail']['o:id'] = $asset;
+                }
+                break;
+            case 'remove':
+                if (!empty($data['o:thumbnail']['o:id'])
+                    && $asset === (int) $data['o:thumbnail']['o:id']
+                ) {
+                    $data['o:thumbnail']['o:id'] = null;
+                }
+                break;
+            case 'delete':
+                $data['o:thumbnail']['o:id'] = null;
+                break;
+            default:
+                return;
+        }
+    }
+
+    /**
      * Update the media positions for an item.
      */
     public function updateMediaOrderForResource(

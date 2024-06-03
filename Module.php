@@ -442,6 +442,7 @@ class Module extends AbstractModule
             'fill_data' => null,
             'fill_values' => null,
             'remove' => null,
+            'thumbnails' => null,
             'explode_item' => null,
             'explode_pdf' => null,
             'media_order' => null,
@@ -623,6 +624,16 @@ class Module extends AbstractModule
             ];
         }
 
+        $params = $bulkedit['thumbnails'] ?? [];
+        if (!empty($params['mode'])
+            && in_array($params['mode'], ['fill', 'append', 'replace', 'remove', 'delete'])
+        ) {
+            $processes['thumbnails'] = [
+                'mode' => $params['mode'],
+                'asset' => $params['asset'] ?? null ,
+            ];
+        }
+
         $params = $bulkedit['explode_item'] ?? [];
         if (!empty($params['mode'])) {
             $processes['explode_item'] = [
@@ -787,6 +798,9 @@ class Module extends AbstractModule
                 break;
             case 'remove':
                 $bulkEdit->removeValuesForResource($resource, $data, $params);
+                break;
+            case 'thumbnails':
+                $bulkEdit->manageThumbnail($resource, $data, $params);
                 break;
             case 'media_order':
                 $bulkEdit->updateMediaOrderForResource($resource, $data, $params);

@@ -8,6 +8,7 @@ use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
 use Laminas\I18n\Translator\TranslatorAwareInterface;
 use Laminas\I18n\Translator\TranslatorAwareTrait;
+use Omeka\Form\Element as OmekaElement;
 
 class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
 {
@@ -68,6 +69,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ->appendFieldsetFillData()
             ->appendFieldsetFillValues()
             ->appendFieldsetRemove()
+            ->appendFieldsetThumbnail()
         ;
 
         switch ($resourceType) {
@@ -1526,6 +1528,62 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'remove_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetThumbnail(): self
+    {
+        $this
+            ->add([
+                'name' => 'thumbnails',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => $this->translator->translate('Thumbnails'), // @translate
+                ],
+                'attributes' => [
+                    'id' => 'thumbnails',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('thumbnails');
+        $fieldset
+            ->add([
+                'name' => 'mode',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'What to do with media metadata', // @translate
+                    'value_options' => [
+                        '' => 'No process', // @translate
+                        'fill' => 'Attach the thumbnail to all resources', // @translate
+                        'append' => 'Attach the thumbnail only if the resource has no thumbnail', // @translate
+                        'replace' => 'Attach the thumbnail only if the resource has already a thumbnail', // @translate
+                        'remove' => 'Remove the specified thumbnail only if the resource has it', // @translate
+                        'delete' => 'Remove any thumbnail from all resources', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'thumbnails_mode',
+                    'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'asset',
+                'type' => OmekaElement\Asset::class,
+                'options' => [
+                    'label' => 'Asset to attach as thumbnail', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'thumbnails_asset',
+                    'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

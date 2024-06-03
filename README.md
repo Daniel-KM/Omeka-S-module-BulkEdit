@@ -28,6 +28,8 @@ Current processes are:
 - apply visibility for values
 - fill label for Value Suggest values
 - remove specified values
+- remove specified media
+- add or remove a thumbnail
 - update order of media
 - explode item into multiple items by media
 - explode pdf into multiple images (mainly for iiif)
@@ -143,6 +145,14 @@ Fill fields "Prepend" and/or "Append" and select the properties to update.
 Select the properties to set or remove language.
 Note: all values of the selected properties are updated, so be aware of existing
 languages when they are multiple.
+
+### Remove specified media
+
+You can remove medias of items by media-types or extensions.
+
+### Add or remove a thumbnail
+
+Add or remove a thumbnail from resources, with or without existing thumbnail.
 
 ### Order values
 

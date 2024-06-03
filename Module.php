@@ -432,8 +432,8 @@ class Module extends AbstractModule
 
         $processes = [
             'replace' => null,
-            'displace' => null,
             'copy' => null,
+            'displace' => null,
             'explode' => null,
             'merge' => null,
             'convert' => null,

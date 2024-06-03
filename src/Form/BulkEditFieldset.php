@@ -1560,6 +1560,9 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'What to do with media metadata', // @translate
+                    'label_attributes' => [
+                        'style' => 'display: block;',
+                    ],
                     'value_options' => [
                         '' => 'No process', // @translate
                         'fill' => 'Attach the thumbnail to all resources', // @translate
@@ -1633,6 +1636,9 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'What to do with media metadata', // @translate
+                    'label_attributes' => [
+                        'style' => 'display: block;',
+                    ],
                     'value_options' => [
                         '' => 'No process', // @translate
                         'append' => 'Append media metadata to item metadata', // @translate

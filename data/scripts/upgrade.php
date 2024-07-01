@@ -68,3 +68,10 @@ if (version_compare($oldVersion, '3.4.30', '<')) {
     );
     $messenger->addSuccess($message);
 }
+
+if (version_compare($oldVersion, '3.4.31', '<')) {
+    $message = new PsrMessage(
+        'It’s now possible to update media source, in particular to keep only the base file name.' // @translate
+    );
+    $messenger->addSuccess($message);
+}

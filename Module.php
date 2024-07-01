@@ -81,13 +81,20 @@ class Module extends AbstractModule
             // Nevertheless, some processes can be done one time or via sql
             // queries.
             // Furthermore, for media:
-            // Because the media source cannot be updated via api, a final sql
-            // request is required in that case.
+            // Because the media source or media type cannot be updated via api,
+            // a final sql request of flush is required in that case.
             /** @see \Omeka\Api\Adapter\MediaAdapter::hydrate() */
             $sharedEventManager->attach(
                 $adapter,
                 'api.batch_update.post',
                 [$this, 'handleResourcesBatchUpdatePost']
+            );
+            $sharedEventManager->attach(
+                $adapter,
+                'api.batch_update.post',
+                [$this, 'handleResourcesBatchUpdatePostFlush'],
+                // Less prioritary, so process it after.
+                -50
             );
         }
 
@@ -358,6 +365,104 @@ class Module extends AbstractModule
      */
     public function handleResourcesBatchUpdatePost(Event $event): void
     {
+        $processes = $this->getProcessesToBatchUpdateDirectly($event);
+        if (!count($processes)) {
+            return;
+        }
+
+        /**
+         * @var \Omeka\Api\Adapter\AbstractResourceEntityAdapter $adapter,
+         * @var \Omeka\Api\Request $request
+         */
+        $adapter = $event->getTarget();
+        $request = $event->getParam('request');
+        $ids = (array) $request->getIds();
+        $this->updateResourcesPost($adapter, $ids, $processes);
+    }
+
+    public function handleResourcesBatchUpdatePostFlush(Event $event): void
+    {
+        $processes = $this->getProcessesToBatchUpdateDirectly($event);
+        if (!count($processes)) {
+            return;
+        }
+
+        /** @var \Doctrine\ORM\EntityManager $entityManager */
+        $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
+        $entityManager->flush();
+        // The entity manager clear is required to avoid a doctrine issue about
+        // non-persisted new entity.
+        $entityManager->clear();
+    }
+
+    protected function getProcessesToBatchUpdateDirectly(Event $event): array
+    {
+        /**
+         * A batch update process is launched one to three times in the core,
+         * at least with option "collectionAction" = "replace".
+         * Batch updates are always partial.
+         *
+         * Warning: on batch update all, there is no collectionAction "replace",
+         * so it should be set by default.
+         *
+         * @see \Omeka\Job\BatchUpdate::perform()
+         * @var \Omeka\Api\Request $request
+         */
+        $request = $event->getParam('request');
+        if ($request->getOption('collectionAction', 'replace') !== 'replace') {
+            return [];
+        }
+
+        $data = $request->getContent('data');
+        if (empty($data['bulkedit'])) {
+            return [];
+        }
+
+        /** @var \Omeka\Api\Request $request */
+        $request = $event->getParam('request');
+        $ids = (array) $request->getIds();
+        if (empty($ids)) {
+            return [];
+        }
+
+        $resourceName = $request->getResource();
+
+        $postProcesses = [
+            'items' => [
+                'explode_item' => null,
+                'explode_pdf' => null,
+                'media_html' => null,
+                'media_source' => null,
+                'media_type' => null,
+                'media_visibility' => null,
+            ],
+            'media' => [
+                'media_html' => null,
+                'media_source' => null,
+                'media_type' => null,
+                'media_visibility' => null,
+            ],
+        ];
+
+        $postProcessesResource = $postProcesses[$resourceName] ?? [];
+
+        $postProcesses = array_merge($postProcessesResource, [
+            'trim_values' => null,
+            'specify_datatypes' => null,
+            'clean_languages' => null,
+            'clean_language_codes' => null,
+            'deduplicate_values' => null,
+        ]);
+
+        $processes = $this->prepareProcesses();
+        return array_intersect_key($processes, $postProcesses);
+    }
+
+    /**
+     * Finalize direct processes using entity manager without flush.
+     */
+    public function handleResourcesBatchUpdateFlush(Event $event): void
+    {
         /**
          * A batch update process is launched one to three times in the core,
          * at least with option "collectionAction" = "replace".
@@ -421,8 +526,9 @@ class Module extends AbstractModule
             return;
         }
 
-        $adapter = $event->getTarget();
-        $this->updateResourcesPost($adapter, $ids, $bulkedit);
+        /** @var \Doctrine\ORM\EntityManager $entityManager */
+        $entityManager = $this->getServiceLocator()->get('Omeka\EntityManager');
+        $entityManager->flush();
     }
 
     protected function prepareProcesses($bulkedit = null)

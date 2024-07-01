@@ -32,10 +32,11 @@ Current processes are:
 - add or remove a thumbnail
 - update order of media
 - explode item into multiple items by media
-- explode pdf into multiple images (mainly for iiif)
-- update media visibility
+- explode pdf into multiple images (mainly for quick display via iiif)
 - Update the media html via item or media
+- update media source
 - Update the media type (mime-type) of a media
+- update media visibility
 
 Furthermore, values are automatically trimmed and deduplicated when a resource
 is saved.
@@ -126,9 +127,14 @@ regex), then select the properties to update.
 
 The mode "html" means that the original string will be checked as raw string and
 as html encoded string too. For example, string `café` will be checked with
-`café` and `caf&eacute;`). Be careful when simple characters are mixed with
+`café` and `caf&eacute;`). Be careful when simple characters are mixed with
 entities, it may be difficult to replace all strings. The replacement string is
 used unchanged, so it is recommended to use entities for it too.
+
+For regex, use standard patterns. Examples:
+- Convert spaces into "-" for identifiers: pattern = `~\s+~`, replacement = `-`.
+- Convert `D:20220908101423` into a normalized date: pattern = `~^D:(\d{4})(\d{2})(\d{2})~`,
+  replacement = `$1-$2-$3`.
 
 #### Remove the literal value of a property
 
@@ -218,11 +224,22 @@ or `gs` (ghostscript).
 Select the items or medias and update media html, then update it like an item
 value.
 
+### Update media source
+
+Update or clear the media source, for example remove the directory path for
+files imported with the full path. The source may be processed via regex or a
+string may be prepended or appended too. The settings are the same than the ones
+used to replace values above.
+
 ### Update media types (mime-types)
 
 Select the items or medias and set the existing and the new media type. They
 should be standard ones and usually the more precise possible, like `application/tei+xml`
 instead of `application/xml`.
+
+### Update media visibility
+
+Update media visibility according to some metadata.
 
 
 TODO

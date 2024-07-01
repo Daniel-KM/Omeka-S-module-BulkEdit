@@ -53,11 +53,21 @@ class BulkEdit
         array $params
     ): void {
         static $settings;
+
+        $supportedModes = [
+            'raw',
+            'raw_i',
+            'html',
+            'regex',
+            'basename',
+            'filename',
+            'remove',
+        ];
+
         if (is_null($settings)) {
             $from = $params['from'];
             $to = $params['to'];
             $mode = $params['mode'];
-            $remove = !empty($params['remove']);
             $prepend = $params['prepend'] ?? '';
             $append = $params['append'] ?? '';
             $languageClear = $params['language_clear'];
@@ -66,6 +76,14 @@ class BulkEdit
 
             $processAllProperties = in_array('all', $fromProperties);
             $checkFrom = mb_strlen($from);
+
+            if (!in_array($mode, $supportedModes)) {
+                $this->logger->err(
+                    'The mode of replacement "{mode}" is not supported.', // @translate
+                    ['mode' => $mode]
+                );
+                return;
+            }
 
             if ($checkFrom) {
                 switch ($mode) {
@@ -82,10 +100,7 @@ class BulkEdit
                             $from,
                             htmlentities($from, ENT_NOQUOTES | ENT_HTML5 | ENT_SUBSTITUTE),
                         ];
-                        $to = [
-                            $to,
-                            $to,
-                        ];
+                        $to = [$to, $to];
                         break;
                 }
             }
@@ -93,7 +108,6 @@ class BulkEdit
             $settings = $params;
             $settings['from'] = $from;
             $settings['to'] = $to;
-            $settings['remove'] = $remove;
             $settings['prepend'] = $prepend;
             $settings['append'] = $append;
             $settings['languageClear'] = $languageClear;
@@ -105,6 +119,10 @@ class BulkEdit
             extract($settings);
         }
 
+        if (!in_array($params['mode'], $supportedModes)) {
+            return;
+        }
+
         // Note: this is the original values.
         $properties = $processAllProperties
             ? array_keys($resource->values())
@@ -113,53 +131,47 @@ class BulkEdit
             return;
         }
 
-        if ($remove) {
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    if ($value['type'] !== 'literal') {
-                        continue;
-                    }
-                    // Unsetting is done in last step.
-                    $data[$property][$key]['@value'] = '';
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                if ($value['type'] !== 'literal') {
+                    continue;
                 }
-            }
-        } elseif ($checkFrom) {
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    if ($value['type'] !== 'literal') {
-                        continue;
-                    }
-                    switch ($mode) {
-                        case 'basename':
-                            $newValue = basename((string) $data[$property][$key]['@value']);
-                            break;
-                        case 'filename':
-                            $newValue = pathinfo((string) $data[$property][$key]['@value'], PATHINFO_FILENAME);
-                            break;
-                        case 'regex':
-                            $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
-                            if (is_null($newValue)) {
-                                $this->logger->err(
-                                    'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
-                                    ['resource_id' => $resource->id(), 'property' => $property]
-                                );
-                                return;
-                            }
-                            break;
-                        case 'raw_i':
-                            $newValue = str_ireplace($from, $to, $data[$property][$key]['@value']);
-                            break;
-                        case 'raw':
-                        default:
-                            $newValue = str_replace($from, $to, $data[$property][$key]['@value']);
-                            break;
-                    }
-                    // If the new value is an empty string, checked below.
-                    if ($value['@value'] === $newValue) {
-                        continue;
-                    }
-                    $data[$property][$key]['@value'] = $newValue;
+                switch ($mode) {
+                    case 'basename':
+                        $newValue = basename((string) $data[$property][$key]['@value']);
+                        break;
+                    case 'filename':
+                        $newValue = pathinfo((string) $data[$property][$key]['@value'], PATHINFO_FILENAME);
+                        break;
+                    case 'html':
+                    case 'raw':
+                        $newValue = str_replace($from, $to, $data[$property][$key]['@value']);
+                        break;
+                    case 'raw_i':
+                        $newValue = str_ireplace($from, $to, $data[$property][$key]['@value']);
+                        break;
+                    case 'regex':
+                        $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
+                        if (is_null($newValue)) {
+                            $this->logger->err(
+                                'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
+                                ['resource_id' => $resource->id(), 'property' => $property]
+                            );
+                            return;
+                        }
+                        break;
+                    case 'remove':
+                        // Unsetting is done in last step.
+                        $newValue = '';
+                        break;
+                    default:
+                        return;
                 }
+                // If the new value is an empty string, checked below.
+                if ($value['@value'] === $newValue) {
+                    continue;
+                }
+                $data[$property][$key]['@value'] = $newValue;
             }
         }
 
@@ -2195,7 +2207,6 @@ SQL;
         $from = $params['from'];
         $to = $params['to'];
         $mode = $params['mode'];
-        $remove = $params['remove'];
         $prepend = $params['prepend'];
         $append = $params['append'];
 
@@ -2217,10 +2228,7 @@ SQL;
                         $from,
                         htmlentities($from, ENT_NOQUOTES | ENT_HTML5 | ENT_SUBSTITUTE),
                     ];
-                    $to = [
-                        $to,
-                        $to,
-                    ];
+                    $to = [$to, $to];
                     break;
             }
         }
@@ -2250,34 +2258,33 @@ SQL;
                 $html = $mediaData['html'];
                 $currentHtml = $html;
 
-                if ($remove) {
-                    $html = '';
-                } elseif ($checkFrom) {
-                    switch ($mode) {
-                        case 'regex':
-                            $html = preg_replace($from, $to, $html);
-                            if (is_null($html)) {
-                                $this->logger->err(
-                                    'An error occurred on resource #{resource_id} for html with preg_replace.', // @translate
-                                    ['resource_id' => $resourceId]
-                                );
-                                return;
-                            }
-                            break;
-                        case 'raw_i':
-                            $html = str_ireplace($from, $to, $html);
-                            break;
-                        case 'raw':
-                        default:
-                            $html = str_replace($from, $to, $html);
-                            break;
-                    }
+                switch ($mode) {
+                    case 'html':
+                    case 'raw':
+                        $html = str_replace($from, $to, $html);
+                        break;
+                    case 'raw_i':
+                        $html = str_ireplace($from, $to, $html);
+                        break;
+                    case 'regex':
+                        $html = preg_replace($from, $to, $html);
+                        if (is_null($html)) {
+                            $this->logger->err(
+                                'An error occurred on resource #{resource_id} for html with preg_replace.', // @translate
+                                ['resource_id' => $resourceId]
+                            );
+                            return;
+                        }
+                        break;
+                    case 'remove':
+                        $html = '';
+                        break;
+                    default:
+                        return;
                 }
 
-                $html = $prepend . $html . $append;
-
                 // Force trimming values and check if a value is empty to remove it.
-                $html = trim($html);
+                $html = trim($prepend . $html . $append);
 
                 if ($currentHtml === $html) {
                     continue;
@@ -2305,7 +2312,6 @@ SQL;
         $from = $params['from'];
         $to = $params['to'];
         $mode = $params['mode'];
-        $remove = !empty($params['remove']);
         $prepend = $params['prepend'] ?? '';
         $append = $params['append'] ?? '';
 
@@ -2331,34 +2337,35 @@ SQL;
                 $prevSource = $media->getSource();
                 $newSource = $prevSource;
 
-                if ($remove) {
-                    $newSource = null;
-                } else {
-                    switch ($mode) {
-                        case 'basename':
-                            $newSource = basename((string) $prevSource);
-                            break;
-                        case 'filename':
-                            $newSource = pathinfo((string) $prevSource, PATHINFO_FILENAME);
-                            break;
-                        case 'regex':
-                            $newSource = preg_replace($from, $to, (string) $prevSource);
-                            if (is_null($newSource)) {
-                                $this->logger->err(
-                                    'An error occurred on media #{media_id} (item #{item_id}) for source with preg_replace.', // @translate
-                                    ['media_id' => $media->getId(), 'item_id' => $media->getItem()->getId()]
-                                );
-                                return;
-                            }
-                            break;
-                        case 'raw_i':
-                            $newSource = str_ireplace($from, $to, (string) $prevSource);
-                            break;
-                        case 'raw':
-                        default:
-                            $newSource = str_replace($from, $to, (string) $prevSource);
-                            break;
-                    }
+                switch ($mode) {
+                    case 'basename':
+                        $newSource = basename((string) $prevSource);
+                        break;
+                    case 'filename':
+                        $newSource = pathinfo((string) $prevSource, PATHINFO_FILENAME);
+                        break;
+                    case 'html':
+                    case 'raw':
+                        $newSource = str_replace($from, $to, (string) $prevSource);
+                        break;
+                    case 'raw_i':
+                        $newSource = str_ireplace($from, $to, (string) $prevSource);
+                        break;
+                    case 'regex':
+                        $newSource = preg_replace($from, $to, (string) $prevSource);
+                        if (is_null($newSource)) {
+                            $this->logger->err(
+                                'An error occurred on media #{media_id} (item #{item_id}) for source with preg_replace.', // @translate
+                                ['media_id' => $media->getId(), 'item_id' => $media->getItem()->getId()]
+                            );
+                            return;
+                        }
+                        break;
+                    case 'remove':
+                        $newSource = null;
+                        break;
+                    default:
+                        return;
                 }
 
                 // Force trimming source and check if a value is empty to remove it.

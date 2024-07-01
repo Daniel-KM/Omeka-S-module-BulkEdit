@@ -286,6 +286,29 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset = $this->get('replace');
         $fieldset
             ->add([
+                'name' => 'mode',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Replacement mode', // @translate
+                    'value_options' => [
+                        '' => 'No process', // @translate
+                        'raw' => 'Simple', // @translate
+                        'raw_i' => 'Simple (case insensitive)', // @translate
+                        'html' => 'Simple and html entities', // @translate
+                        'regex' => 'Regex (full pattern)', // @translate
+                        'basename' => 'Base name (last part of a file path or url)', // @translate
+                        'filename' => 'Base name without extension', // @translate
+                        'remove' => 'Remove whole value', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'replace_mode',
+                    'value' => '',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
@@ -305,40 +328,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'replace_to',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
-                'options' => [
-                    'label' => 'Replacement mode', // @translate
-                    'value_options' => [
-                        'raw' => 'Simple', // @translate
-                        'raw_i' => 'Simple (case insensitive)', // @translate
-                        'html' => 'Simple and html entities', // @translate
-                        'regex' => 'Regex (full pattern)', // @translate
-                        'basename' => 'Base name (last part of a file path or url)', // @translate
-                        'filename' => 'Base name without extension', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'replace_mode',
-                    'value' => 'raw',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'remove',
-                'type' => CommonElement\OptionalCheckbox::class,
-                'options' => [
-                    'label' => 'Remove whole string', // @translate
-                    'use_hidden_element' => false,
-                ],
-                'attributes' => [
-                    'id' => 'replace_remove',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1986,6 +1975,27 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset = $this->get('media_html');
         $fieldset
             ->add([
+                'name' => 'mode',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Replacement mode', // @translate
+                    'value_options' => [
+                        '' => 'No process', // @translate
+                        'raw' => 'Simple', // @translate
+                        'raw_i' => 'Simple (case insensitive)', // @translate
+                        'html' => 'Simple and html entities', // @translate
+                        'regex' => 'Regex (full pattern)', // @translate
+                        'remove' => 'Remove whole html', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'mediahtml_mode',
+                    'value' => 'raw',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
@@ -2005,38 +2015,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_to',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
-                'options' => [
-                    'label' => 'Replacement mode', // @translate
-                    'value_options' => [
-                        'raw' => 'Simple', // @translate
-                        'raw_i' => 'Simple (case insensitive)', // @translate
-                        'html' => 'Simple and html entities', // @translate
-                        'regex' => 'Regex (full pattern)', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'mediahtml_mode',
-                    'value' => 'raw',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'remove',
-                'type' => CommonElement\OptionalCheckbox::class,
-                'options' => [
-                    'label' => 'Remove string', // @translate
-                    'use_hidden_element' => false,
-                ],
-                'attributes' => [
-                    'id' => 'mediahtml_remove',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -2091,6 +2069,28 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset = $this->get('media_source');
         $fieldset
             ->add([
+                'name' => 'mode',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Replacement mode', // @translate
+                    'value_options' => [
+                        '' => 'No process', // @translate
+                        'basename' => 'Base name (last part of a file path or url)', // @translate
+                        'filename' => 'Base name without extension', // @translate
+                        'raw' => 'Simple', // @translate
+                        'raw_i' => 'Simple (case insensitive)', // @translate
+                        'regex' => 'Regex (full pattern)', // @translate
+                        'remove' => 'Remove whole source', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'media_source_mode',
+                    'value' => 'raw',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
@@ -2110,39 +2110,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'media_source_to',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
-                'options' => [
-                    'label' => 'Replacement mode', // @translate
-                    'value_options' => [
-                        'raw' => 'Simple', // @translate
-                        'raw_i' => 'Simple (case insensitive)', // @translate
-                        'regex' => 'Regex (full pattern)', // @translate
-                        'basename' => 'Base name (last part of a file path or url)', // @translate
-                        'filename' => 'Base name without extension', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'media_source_mode',
-                    'value' => 'raw',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'remove',
-                'type' => CommonElement\OptionalCheckbox::class,
-                'options' => [
-                    'label' => 'Remove whole source', // @translate
-                    'use_hidden_element' => false,
-                ],
-                'attributes' => [
-                    'id' => 'media_source_remove',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

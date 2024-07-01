@@ -573,36 +573,17 @@ class Module extends AbstractModule
         ];
 
         $params = $bulkedit['replace'] ?? [];
-        if (!empty($params['properties'])) {
-            $from = $params['from'];
-            $to = $params['to'];
-            $mode = $params['mode'];
-            $remove = !empty($params['remove']);
-            $prepend = ltrim($params['prepend']);
-            $append = rtrim($params['append']);
-            $language = trim($params['language']);
-            $languageClear = !empty($params['language_clear']);
-            if (mb_strlen($from)
-                || mb_strlen($to)
-                || in_array($mode, ['basename', 'filename'])
-                || $remove
-                || mb_strlen($prepend)
-                || mb_strlen($append)
-                || mb_strlen($language)
-                || $languageClear
-            ) {
-                $processes['replace'] = [
-                    'from' => $from,
-                    'to' => $to,
-                    'mode' => $mode,
-                    'remove' => $remove,
-                    'prepend' => $prepend,
-                    'append' => $append,
-                    'language' => $language,
-                    'language_clear' => $languageClear,
-                    'properties' => $params['properties'],
-                ];
-            }
+        if (!empty($params['mode']) && !empty($params['properties'])) {
+            $processes['replace'] = [
+                'mode' => $params['mode'],
+                'from' => $params['from'] ?? '',
+                'to' => $params['to'] ?? '',
+                'prepend' => ltrim($params['prepend'] ?? ''),
+                'append' => rtrim($params['append'] ?? ''),
+                'language' => trim($params['language'] ?? ''),
+                'language_clear' => !empty($params['language_clear']),
+                'properties' => $params['properties'],
+            ];
         }
 
         $params = $bulkedit['copy'] ?? [];
@@ -792,53 +773,37 @@ class Module extends AbstractModule
         }
 
         $params = $bulkedit['media_html'] ?? [];
-        $from = $params['from'] ?? '';
-        $to = $params['to'] ?? '';
-        $remove = !empty($params['remove']);
-        $prepend = isset($params['prepend']) ? ltrim($params['prepend']) : '';
-        $append = isset($params['prepend']) ? rtrim($params['append']) : '';
-        if (mb_strlen($from)
-            || mb_strlen($to)
-            || $remove
-            || mb_strlen($prepend)
-            || mb_strlen($append)
-        ) {
+        if (!empty($params['mode'])) {
+            $mode = $params['mode'];
+            $from = $params['from'] ?? '';
+            $to = $params['to'] ?? '';
             // TODO Add the check of the validity of the regex in the form.
             // Early check validity of the regex.
-            if (!($params['mode'] === 'regex' && @preg_match($from, '') === false)) {
+            if ($mode !== 'regex' || @preg_match($from, '') !== false) {
                 $processes['media_html'] = [
+                    'mode' => $mode,
                     'from' => $from,
                     'to' => $to,
-                    'mode' => $params['mode'],
-                    'remove' => $remove,
-                    'prepend' => $prepend,
-                    'append' => $append,
+                    'prepend' => ltrim($params['prepend'] ?? ''),
+                    'append' => rtrim($params['append'] ?? ''),
                 ];
             }
         }
 
         $params = $bulkedit['media_source'] ?? [];
         if (!empty($params['mode'])) {
-            $from = $params['from'];
-            $to = $params['to'];
             $mode = $params['mode'];
-            $remove = !empty($params['remove']);
-            $prepend = ltrim($params['prepend']);
-            $append = rtrim($params['append']);
-            if (mb_strlen($from)
-                || mb_strlen($to)
-                || in_array($mode, ['basename', 'filename'])
-                || $remove
-                || mb_strlen($prepend)
-                || mb_strlen($append)
-            ) {
+            $from = $params['from'] ?? '';
+            $to = $params['to'] ?? '';
+            // TODO Add the check of the validity of the regex in the form.
+            // Early check validity of the regex.
+            if ($mode !== 'regex' || @preg_match($from, '') !== false) {
                 $processes['media_source'] = [
                     'from' => $from,
                     'to' => $to,
                     'mode' => $mode,
-                    'remove' => $remove,
-                    'prepend' => $prepend,
-                    'append' => $append,
+                    'prepend' => ltrim($params['prepend'] ?? ''),
+                    'append' => rtrim($params['append'] ?? ''),
                 ];
             }
         }

@@ -81,6 +81,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     ->appendFieldsetExplodePdf()
                     ->appendFieldsetMediaOrder()
                     ->appendFieldsetMediaHtml()
+                    ->appendFieldsetMediaSource()
                     ->appendFieldsetMediaType()
                     ->appendFieldsetMediaVisibility()
                 ;
@@ -88,6 +89,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             case 'media':
                 $this
                     ->appendFieldsetMediaHtml()
+                    ->appendFieldsetMediaSource()
                     ->appendFieldsetMediaType()
                     ->appendFieldsetMediaVisibility()
                 ;
@@ -2062,6 +2064,109 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ]);
 
+        return $this;
+    }
+
+    protected function appendFieldsetMediaSource(): self
+    {
+        // This is similar to appendFieldsetReplace, but for technical reasons,
+        // it is managed separately (the api cannot update media source).
+
+        $this
+            ->add([
+                'name' => 'media_source',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => $this->translator->translate('Media source'), // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_source',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('media_source');
+        $fieldset
+            ->add([
+                'name' => 'from',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'String to replace', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_source_from',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'to',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'By', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_source_to',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'mode',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Replacement mode', // @translate
+                    'value_options' => [
+                        'raw' => 'Simple', // @translate
+                        'raw_i' => 'Simple (case insensitive)', // @translate
+                        'regex' => 'Regex (full pattern)', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'media_source_mode',
+                    'value' => 'raw',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'remove',
+                'type' => CommonElement\OptionalCheckbox::class,
+                'options' => [
+                    'label' => 'Remove whole source', // @translate
+                    'use_hidden_element' => false,
+                ],
+                'attributes' => [
+                    'id' => 'media_source_remove',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'prepend',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'String to prepend', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_source_prepend',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'append',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'String to append', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_source_append',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
         return $this;
     }
 

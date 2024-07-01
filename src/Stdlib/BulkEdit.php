@@ -58,8 +58,8 @@ class BulkEdit
             $to = $params['to'];
             $mode = $params['mode'];
             $remove = !empty($params['remove']);
-            $prepend = $params['prepend'];
-            $append = $params['append'];
+            $prepend = $params['prepend'] ?? '';
+            $append = $params['append'] ?? '';
             $languageClear = $params['language_clear'];
             $language = $languageClear ? '' : $params['language'];
             $fromProperties = $params['properties'];
@@ -94,6 +94,8 @@ class BulkEdit
             $settings['from'] = $from;
             $settings['to'] = $to;
             $settings['remove'] = $remove;
+            $settings['prepend'] = $prepend;
+            $settings['append'] = $append;
             $settings['languageClear'] = $languageClear;
             $settings['language'] = $language;
             $settings['fromProperties'] = $fromProperties;
@@ -2286,6 +2288,83 @@ SQL;
     }
 
     /**
+     * Update media source.
+     */
+    public function updateMediaSourceForResources(
+        AbstractResourceEntityAdapter $adapter,
+        array $resourceIds,
+        array $params
+    ): void {
+        // Already checked.
+        $from = $params['from'];
+        $to = $params['to'];
+        $mode = $params['mode'];
+        $remove = !empty($params['remove']);
+        $prepend = $params['prepend'] ?? '';
+        $append = $params['append'] ?? '';
+
+        $isMediaIds = $adapter instanceof MediaAdapter;
+        $keyResourceId = $isMediaIds ? 'id' : 'item';
+
+        /**
+         * @var \Doctrine\ORM\EntityManager $entityManager
+         * @var \Doctrine\ORM\EntityRepository $repository
+         * @var \Omeka\Entity\Media $media
+         */
+        $entityManager = $this->services->get('Omeka\EntityManager');
+        $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
+
+        foreach ($resourceIds as $resourceId) {
+            $medias = $repository->findBy([
+                $keyResourceId => $resourceId,
+            ], [
+                'position' => 'ASC',
+                'id' => 'ASC',
+            ]);
+            foreach ($medias as $media) {
+                $prevSource = $media->getSource();
+                $newSource = $prevSource;
+
+                if ($remove) {
+                    $newSource = null;
+                } else {
+                    switch ($mode) {
+                        case 'regex':
+                            $newSource = preg_replace($from, $to, (string) $prevSource);
+                            if (is_null($newSource)) {
+                                $this->logger->err(
+                                    'An error occurred on media #{media_id} (item #{item_id}) for source with preg_replace.', // @translate
+                                    ['media_id' => $media->getId(), 'item_id' => $media->getItem()->getId()]
+                                );
+                                return;
+                            }
+                            break;
+                        case 'raw_i':
+                            $newSource = str_ireplace($from, $to, (string) $prevSource);
+                            break;
+                        case 'raw':
+                        default:
+                            $newSource = str_replace($from, $to, (string) $prevSource);
+                            break;
+                    }
+                }
+
+                // Force trimming source and check if a value is empty to remove it.
+                $newSource = trim($prepend . $newSource . $append);
+                if ($newSource === '') {
+                    $newSource = null;
+                }
+
+                if ($newSource !== $prevSource) {
+                    $media->setSource($newSource);
+                    $entityManager->persist($media);
+                    // No flush here.
+                }
+            }
+        }
+    }
+
+    /**
      * Update the media type of a media file from items.
      */
     public function updateMediaTypeForResources(
@@ -2307,9 +2386,11 @@ SQL;
         /**
          * @var \Doctrine\ORM\EntityManager $entityManager
          * @var \Doctrine\ORM\EntityRepository $repository
+         * @var \Omeka\Entity\Media $media
          */
         $entityManager = $this->services->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
+
         foreach ($resourceIds as $resourceId) {
             $medias = $repository->findBy([
                 $keyResourceId => $resourceId,
@@ -2360,14 +2441,15 @@ SQL;
         /**
          * @var \Doctrine\ORM\EntityManager $entityManager
          * @var \Doctrine\ORM\EntityRepository $repository
+         * @var \Omeka\Entity\Media $media
          */
         $entityManager = $this->services->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
+
         foreach ($resourceIds as $resourceId) {
             $args = $defaultArgs;
             $args[$keyResourceId] = $resourceId;
             $medias = $repository->findBy($args);
-            /** @var \Omeka\Entity\Media $media */
             foreach ($medias as $media) {
                 if ($media->isPublic() !== $visibility) {
                     $media->setIsPublic($visibility);

@@ -72,7 +72,7 @@ class Module extends AbstractModule
 
             // Batch update is designed to do the same process to all resources,
             // but BulkEdit needs to check each data separately.
-            // TODO Checks api.preprocess_batch_update and api.update.pre. See module Access.
+            // TODO Checks api.preprocess_batch_update and api.batch_update.pre. See module Access.
             $sharedEventManager->attach(
                 $adapter,
                 'api.update.pre',
@@ -80,6 +80,10 @@ class Module extends AbstractModule
             );
             // Nevertheless, some processes can be done one time or via sql
             // queries.
+            // Furthermore, for media:
+            // Because the media source cannot be updated via api, a final sql
+            // request is required in that case.
+            /** @see \Omeka\Api\Adapter\MediaAdapter::hydrate() */
             $sharedEventManager->attach(
                 $adapter,
                 'api.batch_update.post',
@@ -317,6 +321,7 @@ class Module extends AbstractModule
             'explode_item' => null,
             'explode_pdf' => null,
             'media_html' => null,
+            'media_source' => null,
             'media_type' => null,
             'media_visibility' => null,
             // Then simple queries.
@@ -388,11 +393,13 @@ class Module extends AbstractModule
                 'explode_item' => null,
                 'explode_pdf' => null,
                 'media_html' => null,
+                'media_source' => null,
                 'media_type' => null,
                 'media_visibility' => null,
             ],
             'media' => [
                 'media_html' => null,
+                'media_source' => null,
                 'media_type' => null,
                 'media_visibility' => null,
             ],
@@ -448,6 +455,7 @@ class Module extends AbstractModule
             'media_remove' => null,
             'media_order' => null,
             'media_html' => null,
+            'media_source' => null,
             'media_type' => null,
             'media_visibility' => null,
             // Cleaning is done separately.
@@ -701,6 +709,31 @@ class Module extends AbstractModule
             }
         }
 
+        $params = $bulkedit['media_source'] ?? [];
+        if (!empty($params['mode'])) {
+            $from = $params['from'];
+            $to = $params['to'];
+            $mode = $params['mode'];
+            $remove = !empty($params['remove']);
+            $prepend = ltrim($params['prepend']);
+            $append = rtrim($params['append']);
+            if (mb_strlen($from)
+                || mb_strlen($to)
+                || $remove
+                || mb_strlen($prepend)
+                || mb_strlen($append)
+            ) {
+                $processes['media_source'] = [
+                    'from' => $from,
+                    'to' => $to,
+                    'mode' => $mode,
+                    'remove' => $remove,
+                    'prepend' => $prepend,
+                    'append' => $append,
+                ];
+            }
+        }
+
         $params = $bulkedit['media_type'] ?? [];
         $from = $params['from'] ?? '';
         $to = $params['to'] ?? '';
@@ -882,6 +915,9 @@ class Module extends AbstractModule
                 break;
             case 'media_html':
                 $bulkEdit->updateMediaHtmlForResources($adapter, $resourceIds, $params);
+                break;
+            case 'media_source':
+                $bulkEdit->updateMediaSourceForResources($adapter, $resourceIds, $params);
                 break;
             case 'media_type':
                 $bulkEdit->updateMediaTypeForResources($adapter, $resourceIds, $params);

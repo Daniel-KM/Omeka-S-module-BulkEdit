@@ -462,11 +462,11 @@ class Module extends AbstractModule
         if (!empty($params['properties'])) {
             $from = $params['from'];
             $to = $params['to'];
-            $remove = (bool) $params['remove'];
+            $remove = !empty($params['remove']);
             $prepend = ltrim($params['prepend']);
             $append = rtrim($params['append']);
             $language = trim($params['language']);
-            $languageClear = (bool) ($params['language_clear']);
+            $languageClear = !empty($params['language_clear']);
             if (mb_strlen($from)
                 || mb_strlen($to)
                 || $remove
@@ -607,7 +607,7 @@ class Module extends AbstractModule
                 'datatype' => $params['datatype'],
                 'language' => $params['language'],
                 'update_language' => $params['update_language'],
-                'featured_subject' => (bool) $params['featured_subject'],
+                'featured_subject' => !empty($params['featured_subject']),
             ];
             // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
             // $this->preFillValues($processes['fill_values']);
@@ -678,7 +678,7 @@ class Module extends AbstractModule
         $params = $bulkedit['media_html'] ?? [];
         $from = $params['from'] ?? '';
         $to = $params['to'] ?? '';
-        $remove = isset($params['remove']) && (bool) $params['remove'];
+        $remove = !empty($params['remove']);
         $prepend = isset($params['prepend']) ? ltrim($params['prepend']) : '';
         $append = isset($params['prepend']) ? rtrim($params['append']) : '';
         if (mb_strlen($from)
@@ -762,7 +762,7 @@ class Module extends AbstractModule
      * Run process for a single resource.
      */
     protected function updateResourcePre(
-        AbstractResourceEntityAdapter$adapter,
+        AbstractResourceEntityAdapter $adapter,
         AbstractResourceEntityRepresentation $resource,
         array $dataToUpdate,
         array $processes
@@ -831,7 +831,7 @@ class Module extends AbstractModule
      * Run process for multiple resources, possibly via sql.
      */
     protected function updateResourcesPost(
-        AbstractResourceEntityAdapter$adapter,
+        AbstractResourceEntityAdapter $adapter,
         array $resourceIds,
         array $processes
     ): void {

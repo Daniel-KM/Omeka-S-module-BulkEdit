@@ -15,6 +15,11 @@ use Omeka\Api\Representation\ItemRepresentation;
 class BulkEdit
 {
     /**
+     * @var \Laminas\Log\Logger
+     */
+    protected $logger;
+
+    /**
      * @var \Laminas\ServiceManager\ServiceLocatorInterface
      */
     protected $services;
@@ -22,6 +27,7 @@ class BulkEdit
     public function __construct(ServiceLocatorInterface $services)
     {
         $this->services = $services;
+        $this->logger = $services->get('Omeka\Logger');
     }
 
     /**
@@ -51,7 +57,7 @@ class BulkEdit
             $from = $params['from'];
             $to = $params['to'];
             $mode = $params['mode'];
-            $remove = $params['remove'];
+            $remove = !empty($params['remove']);
             $prepend = $params['prepend'];
             $append = $params['append'];
             $languageClear = $params['language_clear'];
@@ -87,6 +93,7 @@ class BulkEdit
             $settings = $params;
             $settings['from'] = $from;
             $settings['to'] = $to;
+            $settings['remove'] = $remove;
             $settings['languageClear'] = $languageClear;
             $settings['language'] = $language;
             $settings['fromProperties'] = $fromProperties;
@@ -124,7 +131,7 @@ class BulkEdit
                         case 'regex':
                             $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
                             if (is_null($newValue)) {
-                                $this->services->get('Omeka\Logger')->err(
+                                $this->logger->err(
                                     'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
                                     ['resource' => $resource->id(), 'property' => $property]
                                 );
@@ -139,6 +146,7 @@ class BulkEdit
                             $newValue = str_replace($from, $to, $data[$property][$key]['@value']);
                             break;
                     }
+                    // If the new value is an empty string, checked below.
                     if ($value['@value'] === $newValue) {
                         continue;
                     }
@@ -476,7 +484,6 @@ class BulkEdit
         if (is_null($settings)) {
             $plugins = $this->services->get('ControllerPluginManager');
             $api = $plugins->get('api');
-            $logger = $this->services->get('Omeka\Logger');
             $findResourcesFromIdentifiers = $plugins->has('findResourcesFromIdentifiers') ? $plugins->get('findResourcesFromIdentifiers') : null;
             $fromDataType = (string) $params['from'];
             $toDataType = (string) $params['to'];
@@ -536,7 +543,6 @@ class BulkEdit
 
             $settings = $params;
             $settings['api'] = $api;
-            $settings['logger'] = $logger;
             $settings['findResourcesFromIdentifiers'] = $findResourcesFromIdentifiers;
             $settings['fromDataType'] = $fromDataType;
             $settings['toDataType'] = $toDataType;
@@ -580,7 +586,7 @@ class BulkEdit
         }
 
         if (!$fromDataTypeMain || !$toDataTypeMain || !$toDataTypeAdapter) {
-            $logger->warn(
+            $this->logger->warn(
                 'A conversion requires valid "from" dataType and "to" dataType.' // @translate
             );
             return;
@@ -588,21 +594,21 @@ class BulkEdit
 
         if ($fromToMain === 'literal => resource') {
             if (!$findResourcesFromIdentifiers) {
-                $logger->warn(
+                $this->logger->warn(
                     'A conversion from data type "{datatype_1}" to "{datatype_2}" requires the module Bulk Import.', // @translate
                     ['datatype_1' => 'literal', 'datatype_2' => 'resource']
                 );
                 return;
             }
             if (empty($resourceProperties)) {
-                $logger->warn(
+                $this->logger->warn(
                     'To convert into the data type "{datatype}", the properties where to find the identifier should be set.', // @translate
                     ['datatype' => $toDataType]
                 );
                 return;
             }
         } elseif ($fromToMain === 'resource => uri' && !$uriBaseResource) {
-            $logger->warn(
+            $this->logger->warn(
                 'The conversion from data type "{datatype_1}" to "{datatype_2}" requires a site or api to create the url.', // @translate
                 ['datatype_1' => $fromDataType, 'datatype_2' => $toDataType]
             );
@@ -615,11 +621,11 @@ class BulkEdit
             'uri' => '@id',
         ];
 
-        $resourceFromId = function ($id, $property) use ($resource, $api, $logger): ?AbstractResourceEntityRepresentation {
+        $resourceFromId = function ($id, $property) use ($resource, $api): ?AbstractResourceEntityRepresentation {
             try {
                 return $api->read('resources', $id, ['initialize' => false, 'finalize' => false])->getContent();
             } catch (\Exception $e) {
-                $logger->info(
+                $this->logger->info(
                     'No linked resource found for resource #{resource_id}, property "{property}", value resource #{linked_resource_id}.', // @translate
                     ['resource_id' => $resource->id(), 'property' => $property, 'linked_resource_id' => $id]
                 );
@@ -627,7 +633,7 @@ class BulkEdit
             }
         };
 
-        $checkResourceNameAndToDataType = function ($vr, $valueResourceName, $property) use ($resource, $toDataType, $toDataTypeItem, $logger) {
+        $checkResourceNameAndToDataType = function ($vr, $valueResourceName, $property) use ($resource, $toDataType, $toDataTypeItem) {
             $resourceControllerNames = [
                 'resource' => 'resources',
                 'resources' => 'resources',
@@ -644,7 +650,7 @@ class BulkEdit
             }
             $vrResourceName = $vr->resourceName();
             if ($valueResourceName && $resourceControllerNames[$valueResourceName] !== $vrResourceName) {
-                $logger->warn(
+                $this->logger->warn(
                     'For resource #{resource_id}, property "{property}", the linked resource #{linked_resource_id} is not a {resource_type}, but a {resource_name}.', // @translate
                     ['resource_id' => $resource->id(), 'property' => $property, 'linked_resource_id' => $vr->id(), 'resource_type' => $resourceControllerNames[$valueResourceName], 'resource_name' => $vrResourceName]
                 );
@@ -705,7 +711,7 @@ class BulkEdit
                                 }
                                 $valueResourceId = $findResourcesFromIdentifiers($val, $resourceProperties);
                                 if (!$valueResourceId) {
-                                    $logger->info(
+                                    $this->logger->info(
                                         'No linked resource found with properties {properties} for resource #{resource_id}, property "{property}", identifier "{identifier}".', // @translate
                                         ['properties' => implode(', ', $resourceProperties), 'resource_id' => $resource->id(), 'property' => $property, 'identifier' => $value['@value']]
                                     );
@@ -781,13 +787,13 @@ class BulkEdit
                                                 unset($place['uri']);
                                                 $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => null, '@id' => $value['@id'], 'o:label' => null, 'o:data' => $place];
                                             } else {
-                                                $logger->info(
+                                                $this->logger->info(
                                                     'For resource #{resource_id}, property "{property}", the uri "{uri}" do not return a valid place.', // @translate
                                                     ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@id']]
                                                 );
                                             }
                                         } else {
-                                            $logger->info(
+                                            $this->logger->info(
                                                 'For resource #{resource_id}, property "{property}", the uri "{uri}" do not return a record.', // @translate
                                                 ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@id']]
                                             );
@@ -833,7 +839,7 @@ class BulkEdit
                                     || substr($value['@id'], 0, strlen($uriBasePath)) !== $uriBasePath
                                     || !($vr = $resourceFromId($valueResourceId, $property))
                                 ) {
-                                    $logger->info(
+                                    $this->logger->info(
                                         'For resource #{resource_id}, property "{property}", the value "{uri}" is not a resource url.', // @translate
                                         ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@value']]
                                     );
@@ -855,7 +861,7 @@ class BulkEdit
 
                 if ($newValue) {
                     if (!$toDataTypeAdapter->isValid($newValue)) {
-                        $logger->notice(
+                        $this->logger->notice(
                             'Conversion from data type "{datatype_1}" to "{datatype_2}" is not possible in resource #{resource_id} for value: {value}', // @translate
                             ['datatype_1' => $fromDataType, 'datatype_2' => $toDataType, 'resource_id' => $resource->id(), 'value' => $value[$dataTypeToValueKeys[$fromDataTypeMain]]]
                         );
@@ -1059,8 +1065,7 @@ class BulkEdit
 
             $skip = false;
             if (!in_array($mode, ['label_missing', 'label_all', 'label_remove', 'uri_missing', 'uri_all'])) {
-                $logger = $this->services->get('Omeka\Logger');
-                $logger->warn(
+                $this->logger->warn(
                     'Process is skipped: mode "{mode}" is unmanaged', // @translate
                     ['mode' => $mode]
                 );
@@ -1078,22 +1083,19 @@ class BulkEdit
             }
 
             if ((in_array('literal', $dataTypes) || in_array('uri', $dataTypes)) && in_array($dataType, [null, 'literal', 'uri'])) {
-                $logger = $this->services->get('Omeka\Logger');
-                $logger->warn('When "literal" or "uri" is used, the precise dataType should be specified.'); // @translate
+                $this->logger->warn('When "literal" or "uri" is used, the precise dataType should be specified.'); // @translate
                 $skip = true;
             }
 
             $isModeUri = $mode === 'uri_missing' || $mode === 'uri_all';
             if ($isModeUri && (!in_array($dataType, $dataTypes) || in_array($dataType, [null, 'literal', 'uri']))) {
-                $logger = $this->services->get('Omeka\Logger');
-                $logger->warn('When filling an uri, the precise dataType should be specified.'); // @translate
+                $this->logger->warn('When filling an uri, the precise dataType should be specified.'); // @translate
                 $skip = true;
             }
 
             // Check any ValueSuggest data type to see if the module is enabled.
             if ($isModeUri && !$this->services->get('EasyMeta')->dataTypeName('valuesuggest:geonames:geonames')) {
-                $logger = $this->services->get('Omeka\Logger');
-                $logger->warn('When filling an uri, the module Value Suggest should be available.'); // @translate
+                $this->logger->warn('When filling an uri, the module Value Suggest should be available.'); // @translate
                 $skip = true;
             }
 
@@ -1367,16 +1369,14 @@ class BulkEdit
             $asset = (int) $params['asset'];
 
             if (!in_array($mode, ['fill', 'append', 'append_no_primary', 'append_no_primary_no_thumbnail', 'replace', 'remove', 'remove_primary', 'delete'])) {
-                $logger = $this->services->get('Omeka\Logger');
-                $logger->err(
+                $this->logger->err(
                     'The mode "{mode}" is invalid.', // @translate
                     ['mode' => $mode]
                 );
                 $mode = '';
             }
             if (empty($asset) && !in_array($mode, ['remove_primary', 'delete'])) {
-                $logger = $this->services->get('Omeka\Logger');
-                $logger->err(
+                $this->logger->err(
                     'The asset is missing.' // @translate
                 );
                 $mode = '';
@@ -1451,18 +1451,18 @@ class BulkEdit
             $extensions = $params['extensions'] ?? [];
 
             if (!in_array($mode, ['media_type', 'media_extension', 'all'])) {
-                $this->services->get('Omeka\Logger')->err(
+                $this->logger->err(
                     'The select mode "{mode}" is not supported.', // @translate
                     ['mode' => $mode]
                 );
                 $mode = '';
             } elseif ($mode === 'media_type' && !count($mediaTypes)) {
-                $this->services->get('Omeka\Logger')->err(
+                $this->logger->err(
                     'The select mode "Media types" require to specify at least one media type.' // @translate
                 );
                 $mode = '';
             } elseif ($mode === 'media_extension' && !count($extensions)) {
-                $this->services->get('Omeka\Logger')->err(
+                $this->logger->err(
                     'The select mode "Extensions" require to specify at least one extension.' // @translate
                 );
                 $mode = '';
@@ -1562,8 +1562,7 @@ class BulkEdit
             if (!in_array($mainOrder, $orders)
                 || ($subOrder && !in_array($subOrder, $orders))
             ) {
-                $logger = $this->services->get('Omeka\Logger');
-                $logger->err(
+                $this->logger->err(
                     'Order "{order}" is invalid.', // @translate
                     ['order' => $order]
                 );
@@ -1748,7 +1747,6 @@ class BulkEdit
          * @var \Doctrine\DBAL\Connection $connection
          */
         $api = $this->services->get('Omeka\ApiManager');
-        $logger = $this->services->get('Omeka\Logger');
         $easyMeta = $this->services->get('EasyMeta');
         $properties = $easyMeta->propertyIds();
         $connection = $this->services->get('Omeka\Connection');
@@ -1828,7 +1826,7 @@ SQL;
                     try {
                         $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
                     } catch (\Exception $e) {
-                        $logger->err(
+                        $this->logger->err(
                             'Item #{item_id} cannot be exploded: {message}', // @translate
                             ['item_id' => $resourceId, 'message' => $e->getMessage()]
                         );
@@ -1842,7 +1840,7 @@ SQL;
                         $itemData['o:id'] = null;
                         $newItem = $api->create('items', $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
                     } catch (\Exception $e) {
-                        $logger->err(
+                        $this->logger->err(
                             'Item #{item_id} cannot be exploded: {message}', // @translate
                             ['item_id' => $resourceId, 'message' => $e->getMessage()]
                         );
@@ -1861,7 +1859,7 @@ SQL;
     }
 
     /**
-     * Explode an pdf into images.
+     * Explode a pdf into images.
      *
      * This process cannot be done via a pre-process because the media are
      * reattached to another item. Furthermore, with standard api, items and
@@ -1877,17 +1875,15 @@ SQL;
         /**
          * @var \Omeka\Stdlib\Cli $cli
          * @var \Omeka\Api\Manager $api
-         * @var \Laminas\Log\Logger $logger
          * @var \Omeka\File\TempFileFactory $tempFileFactory
          */
         $cli = $this->services->get('Omeka\Cli');
         $api = $this->services->get('Omeka\ApiManager');
-        $logger = $this->services->get('Omeka\Logger');
         $tempFileFactory = $this->services->get('Omeka\File\TempFileFactory');
 
         $commandPath = $cli->validateCommand('/usr/bin', 'gs');
         if (!$commandPath) {
-            $logger->err('Ghostscript is not available.'); // @translate
+            $this->logger->err('Ghostscript is not available.'); // @translate
             return;
         }
 
@@ -1919,25 +1915,25 @@ SQL;
             if ($commandPath === false) {
                 $commandPath = $cli->getCommandPath('gs');
                 if ($commandPath === false) {
-                    $logger->err(
+                    $this->logger->err(
                         'The command "pdftoppm" (poppler) or "gs" (ghostscript) should be available to convert pdf to images.', // @translate
                     );
                     return;
                 }
                 $processor = 'gs';
-                $logger->notice(
+                $this->logger->notice(
                     'The command "gs" (ghostscript) will be used to convert pdf to images.', // @translate
                 );
             } else {
                 $processor = 'pdftoppm';
-                $logger->notice(
+                $this->logger->notice(
                     'The command "pdftoppm" (poppler) will be used to convert pdf to images.', // @translate
                 );
             }
         } elseif ($processor === 'gs') {
             $commandPath = $cli->getCommandPath('gs');
             if ($commandPath === false) {
-                $logger->err(
+                $this->logger->err(
                     'The command "gs" (ghostscript) is not available to convert pdf to images.', // @translate
                 );
                 return;
@@ -1945,7 +1941,7 @@ SQL;
         } elseif ($processor === 'pdftoppm') {
             $commandPath = $cli->getCommandPath('pdftoppm');
             if ($commandPath === false) {
-                $logger->err(
+                $this->logger->err(
                     'The command "pdftoppm" (poppler) is not available to convert pdf to images.', // @translate
                 );
                 return;
@@ -2003,7 +1999,7 @@ SQL;
             foreach ($pdfMedias as $pdfMedia) {
                 // To avoid space issue, files are removed after each loop.
                 if (!$this->checkDestinationDir($tmpDirResource)) {
-                    $logger->err(
+                    $this->logger->err(
                         'Unable to create temp directory "{dir}" for item #{item_id}.', // @translate
                         ['dir' => '/bulkedit/' . $resourceId, 'item_id' => $resourceId]
                     );
@@ -2011,7 +2007,7 @@ SQL;
                 }
 
                 if (!$this->checkDestinationDir($filesTempDirResource)) {
-                    $logger->err(
+                    $this->logger->err(
                         'Unable to create temp directory "{dir}" inside "/files" for resource #{resource_id}.', // @translate
                         ['dir' => $baseDestinationResource, 'item_id' => $resourceId]
                     );
@@ -2021,7 +2017,7 @@ SQL;
                 $filepath = $basePath . '/original/' . $pdfMedia->filename();
                 $ready = file_exists($filepath) && is_readable($filepath) && filesize($filepath);
                 if (!$ready) {
-                    $logger->err(
+                    $this->logger->err(
                         'Unable to read pdf #{media_id}.', // @translate
                         ['media_id' => $pdfMedia->id()]
                     );
@@ -2036,7 +2032,7 @@ SQL;
                 $sourceBasename = $this->sanitizeName($sourceBasename);
                 $sourceBasename = $this->convertNameToAscii($sourceBasename);
 
-                $logger->info(
+                $this->logger->info(
                     'Step 1/2 for item #{item_id}, pdf #{media_id}: Extracting pages as image.', // @translate
                     ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
                 );
@@ -2065,7 +2061,7 @@ SQL;
                     $result = $cli->execute($command);
                 }
                 if ($result === false) {
-                    $logger->err(
+                    $this->logger->err(
                         'Unable to extract images from item #{item_id} pdf #{media_id}.', // @translate
                         ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
                     );
@@ -2093,7 +2089,7 @@ SQL;
 
 
                 if (!$totalImages) {
-                    $logger->warn(
+                    $this->logger->warn(
                         'For item #{item_id}, pdf #{media_id} cannot be exploded into images.', // @translate
                         ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
                     );
@@ -2101,7 +2097,7 @@ SQL;
                 }
 
                 // Create media from files and append them to item.
-                $logger->info(
+                $this->logger->info(
                     'Step 2/2 for item #{item_id}, pdf #{media_id}: Creating {total} media.', // @translate
                     ['item_id' => $resourceId, 'media_id' => $pdfMedia->id(), 'total' => $totalImages]
                 );
@@ -2128,7 +2124,7 @@ SQL;
                     $result = @copy($source, $destination);
                     if (!$result) {
                         // $hasError = true;
-                        $logger->err(
+                        $this->logger->err(
                             'File cannot be saved in temporary directory "{dir}" (temp file: "{file}")', // @translate
                             ['dir' => basename($destination), 'file' => $source]
                         );
@@ -2164,11 +2160,11 @@ SQL;
                     } catch (\Omeka\Api\Exception\ExceptionInterface $e) {
                         // Generally a bad or missing pdf file.
                         // $hasError = true;
-                        $logger->err($e->getMessage() ?: $e);
+                        $this->logger->err($e->getMessage() ?: $e);
                         break;
                     } catch (\Exception $e) {
                         // $hasError = true;
-                        $logger->err($e);
+                        $this->logger->err($e);
                         break;
                     }
                 }
@@ -2203,7 +2199,7 @@ SQL;
                     // Check the validity of the regex.
                     $isValidRegex = @preg_match($from, '') !== false;
                     if (!$isValidRegex) {
-                        $this->services->get('Omeka\Logger')
+                        $this->logger
                             ->err('Update media html: Invalid regex.'); // @translate
                         return;
                     }
@@ -2253,7 +2249,7 @@ SQL;
                         case 'regex':
                             $html = preg_replace($from, $to, $html);
                             if (is_null($html)) {
-                                $this->services->get('Omeka\Logger')->err(
+                                $this->logger->err(
                                     'An error occurred on resource #{resource_id} for html with preg_replace.', // @translate
                                     ['resource_id' => $resourceId]
                                 );
@@ -2385,16 +2381,11 @@ SQL;
     protected function getLabelForUri(string $uri, string $dataType, array $options = []): ?string
     {
         static $filleds = [];
-        static $logger = null;
-
-        if (!$logger) {
-            $logger = $this->services->get('Omeka\Logger');
-        }
 
         $originalUri = $uri;
         $uri = trim($uri);
         if ($uri !== $originalUri) {
-            $logger->warn(
+            $this->logger->warn(
                 'The provided uri "{uri}" is not trimmed.', // @translate
                 ['uri' => $uri]
             );
@@ -2451,7 +2442,7 @@ SQL;
                 continue;
             }
 
-            $logger->info(
+            $this->logger->info(
                 'The label for uri "{uri}" is "{value}".', // @translate
                 ['uri' => $uri, 'value' => $value]
             );
@@ -2460,7 +2451,7 @@ SQL;
             return $value;
         }
 
-        $logger->err(
+        $this->logger->err(
             'The label for uri "{uri}" was not found.', // @translate
             ['uri' => $uri]
         );
@@ -2474,11 +2465,9 @@ SQL;
     protected function getValueSuggestUriForLabel(string $label, string $dataType, ?string $language = null): ?string
     {
         static $filleds = [];
-        static $logger = null;
         static $dataTypeManager = null;
 
-        if (!$logger) {
-            $logger = $this->services->get('Omeka\Logger');
+        if (!$dataTypeManager) {
             $dataTypeManager = $this->services->get('Omeka\DataTypeManager');
         }
 
@@ -2489,7 +2478,7 @@ SQL;
         $originalLabel = $label;
         $label = trim($label);
         if ($label !== $originalLabel) {
-            $logger->warn(
+            $this->logger->warn(
                 'The provided label "{label}" is not trimmed.', // @translate
                 ['label' => $label]
             );
@@ -2642,8 +2631,7 @@ SQL;
                 // Extract the id.
                 $id = preg_replace('~.*/(?<id>[\d]+).*~m', '$1', $uri);
                 if (!$id) {
-                    $logger = $this->services->get('Omeka\Logger');
-                    $logger->err(
+                    $this->logger->err(
                         'The label for uri "{uri}" was not found.', // @translate
                         ['uri' => $uri]
                     );
@@ -2664,16 +2652,13 @@ SQL;
     protected function fetchUrl(?string $url): ?string
     {
         /**
-         * @var \Laminas\Log\Logger $logger
          * @var \Laminas\Http\Client $httpClient
          * @var string $errorReporting
          */
-        static $logger;
         static $httpClient;
         static $errorReporting;
 
-        if (!$logger) {
-            $logger = $this->services->get('Omeka\Logger');
+        if (!$httpClient) {
             // Use omeka http client instead of the simple static client.
             $httpClient = $this->services->get('Omeka\HttpClient');
             $errorReporting = error_reporting();
@@ -2701,7 +2686,7 @@ SQL;
         try {
             $response = $httpClient->send();
         } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
-            $logger->err(
+            $this->logger->err(
                 'Connection error when fetching url "{url}": {exception}', // @translate
                 ['url' => $url, 'exception' => $e]
             );
@@ -2712,7 +2697,7 @@ SQL;
         error_reporting($errorReporting);
 
         if (!$response->isSuccess()) {
-            $logger->err(
+            $this->logger->err(
                 'Connection issue when fetching url "{url}": {message}', // @translate
                 ['url' => $url, 'message' => $response->getReasonPhrase()]
             );
@@ -2721,7 +2706,7 @@ SQL;
 
         $string = $response->getBody();
         if (!strlen($string)) {
-            $logger->warn(
+            $this->logger->warn(
                 'Output is empty for url "{url}".', // @translate
                 ['url' => $url]
             );
@@ -2732,12 +2717,6 @@ SQL;
 
     protected function fetchUrlXml(?string $url): ?DOMDocument
     {
-        static $logger = null;
-
-        if (!$logger) {
-            $logger = $this->services->get('Omeka\Logger');
-        }
-
         $xml = $this->fetchUrl($url);
         if (!$xml) {
             return null;
@@ -2751,7 +2730,7 @@ SQL;
         try {
             $doc->loadXML($xml);
         } catch (\Exception $e) {
-            $logger->err(
+            $this->logger->err(
                 'Output is not xml for url "{url}".', // @translate
                 ['url' => $url]
             );
@@ -2759,7 +2738,7 @@ SQL;
         }
 
         if (!$doc) {
-            $logger->err(
+            $this->logger->err(
                 'Output is not a valid xml for url "{url}".', // @translate
                 ['url' => $url]
             );
@@ -3044,7 +3023,7 @@ SQL;
     {
         if (file_exists($dirPath)) {
             if (!is_dir($dirPath) || !is_readable($dirPath) || !is_writeable($dirPath)) {
-                $this->services->get('Omeka\Logger')->err(
+                $this->logger->err(
                     'The directory "{path}" is not writeable.', // @translate
                     ['path' => $dirPath]
                 );
@@ -3055,7 +3034,7 @@ SQL;
 
         $result = @mkdir($dirPath, 0775, true);
         if (!$result) {
-            $this->services->get('Omeka\Logger')->err(
+            $this->logger->err(
                 'The directory "{path}" is not writeable: {error}.', // @translate
                 ['path' => $dirPath, 'error' => error_get_last()['message']]
             );

@@ -133,7 +133,7 @@ class BulkEdit
                             if (is_null($newValue)) {
                                 $this->logger->err(
                                     'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
-                                    ['resource' => $resource->id(), 'property' => $property]
+                                    ['resource_id' => $resource->id(), 'property' => $property]
                                 );
                                 return;
                             }

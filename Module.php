@@ -470,6 +470,7 @@ class Module extends AbstractModule
         if (!empty($params['properties'])) {
             $from = $params['from'];
             $to = $params['to'];
+            $mode = $params['mode'];
             $remove = !empty($params['remove']);
             $prepend = ltrim($params['prepend']);
             $append = rtrim($params['append']);
@@ -477,6 +478,7 @@ class Module extends AbstractModule
             $languageClear = !empty($params['language_clear']);
             if (mb_strlen($from)
                 || mb_strlen($to)
+                || in_array($mode, ['basename'])
                 || $remove
                 || mb_strlen($prepend)
                 || mb_strlen($append)
@@ -486,7 +488,7 @@ class Module extends AbstractModule
                 $processes['replace'] = [
                     'from' => $from,
                     'to' => $to,
-                    'mode' => $params['mode'],
+                    'mode' => $mode,
                     'remove' => $remove,
                     'prepend' => $prepend,
                     'append' => $append,
@@ -719,6 +721,7 @@ class Module extends AbstractModule
             $append = rtrim($params['append']);
             if (mb_strlen($from)
                 || mb_strlen($to)
+                || in_array($mode, ['basename'])
                 || $remove
                 || mb_strlen($prepend)
                 || mb_strlen($append)

@@ -631,7 +631,7 @@ class BulkEdit
 
         $resourceFromId = function ($id, $property) use ($resource, $api): ?AbstractResourceEntityRepresentation {
             try {
-                return $api->read('resources', $id, ['initialize' => false, 'finalize' => false])->getContent();
+                return $api->read('resources', $id)->getContent();
             } catch (\Exception $e) {
                 $this->logger->info(
                     'No linked resource found for resource #{resource_id}, property "{property}", value resource #{linked_resource_id}.', // @translate
@@ -1767,7 +1767,7 @@ SQL;
         foreach ($resourceIds as $resourceId) {
             try {
                 /** @var \Omeka\Api\Representation\ItemRepresentation $item */
-                $item = $api->read('items', ['id' => $resourceId], [], ['initialize' => false])->getContent();
+                $item = $api->read('items', ['id' => $resourceId])->getContent();
             } catch (\Exception $e) {
                 continue;
             }
@@ -1832,7 +1832,7 @@ SQL;
                     $isFirstMedia = false;
                     // Store data for first item.
                     try {
-                        $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
+                        $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['isPartial' => true, 'responseContent' => 'resource'])->getContent();
                     } catch (\Exception $e) {
                         $this->logger->err(
                             'Item #{item_id} cannot be exploded: {message}', // @translate
@@ -1846,7 +1846,7 @@ SQL;
                 else {
                     try {
                         $itemData['o:id'] = null;
-                        $newItem = $api->create('items', $itemData, [], ['initialize' => false, 'finalize' => false, 'isPartial' => true])->getContent();
+                        $newItem = $api->create('items', $itemData, [], ['isPartial' => true, 'responseContent' => 'resource'])->getContent();
                     } catch (\Exception $e) {
                         $this->logger->err(
                             'Item #{item_id} cannot be exploded: {message}', // @translate

@@ -133,6 +133,9 @@ class BulkEdit
                         case 'basename':
                             $newValue = basename((string) $data[$property][$key]['@value']);
                             break;
+                        case 'filename':
+                            $newValue = pathinfo((string) $data[$property][$key]['@value'], PATHINFO_FILENAME);
+                            break;
                         case 'regex':
                             $newValue = preg_replace($from, $to, $data[$property][$key]['@value']);
                             if (is_null($newValue)) {
@@ -2334,6 +2337,9 @@ SQL;
                     switch ($mode) {
                         case 'basename':
                             $newSource = basename((string) $prevSource);
+                            break;
+                        case 'filename':
+                            $newSource = pathinfo((string) $prevSource, PATHINFO_FILENAME);
                             break;
                         case 'regex':
                             $newSource = preg_replace($from, $to, (string) $prevSource);

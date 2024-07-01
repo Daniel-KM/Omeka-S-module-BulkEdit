@@ -320,6 +320,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                         'html' => 'Simple and html entities', // @translate
                         'regex' => 'Regex (full pattern)', // @translate
                         'basename' => 'Base name (last part of a file path or url)', // @translate
+                        'filename' => 'Base name without extension', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -2123,6 +2124,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                         'raw_i' => 'Simple (case insensitive)', // @translate
                         'regex' => 'Regex (full pattern)', // @translate
                         'basename' => 'Base name (last part of a file path or url)', // @translate
+                        'filename' => 'Base name without extension', // @translate
                     ],
                 ],
                 'attributes' => [

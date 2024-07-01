@@ -478,7 +478,7 @@ class Module extends AbstractModule
             $languageClear = !empty($params['language_clear']);
             if (mb_strlen($from)
                 || mb_strlen($to)
-                || in_array($mode, ['basename'])
+                || in_array($mode, ['basename', 'filename'])
                 || $remove
                 || mb_strlen($prepend)
                 || mb_strlen($append)
@@ -721,7 +721,7 @@ class Module extends AbstractModule
             $append = rtrim($params['append']);
             if (mb_strlen($from)
                 || mb_strlen($to)
-                || in_array($mode, ['basename'])
+                || in_array($mode, ['basename', 'filename'])
                 || $remove
                 || mb_strlen($prepend)
                 || mb_strlen($append)

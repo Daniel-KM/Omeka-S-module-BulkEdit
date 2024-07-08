@@ -86,10 +86,14 @@ WHERE `v`.`resource_id` IN ($idsString)
 SQL;
         }
 
-        $processed = $connection->executeStatement($query);
-        if ($processed) {
-            $this->logger->info(sprintf('Trimmed %d values.', $processed));
+        $count = $connection->executeStatement($query);
+        if ($count) {
+            $this->logger->info(
+                'Trimmed {count} values.', // @translate
+                ['count' => $count]
+            );
         }
+        $trimmed = $count;
 
         // Remove empty values, even if there is a language.
         $query = <<<'SQL'
@@ -104,11 +108,15 @@ AND `resource_id` IN ($idsString)
 SQL;
         }
 
-        $deleted = $connection->executeStatement($query);
-        if ($deleted) {
-            $this->logger->info(sprintf('Removed %d empty string values after trimming.', $deleted));
+        $count = $connection->executeStatement($query);
+        if ($count) {
+            $this->logger->info(
+                'Removed {count} empty string values after trimming.', // @translate
+                ['count' => $count]
+            );
         }
-        return $processed;
+
+        return $trimmed;
     }
 
     /**

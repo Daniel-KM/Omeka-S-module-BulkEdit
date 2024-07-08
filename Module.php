@@ -334,6 +334,7 @@ class Module extends AbstractModule
             // Then simple queries.
             'trim_values' => null,
             'specify_datatypes' => null,
+            'clean_empty_values' => null,
             'clean_languages' => null,
             'clean_language_codes' => null,
             'deduplicate_values' => null,
@@ -449,6 +450,7 @@ class Module extends AbstractModule
         $postProcesses = array_merge($postProcessesResource, [
             'trim_values' => null,
             'specify_datatypes' => null,
+            'clean_empty_values' => null,
             'clean_languages' => null,
             'clean_language_codes' => null,
             'deduplicate_values' => null,
@@ -515,6 +517,7 @@ class Module extends AbstractModule
         $postProcesses = array_merge($postProcessesResource, [
             'trim_values' => null,
             'specify_datatypes' => null,
+            'clean_empty_values' => null,
             'clean_languages' => null,
             'clean_language_codes' => null,
             'deduplicate_values' => null,
@@ -567,6 +570,7 @@ class Module extends AbstractModule
             // Cleaning is done separately.
             'trim_values' => null,
             'specify_datatypes' => null,
+            'clean_empty_values' => null,
             'clean_languages' => null,
             'clean_language_codes' => null,
             'deduplicate_values' => null,
@@ -849,6 +853,7 @@ class Module extends AbstractModule
 
         $processes['trim_values'] = empty($bulkedit['cleaning']['trim_values']) ? null : true;
         $processes['specify_datatypes'] = empty($bulkedit['cleaning']['specify_datatypes']) ? null : true;
+        $processes['clean_empty_values'] = empty($bulkedit['cleaning']['clean_empty_values']) ? null : true;
         $processes['clean_languages'] = empty($bulkedit['cleaning']['clean_languages']) ? null : true;
         $processes['deduplicate_values'] = empty($bulkedit['cleaning']['deduplicate_values']) ? null : true;
 
@@ -960,6 +965,11 @@ class Module extends AbstractModule
                 /** @var \BulkEdit\Mvc\Controller\Plugin\SpecifyDataTypeResources $specifyDataTypeResources */
                 $specifyDataTypeResources = $plugins->get('specifyDataTypeResources');
                 $specifyDataTypeResources($resourceIds);
+                break;
+            case 'clean_empty_values':
+                /** @var \BulkEdit\Mvc\Controller\Plugin\CleanEmptyValues $cleanEmptyValues */
+                $cleanEmptyValues = $plugins->get('cleanEmptyValues');
+                $cleanEmptyValues($resourceIds);
                 break;
             case 'clean_languages':
                 /** @var \BulkEdit\Mvc\Controller\Plugin\CleanLanguages $cleanLanguages */

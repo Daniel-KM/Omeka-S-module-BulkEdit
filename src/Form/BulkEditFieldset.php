@@ -175,6 +175,19 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
+                'name' => 'clean_empty_values',
+                'type' => CommonElement\OptionalCheckbox::class,
+                'options' => [
+                    'label' => 'Set null for empty values or uris', // @translate
+                    'use_hidden_element' => false,
+                ],
+                'attributes' => [
+                    'id' => 'cleaning_clean_empty_values',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'clean_languages',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [

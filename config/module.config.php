@@ -29,6 +29,7 @@ return [
     ],
     'controller_plugins' => [
         'factories' => [
+            'cleanEmptyValues' => Service\ControllerPlugin\CleanEmptyValuesFactory::class,
             'cleanLanguageCodes' => Service\ControllerPlugin\CleanLanguageCodesFactory::class,
             'cleanLanguages' => Service\ControllerPlugin\CleanLanguagesFactory::class,
             'deduplicateValues' => Service\ControllerPlugin\DeduplicateValuesFactory::class,

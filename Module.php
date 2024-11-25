@@ -153,15 +153,16 @@ class Module extends AbstractModule
      */
     public function handleResourceProcessPre(Event $event): void
     {
+        /**
+         * @var \Common\Stdlib\EasyMeta $easyMeta
+         * @var \Omeka\Api\Request $request
+         */
         $services = $this->getServiceLocator();
         $settings = $services->get('Omeka\Settings');
         $deduplicationOnSave = (bool) $settings->get('bulkedit_deduplicate_on_save');
-
-        /** @var \Common\Stdlib\EasyMeta $easyMeta */
         $easyMeta = $services->get('Common\EasyMeta');
-
-        /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
+
         $data = $request->getContent();
 
         $trimUnicode = fn ($v): string => (string) preg_replace('/^[\s\h\v[:blank:][:space:]]+|[\s\h\v[:blank:][:space:]]+$/u', '', (string) $v);
@@ -169,7 +170,10 @@ class Module extends AbstractModule
         // Trimming.
         foreach ($data as $term => &$values) {
             // Process properties only.
-            if (!is_string($term) || mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
+            if (empty($values)
+                || !is_array($values)
+                || !$easyMeta->propertyId($term)
+            ) {
                 continue;
             }
             $first = reset($values);
@@ -214,8 +218,6 @@ class Module extends AbstractModule
             // Process properties only.
             if (empty($values)
                 || !is_array($values)
-                || empty($term)
-                || !is_string($term)
                 || !$easyMeta->propertyId($term)
             ) {
                 continue;
@@ -241,7 +243,10 @@ class Module extends AbstractModule
         if ($deduplicationOnSave) {
             foreach ($data as $term => &$values) {
                 // Process properties only.
-                if (!is_string($term) || mb_strpos($term, ':') === false || !is_array($values) || empty($values)) {
+                if (empty($values)
+                    || !is_array($values)
+                    || !$easyMeta->propertyId($term)
+                ) {
                     continue;
                 }
                 $first = reset($values);

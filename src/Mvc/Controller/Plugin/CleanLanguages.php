@@ -35,7 +35,7 @@ class CleanLanguages extends AbstractPlugin
      *
      * @param array|null $resourceIds Passing an empty array means that there is
      * no ids to process. To process all values, pass a null or no argument.
-     * @return int Number of trimmed values.
+     * @return int Number of cleaned values.
      */
     public function __invoke(array $resourceIds = null)
     {
@@ -63,10 +63,13 @@ AND `v`.`resource_id` IN ($idsString)
 SQL;
         }
 
-        $processed = $connection->executeStatement($sql);
-        if ($processed) {
-            $this->logger->info(sprintf('Updated empty language of %d values.', $processed));
+        $count = $connection->executeStatement($sql);
+        if ($count) {
+            $this->logger->info(
+                'Updated empty language of {count} values.', // @translate
+                ['count' => $count]
+            );
         }
-        return $processed;
+        return $count;
     }
 }

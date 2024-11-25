@@ -64,10 +64,13 @@ AND `v`.`resource_id` IN ($idsString)
 SQL;
         }
 
-        $processed = $connection->executeStatement($sql);
-        if ($processed) {
-            $this->logger->info(sprintf('Updated data type of %d values.', $processed));
+        $count = $connection->executeStatement($sql);
+        if ($count) {
+            $this->logger->info(
+                'Updated data type of {count} values.', // @translate
+                ['count' => $count]
+            );
         }
-        return $processed;
+        return $count;
     }
 }

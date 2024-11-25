@@ -63,14 +63,17 @@ class DeduplicateValues extends AbstractPlugin
             ? $this->prepareQuery()
             : $this->prepareQueryForResourceIds($resourceIds);
 
-        $processed = $connection->executeStatement($query);
+        $count = $connection->executeStatement($query);
 
         $connection->executeStatement("SET sql_mode = '$sqlMode';");
 
-        if ($processed) {
-            $this->logger->info(sprintf('Deduplicated %d values.', $processed));
+        if ($count) {
+            $this->logger->info(
+                'Deduplicated {count} values.',
+                ['count' => $count]
+            );
         }
-        return $processed;
+        return $count;
     }
 
     protected function prepareQuery()

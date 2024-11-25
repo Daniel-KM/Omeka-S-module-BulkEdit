@@ -38,7 +38,7 @@ class CleanLanguageCodes extends AbstractPlugin
      * @param string|null $from
      * @param string|null $to
      * @param array|null $properties
-     * @return int Number of trimmed values.
+     * @return int Number of cleaned values.
      */
     public function __invoke(array $resourceIds = null, ?string $from = '', ?string $to = '', ?array $properties = [])
     {
@@ -89,11 +89,14 @@ SQL;
             }
         }
 
-        $processed = $connection->executeStatement($sql);
-        if ($processed) {
-            $this->logger->info(sprintf('Updated language from "%s" to "%s" of %d values.', $from, $to, $processed));
+        $count = $connection->executeStatement($sql);
+        if ($count) {
+            $this->logger->info(
+                'Updated language from "{from}" to "{to}" of {count} values.', // @translate
+                ['from' => $from, 'to' => $to, 'count' => $count]
+            );
         }
-        return $processed;
+        return $count;
     }
 
     protected function checkPropertyIds(array $properties)

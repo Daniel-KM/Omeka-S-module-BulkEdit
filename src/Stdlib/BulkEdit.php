@@ -2107,7 +2107,6 @@ SQL;
                     $totalImages = $cli->execute($command);
                 }
 
-
                 if (!$totalImages) {
                     $this->logger->warn(
                         'For item #{item_id}, pdf #{media_id} cannot be exploded into images.', // @translate

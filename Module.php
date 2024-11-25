@@ -33,10 +33,10 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         $translate = $services->get('ControllerPluginManager')->get('translate');
 
-        if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.60')) {
+        if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.63')) {
             $message = new \Omeka\Stdlib\Message(
                 $translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
-                'Common', '3.4.60'
+                'Common', '3.4.63'
             );
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
@@ -158,7 +158,7 @@ class Module extends AbstractModule
         $deduplicationOnSave = (bool) $settings->get('bulkedit_deduplicate_on_save');
 
         /** @var \Common\Stdlib\EasyMeta $easyMeta */
-        $easyMeta = $services->get('EasyMeta');
+        $easyMeta = $services->get('Common\EasyMeta');
 
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');

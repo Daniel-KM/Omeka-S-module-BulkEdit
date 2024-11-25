@@ -19,7 +19,7 @@ class BulkEditFieldsetFactory implements FactoryInterface
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
         /**  @var \Common\Stdlib\EasyMeta $easyMeta */
-        $easyMeta = $services->get('EasyMeta');
+        $easyMeta = $services->get('Common\EasyMeta');
 
         // Append some infos about datatypes for js.
         // TODO Use Common 3.4.55.

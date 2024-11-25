@@ -527,7 +527,7 @@ class BulkEdit
                 : null;
 
             /**  @var \Common\Stdlib\EasyMeta $easyMeta */
-            $easyMeta = $this->services->get('EasyMeta');
+            $easyMeta = $this->services->get('Common\EasyMeta');
             $fromDataTypeMain = $easyMeta->dataTypeMain($fromDataType);
             $toDataTypeMain = $easyMeta->dataTypeMain($toDataType);
 
@@ -1114,7 +1114,7 @@ class BulkEdit
             }
 
             // Check any ValueSuggest data type to see if the module is enabled.
-            if ($isModeUri && !$this->services->get('EasyMeta')->dataTypeName('valuesuggest:geonames:geonames')) {
+            if ($isModeUri && !$this->services->get('Common\EasyMeta')->dataTypeName('valuesuggest:geonames:geonames')) {
                 $this->logger->warn('When filling an uri, the module Value Suggest should be available.'); // @translate
                 $skip = true;
             }
@@ -1298,7 +1298,7 @@ class BulkEdit
             $checkContains = (bool) mb_strlen($contains);
 
             /**  @var \Common\Stdlib\EasyMeta $easyMeta */
-            $easyMeta = $this->services->get('EasyMeta');
+            $easyMeta = $this->services->get('Common\EasyMeta');
             $mainDataTypes = $easyMeta->dataTypeMains();
 
             $settings = $params;
@@ -1767,7 +1767,7 @@ class BulkEdit
          * @var \Doctrine\DBAL\Connection $connection
          */
         $api = $this->services->get('Omeka\ApiManager');
-        $easyMeta = $this->services->get('EasyMeta');
+        $easyMeta = $this->services->get('Common\EasyMeta');
         $properties = $easyMeta->propertyIds();
         $connection = $this->services->get('Omeka\Connection');
 

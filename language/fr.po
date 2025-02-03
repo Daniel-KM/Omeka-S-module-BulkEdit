@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-25 00:00+0000\n"
-"PO-Revision-Date: 2024-11-25 00:00+0000\n"
+"POT-Creation-Date: 2025-02-03 00:00+0000\n"
+"PO-Revision-Date: 2025-02-03 00:00+0000\n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr "Le module %1$s doit être mis à niveau à la version %2$s ou supérieure."
 
-#: Module.php:1039 src/Stdlib/BulkEdit.php:3107
+#: Module.php:1047 src/Stdlib/BulkEdit.php:3107
 msgid ""
 "The base uri is not set (key [file_store][local][base_uri]) in the config "
 "file of Omeka \"config/local.config.php\". It must be set for now (key "
@@ -157,7 +157,7 @@ msgstr ""
 "Il est désormais possible de modifier la source du média, notamment pour "
 "conserver uniquement le chemin de base."
 
-#: Module.php:871
+#: Module.php:879
 msgid ""
 "Cleaned params used for bulk edit:\n"
 "{json}"

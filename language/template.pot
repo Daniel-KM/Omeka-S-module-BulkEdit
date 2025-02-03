@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-25 00:00+0000\n"
+"POT-Creation-Date: 2025-02-03 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
 
-#: Module.php:1039 src/Stdlib/BulkEdit.php:3107
+#: Module.php:1047 src/Stdlib/BulkEdit.php:3107
 msgid ""
 "The base uri is not set (key [file_store][local][base_uri]) in the config "
 "file of Omeka \"config/local.config.php\". It must be set for now (key "
@@ -143,7 +143,7 @@ msgid ""
 "base file name."
 msgstr ""
 
-#: Module.php:871
+#: Module.php:879
 msgid ""
 "Cleaned params used for bulk edit:\n"
 "{json}"

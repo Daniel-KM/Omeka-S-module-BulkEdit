@@ -297,7 +297,7 @@ of the CeCILL license and that you accept its terms.
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2018-2024 (see [Daniel-KM])
+* Copyright Daniel Berthereau, 2018-2025 (see [Daniel-KM])
 
 First developed for the [Archives Henri Poincaré] of [Université de Lorraine],
 then improved for various projects.

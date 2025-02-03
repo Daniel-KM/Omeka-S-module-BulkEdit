@@ -61,18 +61,18 @@ class CleanLanguageCodes extends AbstractPlugin
             : $connection->quote($to);
 
         $sql = <<<SQL
-UPDATE `value` AS `v`
-SET
-    `v`.`lang` = $quotedTo
-WHERE
-    `v`.`lang` = $quotedFrom
-SQL;
+            UPDATE `value` AS `v`
+            SET
+                `v`.`lang` = $quotedTo
+            WHERE
+                `v`.`lang` = $quotedFrom
+            SQL;
 
         $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);
         if ($idsString) {
             $sql .= "\n" . <<<SQL
-AND `v`.`resource_id` IN ($idsString)
-SQL;
+                AND `v`.`resource_id` IN ($idsString)
+                SQL;
         }
 
         if ($properties && !in_array('all', $properties)) {
@@ -80,12 +80,12 @@ SQL;
             if ($propertyIds) {
                 $propertyIds = implode(',', $propertyIds);
                 $sql .= "\n" . <<<SQL
-AND `v`.`property_id` IN ($propertyIds)
-SQL;
+                    AND `v`.`property_id` IN ($propertyIds)
+                    SQL;
             } else {
                 $sql .= "\n" . <<<'SQL'
-AND 1 = 1
-SQL;
+                    AND 1 = 1
+                    SQL;
             }
         }
 

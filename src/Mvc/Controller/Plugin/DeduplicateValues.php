@@ -86,19 +86,19 @@ class DeduplicateValues extends AbstractPlugin
             $prefix = $suffix = '';
         }
         return <<<SQL
-SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
-DROP TABLE IF EXISTS `value_temporary`;
-CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
-AS
-    SELECT $prefix`id`$suffix
-    FROM `value`
-    GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
-DELETE `v` FROM `value` AS `v`
-LEFT JOIN `value_temporary` AS `value_temporary`
-    ON `value_temporary`.`id` = `v`.`id`
-WHERE `value_temporary`.`id` IS NULL;
-DROP TABLE IF EXISTS `value_temporary`;
-SQL;
+            SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
+            DROP TABLE IF EXISTS `value_temporary`;
+            CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
+            AS
+                SELECT $prefix`id`$suffix
+                FROM `value`
+                GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
+            DELETE `v` FROM `value` AS `v`
+            LEFT JOIN `value_temporary` AS `value_temporary`
+                ON `value_temporary`.`id` = `v`.`id`
+            WHERE `value_temporary`.`id` IS NULL;
+            DROP TABLE IF EXISTS `value_temporary`;
+            SQL;
     }
 
     protected function prepareQueryForResourceIds(array $resourceIds)
@@ -111,20 +111,20 @@ SQL;
         }
         $idsString = implode(',', $resourceIds);
         return <<<SQL
-SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
-DROP TABLE IF EXISTS `value_temporary`;
-CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
-AS
-    SELECT $prefix`id`$suffix
-    FROM `value`
-    WHERE `resource_id` IN ($idsString)
-    GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
-DELETE `v` FROM `value` AS `v`
-    LEFT JOIN `value_temporary` AS `value_temporary`
-    ON `value_temporary`.`id` = `v`.`id`
-WHERE `resource_id` IN ($idsString)
-    AND `value_temporary`.`id` IS NULL;
-DROP TABLE IF EXISTS `value_temporary`;
-SQL;
+            SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
+            DROP TABLE IF EXISTS `value_temporary`;
+            CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
+            AS
+                SELECT $prefix`id`$suffix
+                FROM `value`
+                WHERE `resource_id` IN ($idsString)
+                GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
+            DELETE `v` FROM `value` AS `v`
+                LEFT JOIN `value_temporary` AS `value_temporary`
+                ON `value_temporary`.`id` = `v`.`id`
+            WHERE `resource_id` IN ($idsString)
+                AND `value_temporary`.`id` IS NULL;
+            DROP TABLE IF EXISTS `value_temporary`;
+            SQL;
     }
 }

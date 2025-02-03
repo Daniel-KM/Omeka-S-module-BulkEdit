@@ -52,17 +52,17 @@ class CleanEmptyValues extends AbstractPlugin
         $connection = $this->entityManager->getConnection();
 
         $sql = <<<'SQL'
-UPDATE `value` AS `v`
-SET
-    `v`.`value` = IF(`v`.`value` IS NULL OR `v`.`value` = "", NULL, `v`.`value`),
-    `v`.`uri` = IF(`v`.`uri` IS NULL OR `v`.`uri` = "", NULL, `v`.`uri`)
-SQL;
+            UPDATE `value` AS `v`
+            SET
+                `v`.`value` = IF(`v`.`value` IS NULL OR `v`.`value` = "", NULL, `v`.`value`),
+                `v`.`uri` = IF(`v`.`uri` IS NULL OR `v`.`uri` = "", NULL, `v`.`uri`)
+            SQL;
 
         $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);
         if ($idsString) {
             $sql .= "\n" . <<<SQL
-WHERE `v`.`resource_id` IN ($idsString)
-SQL;
+                WHERE `v`.`resource_id` IN ($idsString)
+                SQL;
         }
 
         $count = $connection->executeStatement($sql);

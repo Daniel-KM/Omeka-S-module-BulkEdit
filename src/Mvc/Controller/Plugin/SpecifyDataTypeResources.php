@@ -51,17 +51,17 @@ class SpecifyDataTypeResources extends AbstractPlugin
         $connection = $this->entityManager->getConnection();
 
         $sql = <<<'SQL'
-UPDATE `value` AS `v`
-INNER JOIN `resource` ON `resource`.`id` = `v`.`resource_id`
-SET `v`.`type` = CONCAT('resource:', LOWER(SUBSTRING_INDEX(`resource`.`resource_type`, '\\', -1)))
-WHERE `v`.`type` = 'resource'
-SQL;
+            UPDATE `value` AS `v`
+            INNER JOIN `resource` ON `resource`.`id` = `v`.`resource_id`
+            SET `v`.`type` = CONCAT('resource:', LOWER(SUBSTRING_INDEX(`resource`.`resource_type`, '\\', -1)))
+            WHERE `v`.`type` = 'resource'
+            SQL;
 
         $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);
         if ($idsString) {
             $sql .= "\n" . <<<SQL
-AND `v`.`resource_id` IN ($idsString)
-SQL;
+                AND `v`.`resource_id` IN ($idsString)
+                SQL;
         }
 
         $count = $connection->executeStatement($sql);

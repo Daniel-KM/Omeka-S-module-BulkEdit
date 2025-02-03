@@ -786,15 +786,19 @@ class Module extends AbstractModule
             $mode = $params['mode'];
             $from = $params['from'] ?? '';
             $to = $params['to'] ?? '';
+            $prepend = ltrim($params['prepend'] ?? '');
+            $append = rtrim($params['append'] ?? '');
             // TODO Add the check of the validity of the regex in the form.
             // Early check validity of the regex.
-            if ($mode !== 'regex' || @preg_match($from, '') !== false) {
+            if (($from . $to . $prepend . $append) !== ''
+                && ($mode !== 'regex' || @preg_match($from, '') !== false)
+            ) {
                 $processes['media_html'] = [
                     'mode' => $mode,
                     'from' => $from,
                     'to' => $to,
-                    'prepend' => ltrim($params['prepend'] ?? ''),
-                    'append' => rtrim($params['append'] ?? ''),
+                    'prepend' => $prepend,
+                    'append' => $append,
                 ];
             }
         }
@@ -804,15 +808,19 @@ class Module extends AbstractModule
             $mode = $params['mode'];
             $from = $params['from'] ?? '';
             $to = $params['to'] ?? '';
+            $prepend = ltrim($params['prepend'] ?? '');
+            $append = rtrim($params['append'] ?? '');
             // TODO Add the check of the validity of the regex in the form.
             // Early check validity of the regex.
-            if ($mode !== 'regex' || @preg_match($from, '') !== false) {
+            if (($from . $to . $prepend . $append) !== ''
+                && ($mode !== 'regex' || @preg_match($from, '') !== false)
+            ) {
                 $processes['media_source'] = [
                     'from' => $from,
                     'to' => $to,
                     'mode' => $mode,
-                    'prepend' => ltrim($params['prepend'] ?? ''),
-                    'append' => rtrim($params['append'] ?? ''),
+                    'prepend' => $prepend,
+                    'append' => $append,
                 ];
             }
         }

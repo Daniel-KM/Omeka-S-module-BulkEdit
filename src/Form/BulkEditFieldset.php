@@ -2003,7 +2003,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_mode',
-                    'value' => 'raw',
+                    'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -2098,7 +2098,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'media_source_mode',
-                    'value' => 'raw',
+                    'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

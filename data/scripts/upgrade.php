@@ -75,3 +75,14 @@ if (version_compare($oldVersion, '3.4.31', '<')) {
     );
     $messenger->addSuccess($message);
 }
+
+if (version_compare($oldVersion, '3.4.34', '<')) {
+    $message = new PsrMessage(
+        'It’s now possible to replace the value or the language of any data type.' // @translate
+    );
+    $messenger->addSuccess($message);
+    $message = new PsrMessage(
+        'It’s now possible to convert badly Microsoft formatted values into standard Unicode (Windows issues like "Ã©" for "é").' // @translate
+    );
+    $messenger->addSuccess($message);
+}

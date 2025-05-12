@@ -63,6 +63,7 @@ class BulkEdit
         $supportedModes = [
             'raw',
             'raw_i',
+            'unicode',
             'html',
             'regex',
             'basename',
@@ -223,6 +224,9 @@ class BulkEdit
                         break;
                     case 'raw_i':
                         $newValue = str_ireplace($from, $to, $val);
+                        break;
+                    case 'unicode':
+                        $newValue = $this->normalizeFakeUnicode($val);
                         break;
                     case 'regex':
                         $newValue = preg_replace($from, $to, $val);
@@ -2328,6 +2332,9 @@ SQL;
                     case 'raw_i':
                         $html = str_ireplace($from, $to, $html);
                         break;
+                    case 'unicode':
+                        $html = $this->normalizeFakeUnicode($html);
+                        break;
                     case 'regex':
                         $html = preg_replace($from, $to, $html);
                         if (is_null($html)) {
@@ -2412,6 +2419,9 @@ SQL;
                         break;
                     case 'raw_i':
                         $newSource = str_ireplace($from, $to, (string) $prevSource);
+                        break;
+                    case 'unicode':
+                        $newSource = $this->normalizeFakeUnicode((string) $prevSource);
                         break;
                     case 'regex':
                         $newSource = preg_replace($from, $to, (string) $prevSource);
@@ -3230,6 +3240,55 @@ SQL;
             }
         }
         return rmdir($dirPath);
+    }
+
+    /**
+     * Convert badly formatted strings to utf-8, for example "cafÃ©" to "café".
+     *
+     * Mixed formatted strings cannot be normalized.
+     */
+    protected function normalizeFakeUnicode(string $string): string
+    {
+        if ($string === '') {
+            return $string;
+        }
+
+        // Strings are already utf-8 internally, because it comes from database
+        // that is utf-8. So decode it!
+
+        // mb_convert_encoding() cannot be used, because the source format is
+        // unknown. So use utf8_decode(), even deprecated (in php 8.2).
+        // Another way is to use json_encode(), to check if false, and return it.
+        // $iso = mb_convert_encoding($string, 'ISO-8859-16', 'UTF-8');
+        $errorReporting = error_reporting();
+        error_reporting($errorReporting & ~E_DEPRECATED);
+        $iso = utf8_decode($string);
+        error_reporting($errorReporting);
+        if ($string === $iso) {
+            return $string;
+        }
+
+        // Quick check for ascii encoding, that is valid utf-8.
+        $stringEncoding = mb_detect_encoding($string);
+        $isoEncoding = mb_detect_encoding($iso);
+        if ($stringEncoding === 'ASCII' || $isoEncoding === 'ASCII') {
+            return $string;
+        }
+
+        // Quick check with the length.
+        if (strlen($iso) === mb_strlen($iso) && strlen($iso) === mb_strlen($string)) {
+            return $string;
+        }
+
+        // If the original value and the converted value are valid utf-8
+        // together, there is an issue!
+        $stringIsUtf8 = preg_match('!!u', $string);
+        $isoIsUtf8 = preg_match('!!u', $iso);
+        if (!($stringIsUtf8 && $isoIsUtf8)) {
+            return $string;
+        }
+
+        return $iso;
     }
 
     /**

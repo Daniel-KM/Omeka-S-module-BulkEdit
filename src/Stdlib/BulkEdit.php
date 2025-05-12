@@ -15,6 +15,11 @@ use Omeka\Api\Representation\ItemRepresentation;
 class BulkEdit
 {
     /**
+     * @var \Common\Stdlib\EasyMeta
+     */
+    protected $easyMeta;
+
+    /**
      * @var \Laminas\Log\Logger
      */
     protected $logger;
@@ -28,6 +33,7 @@ class BulkEdit
     {
         $this->services = $services;
         $this->logger = $services->get('Omeka\Logger');
+        $this->easyMeta = $services->get('Common\EasyMeta');
     }
 
     /**
@@ -72,7 +78,7 @@ class BulkEdit
             $prepend = $params['prepend'] ?? '';
             $append = $params['append'] ?? '';
             $languageClear = $params['language_clear'];
-            $language = $languageClear ? '' : $params['language'];
+            $language = ($languageClear ? '' : $params['language']) ?: null;
             $fromProperties = $params['properties'];
 
             if (!in_array($valuePart, ['value', 'uri', 'uri_label', 'literal'])) {
@@ -141,417 +147,148 @@ class BulkEdit
             return;
         }
 
+        $valuePartKeys = [
+            'literal' => '@value',
+            'value' => '@value',
+            'uri' => '@id',
+            'uri_label' => 'o:label',
+        ];
+        $valuePartKey = $valuePartKeys[$valuePart];
+        $valueLanguageKey = in_array($valuePart, ['uri', 'uri_label'])
+            ? 'o:lang'
+            : '@language';
+
         if ($valuePart === 'literal') {
-
             // Literal.
-
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    if ($value === null || $value['type'] !== 'literal') {
-                        continue;
-                    }
-                    $val = (string) $data[$property][$key]['@value'];
-                    switch ($mode) {
-                        case 'basename':
-                            $newValue = basename($val);
-                            break;
-                        case 'filename':
-                            $newValue = pathinfo($val, PATHINFO_FILENAME);
-                            break;
-                        case 'html':
-                        case 'raw':
-                            $newValue = str_replace($from, $to, $val);
-                            break;
-                        case 'raw_i':
-                            $newValue = str_ireplace($from, $to, $val);
-                            break;
-                        case 'regex':
-                            $newValue = preg_replace($from, $to, $val);
-                            if (is_null($newValue)) {
-                                $this->logger->err(
-                                    'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
-                                    ['resource_id' => $resource->id(), 'property' => $property]
-                                );
-                                return;
-                            }
-                            break;
-                        case 'remove':
-                            // Unsetting is done in last step.
-                            $newValue = '';
-                            break;
-                        default:
-                            return;
-                    }
-                    // If the new value is an empty string, checked below.
-                    if ($val === $newValue) {
-                        continue;
-                    }
-                    $data[$property][$key]['@value'] = $newValue;
+            $getVal = function (?array $value): ?string {
+                if ($value === null || $value['type'] !== 'literal') {
+                    return null;
                 }
-            }
-
-            if (mb_strlen($prepend) || mb_strlen($append)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        if ($value === null || $value['type'] !== 'literal') {
-                            continue;
-                        }
-                        $newValue = $prepend . $value['@value'] . $append;
-                        if ($value['@value'] === $newValue) {
-                            continue;
-                        }
-                        $data[$property][$key]['@value'] = $newValue;
-                    }
-                }
-            }
-
-            if ($languageClear || mb_strlen($language)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        if ($value === null || $value['type'] !== 'literal') {
-                            continue;
-                        }
-                        $currentLanguage = $value['@language'] ?? '';
-                        if ($currentLanguage === $language) {
-                            continue;
-                        }
-                        $data[$property][$key]['@language'] = $language;
-                    }
-                }
-            }
-
-            // Force trimming values and check if a value is empty to remove it.
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    if ($value === null || $value['type'] !== 'literal') {
-                        continue;
-                    }
-                    $data[$property][$key]['@value'] = trim($data[$property][$key]['@value']);
-                    if (!mb_strlen($data[$property][$key]['@value'])) {
-                        unset($data[$property][$key]);
-                    }
-                }
-            }
-
+                return trim((string) $value['@value'] ?? '');
+            };
         } elseif ($valuePart === 'value') {
-
             // Simple value (not label of uri or resource).
-
             $getVal = function (?array $value): ?string {
                 if ($value === null
                     || !empty($value['@id'])
                     || !empty($value['value_resource_id'])
+                    || $this->easyMeta->dataTypeMain($value['type']) !== 'literal'
                 ) {
                     return null;
                 }
-                $val = trim((string) $value['@value'] ?? '');
-                // If val is empty, it is not a simple value.
-                return $val === ''
-                    ? null
-                    : $val;
+                return trim((string) $value['@value'] ?? '');
             };
-
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    $val = $getVal($value);
-                    if ($val === null) {
-                        continue;
-                    }
-                    switch ($mode) {
-                        case 'basename':
-                            $newValue = basename($val);
-                            break;
-                        case 'filename':
-                            $newValue = pathinfo($val, PATHINFO_FILENAME);
-                            break;
-                        case 'html':
-                        case 'raw':
-                            $newValue = str_replace($from, $to, $val);
-                            break;
-                        case 'raw_i':
-                            $newValue = str_ireplace($from, $to, $val);
-                            break;
-                        case 'regex':
-                            $newValue = preg_replace($from, $to, $val);
-                            if (is_null($newValue)) {
-                                $this->logger->err(
-                                    'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
-                                    ['resource_id' => $resource->id(), 'property' => $property]
-                                );
-                                return;
-                            }
-                            break;
-                        case 'remove':
-                            // Unsetting is done in last step.
-                            $newValue = '';
-                            break;
-                        default:
-                            return;
-                    }
-                    // If the new value is an empty string, checked below.
-                    if ($val === $newValue) {
-                        continue;
-                    }
-                    $data[$property][$key]['@value'] = $newValue;
-                }
-            }
-
-            if (mb_strlen($prepend) || mb_strlen($append)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        $val = $getVal($value);
-                        if ($val === null) {
-                            continue;
-                        }
-                        $newValue = $prepend . $val . $append;
-                        if ($val === $newValue) {
-                            continue;
-                        }
-                        $data[$property][$key]['@value'] = $newValue;
-                    }
-                }
-            }
-
-            if ($languageClear || mb_strlen($language)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        $val = $getVal($value);
-                        if ($val === null) {
-                            continue;
-                        }
-                        $currentLanguage = $value['@language'] ?? '';
-                        if ($currentLanguage === $language) {
-                            continue;
-                        }
-                        $data[$property][$key]['@language'] = $language;
-                    }
-                }
-            }
-
-            // Force trimming values and check if a value is empty to remove it.
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    $val = $getVal($value);
-                    if ($val === null) {
-                        continue;
-                    }
-                    $data[$property][$key]['@value'] = trim($data[$property][$key]['@value']);
-                    if (!mb_strlen($data[$property][$key]['@value'])) {
-                        unset($data[$property][$key]);
-                    }
-                }
-            }
-
         } elseif ($valuePart === 'uri') {
-
             // Uri.
-
-            $getVal = function (?array $value, bool $checkUpdated): ?string {
+            $getVal = function (?array $value): ?string {
                 if ($value === null
                     || !isset($value['@id'])
                     || !empty($value['value_resource_id'])
+                    || $this->easyMeta->dataTypeMain($value['type']) !== 'uri'
                 ) {
                     return null;
                 }
-                $val = trim((string) $value['@id']);
-                // If id is empty, it is not an uri, except if updated in a
-                // previous step.
-                return $val === '' && (!$checkUpdated || empty($value['_updated']))
-                    ? null
-                    : $val;
+                return trim((string) $value['@id']);
             };
+        } elseif ($valuePart === 'uri_label') {
+            // Label of uri.
+            $getVal = function (?array $value): ?string {
+                if ($value === null
+                    || !isset($value['@id'])
+                    || !empty($value['value_resource_id'])
+                    || $this->easyMeta->dataTypeMain($value['type']) !== 'uri'
+                ) {
+                    return null;
+                }
+                return trim((string) $value['o:label'] ?? '');
+            };
+        }
 
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    $val = $getVal($value, false);
-                    if ($val === null) {
-                        continue;
-                    }
-                    switch ($mode) {
-                        case 'basename':
-                            $newValue = basename($val);
-                            break;
-                        case 'filename':
-                            $newValue = pathinfo($val, PATHINFO_FILENAME);
-                            break;
-                        case 'html':
-                        case 'raw':
-                            $newValue = str_replace($from, $to, $val);
-                            break;
-                        case 'raw_i':
-                            $newValue = str_ireplace($from, $to, $val);
-                            break;
-                        case 'regex':
-                            $newValue = preg_replace($from, $to, $val);
-                            if (is_null($newValue)) {
-                                $this->logger->err(
-                                    'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
-                                    ['resource_id' => $resource->id(), 'property' => $property]
-                                );
-                                return;
-                            }
-                            break;
-                        case 'remove':
-                            // Unsetting is done in last step.
-                            $newValue = '';
-                            break;
-                        default:
+        foreach ($properties as $property) {
+            foreach ($data[$property] as $key => $value) {
+                $val = $getVal($value);
+                if ($val === null) {
+                    continue;
+                }
+                switch ($mode) {
+                    case 'basename':
+                        $newValue = basename($val);
+                        break;
+                    case 'filename':
+                        $newValue = pathinfo($val, PATHINFO_FILENAME);
+                        break;
+                    case 'html':
+                    case 'raw':
+                        $newValue = str_replace($from, $to, $val);
+                        break;
+                    case 'raw_i':
+                        $newValue = str_ireplace($from, $to, $val);
+                        break;
+                    case 'regex':
+                        $newValue = preg_replace($from, $to, $val);
+                        if (is_null($newValue)) {
+                            $this->logger->err(
+                                'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
+                                ['resource_id' => $resource->id(), 'property' => $property]
+                            );
                             return;
-                    }
-                    // If the new value is an empty string, checked below.
-                    if ($val === $newValue) {
-                        continue;
-                    }
-                    $data[$property][$key]['@id'] = $newValue;
-                    $data[$property][$key]['_updated'] = true;
+                        }
+                        break;
+                    case 'remove':
+                        // Unsetting is done in last step.
+                        $newValue = '';
+                        break;
+                    default:
+                        return;
                 }
+                // If the new value is an empty string, checked below.
+                $data[$property][$key][$valuePartKey] = $newValue;
             }
+        }
 
-            if (mb_strlen($prepend) || mb_strlen($append)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        $val = $getVal($value, true);
-                        if ($val === null) {
-                            continue;
-                        }
-                        $newValue = trim($prepend . $val . $append);
-                        if ($val === $newValue) {
-                            continue;
-                        }
-                        $data[$property][$key]['@id'] = $newValue;
-                    }
-                }
-            }
-
-            if ($languageClear || mb_strlen($language)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        $val = $getVal($value, true);
-                        if ($val === null) {
-                            continue;
-                        }
-                        $currentLanguage = $value['o:lang'] ?? '';
-                        if ($currentLanguage === $language) {
-                            continue;
-                        }
-                        $data[$property][$key]['o:lang'] = $language;
-                    }
-                }
-            }
-
-            // Force trimming values and check if a value is empty to remove it.
+        if (mb_strlen($prepend) || mb_strlen($append)) {
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
                     $val = $getVal($value, true);
                     if ($val === null) {
                         continue;
                     }
-                    unset($data[$property][$key]['_updated']);
-                    $data[$property][$key]['@id'] = trim($data[$property][$key]['@id']);
-                    if (!mb_strlen($data[$property][$key]['@id'])) {
+                    $newValue = $prepend . $val . $append;
+                    $data[$property][$key][$valuePartKey] = $newValue;
+                }
+            }
+        }
+
+        if ($languageClear || mb_strlen((string) $language)) {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    $val = $getVal($value, true);
+                    if ($val === null) {
+                        continue;
+                    }
+                    $data[$property][$key][$valueLanguageKey] = $language;
+                }
+            }
+        }
+
+        // Force trimming values and check if a value is empty to remove it.
+        // For "uri_label", unlike other value parts, do not remove the value
+        // when the label is empty, because it is only a label of the main value
+        //(@id).
+
+        if ($valuePart !== 'uri_label') {
+            foreach ($properties as $property) {
+                foreach ($data[$property] as $key => $value) {
+                    $val = $getVal($value, true);
+                    if ($val === null) {
+                        continue;
+                    }
+                    $data[$property][$key][$valuePartKey] = trim($value[$valuePartKey]);
+                    if (!mb_strlen($data[$property][$key][$valuePartKey])) {
                         unset($data[$property][$key]);
                     }
                 }
             }
-
-        } elseif ($valuePart === 'uri_label') {
-
-            // Label of uri.
-
-            $getVal = function (?array $value): ?string {
-                if ($value === null
-                    || !isset($value['@id'])
-                    || !empty($value['value_resource_id'])
-                ) {
-                    return null;
-                }
-                $valueId = trim((string) $value['@id']);
-                // If id is empty, it is not an uri.
-                if ($valueId === '') {
-                    continue;
-                }
-                return trim((string) $value['o:label'] ?? '');
-            };
-
-            foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
-                    $val = $getVal($value);
-                    if ($val === null) {
-                        continue;
-                    }
-                    switch ($mode) {
-                        case 'basename':
-                            $newValue = basename($val);
-                            break;
-                        case 'filename':
-                            $newValue = pathinfo($val, PATHINFO_FILENAME);
-                            break;
-                        case 'html':
-                        case 'raw':
-                            $newValue = str_replace($from, $to, $val);
-                            break;
-                        case 'raw_i':
-                            $newValue = str_ireplace($from, $to, $val);
-                            break;
-                        case 'regex':
-                            $newValue = preg_replace($from, $to, $val);
-                            if (is_null($newValue)) {
-                                $this->logger->err(
-                                    'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
-                                    ['resource_id' => $resource->id(), 'property' => $property]
-                                );
-                                return;
-                            }
-                            break;
-                        case 'remove':
-                            // Unsetting is done in last step.
-                            $newValue = '';
-                            break;
-                        default:
-                            return;
-                    }
-                    // If the new value is an empty string, checked below.
-                    if ($val === $newValue) {
-                        continue;
-                    }
-                    $data[$property][$key]['o:label'] = $newValue;
-                }
-            }
-
-            if (mb_strlen($prepend) || mb_strlen($append)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        $val = $getVal($value);
-                        if ($val === null) {
-                            continue;
-                        }
-                        $newValue = trim($prepend . $val . $append);
-                        if ($val === $newValue) {
-                            continue;
-                        }
-                        $data[$property][$key]['o:label'] = $newValue;
-                    }
-                }
-            }
-
-            if ($languageClear || mb_strlen($language)) {
-                foreach ($properties as $property) {
-                    foreach ($data[$property] as $key => $value) {
-                        $val = $getVal($value);
-                        if ($val === null) {
-                            continue;
-                        }
-                        $currentLanguage = $value['o:lang'] ?? '';
-                        if ($currentLanguage === $language) {
-                            continue;
-                        }
-                        $data[$property][$key]['o:lang'] = $language;
-                    }
-                }
-            }
-
-            // Unlike other value part, do not remove the value when the label
-            // is empty, because it is only a label of the main value (@id).
         }
     }
 
@@ -859,10 +596,8 @@ class BulkEdit
                 ? $this->services->get('Omeka\DataTypeManager')->get($toDataType)
                 : null;
 
-            /**  @var \Common\Stdlib\EasyMeta $easyMeta */
-            $easyMeta = $this->services->get('Common\EasyMeta');
-            $fromDataTypeMain = $easyMeta->dataTypeMain($fromDataType);
-            $toDataTypeMain = $easyMeta->dataTypeMain($toDataType);
+            $fromDataTypeMain = $this->easyMeta->dataTypeMain($fromDataType);
+            $toDataTypeMain = $this->easyMeta->dataTypeMain($toDataType);
 
             $fromToMain = $fromDataTypeMain . ' => ' . $toDataTypeMain;
             $fromTo = $fromDataType . ' => ' . $toDataType;
@@ -1447,7 +1182,7 @@ class BulkEdit
             }
 
             // Check any ValueSuggest data type to see if the module is enabled.
-            if ($isModeUri && !$this->services->get('Common\EasyMeta')->dataTypeName('valuesuggest:geonames:geonames')) {
+            if ($isModeUri && !$this->easyMeta->dataTypeName('valuesuggest:geonames:geonames')) {
                 $this->logger->warn('When filling an uri, the module Value Suggest should be available.'); // @translate
                 $skip = true;
             }
@@ -1630,15 +1365,12 @@ class BulkEdit
             $checkEqual = (bool) mb_strlen($equal);
             $checkContains = (bool) mb_strlen($contains);
 
-            /**  @var \Common\Stdlib\EasyMeta $easyMeta */
-            $easyMeta = $this->services->get('Common\EasyMeta');
-            $mainDataTypes = $easyMeta->dataTypeMains();
+            $mainDataTypes = $this->easyMeta->dataTypeMains();
 
             $settings = $params;
             unset($settings['datatypes']);
             $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
-            $settings['easyMeta'] = $easyMeta;
             $settings['mainDataTypes'] = $mainDataTypes;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDataType'] = $checkDataType;
@@ -1684,7 +1416,7 @@ class BulkEdit
                     continue;
                 }
                 if ($checkEqual || $checkContains) {
-                    $valueMainDataType = $easyMeta->dataTypeMain($value['type']);
+                    $valueMainDataType = $this->easyMeta->dataTypeMain($value['type']);
                     if ($checkEqual) {
                         if (($valueMainDataType === 'literal' && $value['@value'] !== $equal)
                             || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $equal)
@@ -2096,12 +1828,10 @@ class BulkEdit
 
         /**
          * @var \Omeka\Api\Manager $api
-         * @var \Common\Stdlib\EasyMeta $easyMeta
          * @var \Doctrine\DBAL\Connection $connection
          */
         $api = $this->services->get('Omeka\ApiManager');
-        $easyMeta = $this->services->get('Common\EasyMeta');
-        $properties = $easyMeta->propertyIds();
+        $properties = $this->easyMeta->propertyIds();
         $connection = $this->services->get('Omeka\Connection');
 
         $sqlMedia = <<<'SQL'

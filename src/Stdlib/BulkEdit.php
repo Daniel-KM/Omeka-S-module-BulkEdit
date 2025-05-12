@@ -1839,9 +1839,9 @@ class BulkEdit
         $connection = $this->services->get('Omeka\Connection');
 
         $sqlMedia = <<<'SQL'
-UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
-UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
-SQL;
+            UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
+            UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
+            SQL;
 
         foreach ($resourceIds as $resourceId) {
             try {

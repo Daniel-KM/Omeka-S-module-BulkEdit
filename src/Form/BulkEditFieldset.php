@@ -287,7 +287,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'replace',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Replace literal values'), // @translate
+                    'label' => $this->translator->translate('Replace values or uris'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace',
@@ -298,6 +298,25 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ]);
         $fieldset = $this->get('replace');
         $fieldset
+            ->add([
+                'name' => 'value_part',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Part of value', // @translate
+                    'value_options' => [
+                        'value' => 'Value', // @translate
+                        'uri' => 'Uri', // @translate
+                        'uri_label' => 'Uri label', // @translate
+                        'literal' => 'Data type "literal"', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'replace_value_part',
+                    'value' => 'value',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
             ->add([
                 'name' => 'mode',
                 'type' => CommonElement\OptionalRadio::class,
@@ -415,7 +434,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
-            ]);
+            ])
+        ;
         return $this;
     }
 

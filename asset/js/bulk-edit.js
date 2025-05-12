@@ -152,6 +152,7 @@ $(document).ready(function() {
         'bulkedit[cleaning][clean_language_codes_from]': '',
         'bulkedit[cleaning][clean_language_codes_to]': '',
         'bulkedit[cleaning][deduplicate_values]': '0',
+        'bulkedit[replace][value_part]': 'value',
         'bulkedit[replace][from]': '',
         'bulkedit[replace][to]': '',
         'bulkedit[replace][mode]': 'raw',

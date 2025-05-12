@@ -584,6 +584,7 @@ class Module extends AbstractModule
         $params = $bulkedit['replace'] ?? [];
         if (!empty($params['mode']) && !empty($params['properties'])) {
             $processes['replace'] = [
+                'value_part' => trim($params['value_part'] ?? ''),
                 'mode' => $params['mode'],
                 'from' => $params['from'] ?? '',
                 'to' => $params['to'] ?? '',

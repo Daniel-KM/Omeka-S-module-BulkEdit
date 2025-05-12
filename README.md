@@ -131,6 +131,9 @@ as html encoded string too. For example, string `café` will be checked with
 entities, it may be difficult to replace all strings. The replacement string is
 used unchanged, so it is recommended to use entities for it too.
 
+For Unicode, use the mode "Convert badly formatted characters from Microsoft to Unicode",
+without option from/to.
+
 For regex, use standard patterns. Examples:
 - Convert spaces into "-" for identifiers: pattern = `~\s+~`, replacement = `-`.
 - Convert `D:20220908101423` into a normalized date: pattern = `~^D:(\d{4})(\d{2})(\d{2})~`,

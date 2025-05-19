@@ -255,7 +255,10 @@ class Module extends AbstractModule
                 }
                 // Reorder all keys of all the values to simplify strict check.
                 foreach ($values as &$value) {
-                    ksort($value);
+                    // Sometime, a module may insert a bad value.
+                    if (is_array($value)) {
+                        ksort($value);
+                    }
                 }
                 unset($value);
                 $test = [];

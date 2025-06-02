@@ -554,7 +554,24 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
-            ]);
+            ])
+            ->add([
+                'name' => 'datatype',
+                'type' => CommonElement\DataTypeSelect::class,
+                'options' => [
+                    'label' => 'Change data type in new property (warning: this is not a conversion)', // @translate
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'copy_datatype',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-placeholder' => 'Select a data type…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+        ;
 
         return $this;
     }
@@ -673,7 +690,24 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
-            ]);
+            ])
+            ->add([
+                'name' => 'datatype',
+                'type' => CommonElement\DataTypeSelect::class,
+                'options' => [
+                    'label' => 'Change data type in new property (warning: this is not a conversion)', // @translate
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'displace_datatype',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-placeholder' => 'Select a data type…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+        ;
 
         return $this;
     }

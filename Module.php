@@ -610,6 +610,7 @@ class Module extends AbstractModule
                     'languages' => $params['languages'] ?: [],
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
+                    'datatype' => $params['datatype'],
                 ];
             }
         }
@@ -625,6 +626,7 @@ class Module extends AbstractModule
                     'languages' => $params['languages'] ?: [],
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
+                    'datatype' => $params['datatype'],
                 ];
             }
         }

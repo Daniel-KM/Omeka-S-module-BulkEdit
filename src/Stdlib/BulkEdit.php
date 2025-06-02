@@ -323,6 +323,7 @@ class BulkEdit
             $languages = $params['languages'];
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $contains = (string) $params['contains'];
+            $toDataType = empty($params['datatype']) ? null : (string) $params['datatype'];
 
             $to = array_search($toProperty, $fromProperties);
             if ($to !== false) {
@@ -350,6 +351,7 @@ class BulkEdit
             $settings['visibility'] = $visibility;
             $settings['contains'] = $contains;
             $settings['to'] = $to;
+            $settings['toDataType'] = $toDataType;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDataType'] = $checkDataType;
             $settings['checkLanguage'] = $checkLanguage;
@@ -397,6 +399,9 @@ class BulkEdit
                     continue;
                 }
                 $value['property_id'] = $toId;
+                if ($toDataType) {
+                    $value['type'] = $toDataType;
+                }
                 unset($value['property_label']);
                 $data[$toProperty][] = $value;
                 if ($displace) {

@@ -206,6 +206,9 @@ order of values first.
 Select the source datatype and the new datatype. Only some datatype are managed
 currently .
 
+When converting from an url to geographic coordinates (module [Data Type Geometry])
+with a uri to [Geonames], the real coordinates are fetched.
+
 ### Fill data
 
 #### Update or remove owner
@@ -313,6 +316,8 @@ then improved for various projects.
 [Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
 [omeka/omeka-s#1258]: https://github.com/omeka/omeka-s/issues/1258
 [Reference]: https://gitlab.com/Daniel-KM/Omeka-S-module-Reference
+[Data Type Geometry]: https://gitlab.com/Daniel-KM/Omeka-S-module-DataTypeGeometry
+[Geonames]: https://www.geonames.org/
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit/-/issues
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html

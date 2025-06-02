@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-12 00:00+0000\n"
-"PO-Revision-Date: 2025-05-12 00:00+0000\n"
+"POT-Creation-Date: 2025-06-02 00:00+0000\n"
+"PO-Revision-Date: 2025-06-02 00:00+0000\n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr "Le module %1$s doit être mis à niveau à la version %2$s ou supérieure."
 
-#: Module.php:1048
+#: Module.php:1053
 msgid ""
 "The base uri is not set (key [file_store][local][base_uri]) in the config "
 "file of Omeka \"config/local.config.php\". It must be set for now (key "
@@ -45,75 +45,75 @@ msgstr "Remplacer des valeurs ou des uris"
 msgid "Copy values"
 msgstr "Copier les valeurs"
 
-#: src/Form/BulkEditFieldset.php:572
+#: src/Form/BulkEditFieldset.php:589
 msgid "Displace values"
 msgstr "Déplacer des valeurs"
 
-#: src/Form/BulkEditFieldset.php:688
+#: src/Form/BulkEditFieldset.php:722
 msgid "Explode values"
 msgstr "Éclater des valeurs"
 
-#: src/Form/BulkEditFieldset.php:752
+#: src/Form/BulkEditFieldset.php:786
 msgid "Merge values as uri and label"
 msgstr "Fusionner les valeurs en tant qu’uri avec un libellé"
 
-#: src/Form/BulkEditFieldset.php:793
+#: src/Form/BulkEditFieldset.php:827
 msgid "Convert data type"
 msgstr "Conversion du type de données"
 
-#: src/Form/BulkEditFieldset.php:1038
+#: src/Form/BulkEditFieldset.php:1073
 msgid "Values order"
 msgstr "Tri des valeurs"
 
-#: src/Form/BulkEditFieldset.php:1094
+#: src/Form/BulkEditFieldset.php:1129
 msgid "Visibility of values"
 msgstr "Visibilité des valeurs"
 
-#: src/Form/BulkEditFieldset.php:1196
+#: src/Form/BulkEditFieldset.php:1231
 msgid "Fill and update metadata"
 msgstr "Remplir et mettre à jour les métadonnées"
 
-#: src/Form/BulkEditFieldset.php:1265
+#: src/Form/BulkEditFieldset.php:1300
 msgid "Fill labels or uris for Value Suggest"
 msgstr "Remplir les libellés ou les uris pour Value Suggest"
 
-#: src/Form/BulkEditFieldset.php:1460
+#: src/Form/BulkEditFieldset.php:1495
 msgid "Remove values, linked resources, or uris from a property"
 msgstr "Supprimer les valeurs, ressources liées ou les uris d’une propriété"
 
-#: src/Form/BulkEditFieldset.php:1574
+#: src/Form/BulkEditFieldset.php:1609
 msgid "Thumbnails"
 msgstr "Vignettes"
 
-#: src/Form/BulkEditFieldset.php:1636
+#: src/Form/BulkEditFieldset.php:1671
 msgid "Explode item by media"
 msgstr "Éclater les contenus par média"
 
-#: src/Form/BulkEditFieldset.php:1695
+#: src/Form/BulkEditFieldset.php:1730
 msgid "Explode pdf into jpeg for iiif viewers"
 msgstr "Éclater les pdf en images jpeg pour les visionneuses iiif"
 
-#: src/Form/BulkEditFieldset.php:1798
+#: src/Form/BulkEditFieldset.php:1833
 msgid "Remove media"
 msgstr "Supprimer le média"
 
-#: src/Form/BulkEditFieldset.php:1886
+#: src/Form/BulkEditFieldset.php:1921
 msgid "Media order"
 msgstr "Ordre des médias"
 
-#: src/Form/BulkEditFieldset.php:2000
+#: src/Form/BulkEditFieldset.php:2035
 msgid "Media HTML"
 msgstr "Média HTML"
 
-#: src/Form/BulkEditFieldset.php:2095
+#: src/Form/BulkEditFieldset.php:2130
 msgid "Media source"
 msgstr "Source du média"
 
-#: src/Form/BulkEditFieldset.php:2187
+#: src/Form/BulkEditFieldset.php:2222
 msgid "Media type (mime-type)"
 msgstr "Média-type (mime-type)"
 
-#: src/Form/BulkEditFieldset.php:2233
+#: src/Form/BulkEditFieldset.php:2268
 msgid "Visibility of medias"
 msgstr "Visibilité des médias"
 
@@ -173,7 +173,7 @@ msgstr ""
 "par Microsoft en Unicode standard (problèmes Windows tels que « Ã© » pour "
 "« é »)."
 
-#: Module.php:880
+#: Module.php:885
 msgid ""
 "Cleaned params used for bulk edit:\n"
 "{json}"
@@ -260,14 +260,14 @@ msgid "To code"
 msgstr "Vers le code"
 
 #: src/Form/BulkEditFieldset.php:247 src/Form/BulkEditFieldset.php:422
-#: src/Form/BulkEditFieldset.php:841 src/Form/BulkEditFieldset.php:1127
-#: src/Form/BulkEditFieldset.php:1330 src/Form/BulkEditFieldset.php:1475
+#: src/Form/BulkEditFieldset.php:875 src/Form/BulkEditFieldset.php:1162
+#: src/Form/BulkEditFieldset.php:1365 src/Form/BulkEditFieldset.php:1510
 msgid "For properties"
 msgstr "Pour les propriétés"
 
 #: src/Form/BulkEditFieldset.php:250 src/Form/BulkEditFieldset.php:425
-#: src/Form/BulkEditFieldset.php:846 src/Form/BulkEditFieldset.php:1069
-#: src/Form/BulkEditFieldset.php:1130 src/Form/BulkEditFieldset.php:1478
+#: src/Form/BulkEditFieldset.php:880 src/Form/BulkEditFieldset.php:1104
+#: src/Form/BulkEditFieldset.php:1165 src/Form/BulkEditFieldset.php:1513
 msgid "[All properties]"
 msgstr "[Toutes les propriétés]"
 
@@ -287,7 +287,7 @@ msgstr ""
 msgid "Part of value"
 msgstr "Élément de la valeur"
 
-#: src/Form/BulkEditFieldset.php:308 src/Form/BulkEditFieldset.php:1376
+#: src/Form/BulkEditFieldset.php:308 src/Form/BulkEditFieldset.php:1411
 msgid "Uri"
 msgstr "Uri"
 
@@ -299,49 +299,49 @@ msgstr "Libellé de l’uri"
 msgid "Data type \"literal\""
 msgstr "Type de donnée « textuel »"
 
-#: src/Form/BulkEditFieldset.php:324 src/Form/BulkEditFieldset.php:2015
-#: src/Form/BulkEditFieldset.php:2110
+#: src/Form/BulkEditFieldset.php:324 src/Form/BulkEditFieldset.php:2050
+#: src/Form/BulkEditFieldset.php:2145
 msgid "Replacement mode"
 msgstr "Mode de remplacement"
 
-#: src/Form/BulkEditFieldset.php:326 src/Form/BulkEditFieldset.php:1594
-#: src/Form/BulkEditFieldset.php:1670 src/Form/BulkEditFieldset.php:1726
-#: src/Form/BulkEditFieldset.php:2017 src/Form/BulkEditFieldset.php:2112
+#: src/Form/BulkEditFieldset.php:326 src/Form/BulkEditFieldset.php:1629
+#: src/Form/BulkEditFieldset.php:1705 src/Form/BulkEditFieldset.php:1761
+#: src/Form/BulkEditFieldset.php:2052 src/Form/BulkEditFieldset.php:2147
 msgid "No process"
 msgstr "Pas de traitement"
 
-#: src/Form/BulkEditFieldset.php:327 src/Form/BulkEditFieldset.php:2018
-#: src/Form/BulkEditFieldset.php:2115
+#: src/Form/BulkEditFieldset.php:327 src/Form/BulkEditFieldset.php:2053
+#: src/Form/BulkEditFieldset.php:2150
 msgid "Simple"
 msgstr "Simple"
 
-#: src/Form/BulkEditFieldset.php:328 src/Form/BulkEditFieldset.php:2019
-#: src/Form/BulkEditFieldset.php:2116
+#: src/Form/BulkEditFieldset.php:328 src/Form/BulkEditFieldset.php:2054
+#: src/Form/BulkEditFieldset.php:2151
 msgid "Simple (case insensitive)"
 msgstr "Simple (insensible à la casse)"
 
-#: src/Form/BulkEditFieldset.php:329 src/Form/BulkEditFieldset.php:2021
+#: src/Form/BulkEditFieldset.php:329 src/Form/BulkEditFieldset.php:2056
 msgid "Simple and html entities"
 msgstr "Simple et entités html"
 
-#: src/Form/BulkEditFieldset.php:330 src/Form/BulkEditFieldset.php:2020
-#: src/Form/BulkEditFieldset.php:2117
+#: src/Form/BulkEditFieldset.php:330 src/Form/BulkEditFieldset.php:2055
+#: src/Form/BulkEditFieldset.php:2152
 msgid ""
 "Convert badly formatted characters from Microsoft to Unicode (\"Ã©\" to "
 "\"é\")"
 msgstr ""
 "Convertir les caractères incorrects Microsoft vers Unicode (« Ã© » en « é »)"
 
-#: src/Form/BulkEditFieldset.php:331 src/Form/BulkEditFieldset.php:2022
-#: src/Form/BulkEditFieldset.php:2118
+#: src/Form/BulkEditFieldset.php:331 src/Form/BulkEditFieldset.php:2057
+#: src/Form/BulkEditFieldset.php:2153
 msgid "Regex (full pattern)"
 msgstr "Regex (modèle complet)"
 
-#: src/Form/BulkEditFieldset.php:332 src/Form/BulkEditFieldset.php:2113
+#: src/Form/BulkEditFieldset.php:332 src/Form/BulkEditFieldset.php:2148
 msgid "Base name (last part of a file path or url)"
 msgstr "Nom de base (dernière partie d’un chemin ou d’une url)"
 
-#: src/Form/BulkEditFieldset.php:333 src/Form/BulkEditFieldset.php:2114
+#: src/Form/BulkEditFieldset.php:333 src/Form/BulkEditFieldset.php:2149
 msgid "Base name without extension"
 msgstr "Nom de fichier sans extension"
 
@@ -349,23 +349,23 @@ msgstr "Nom de fichier sans extension"
 msgid "Remove whole value"
 msgstr "Supprimer la valeur complète"
 
-#: src/Form/BulkEditFieldset.php:348 src/Form/BulkEditFieldset.php:2037
-#: src/Form/BulkEditFieldset.php:2133
+#: src/Form/BulkEditFieldset.php:348 src/Form/BulkEditFieldset.php:2072
+#: src/Form/BulkEditFieldset.php:2168
 msgid "String to replace"
 msgstr "Chaîne à remplacer"
 
-#: src/Form/BulkEditFieldset.php:360 src/Form/BulkEditFieldset.php:2049
-#: src/Form/BulkEditFieldset.php:2145
+#: src/Form/BulkEditFieldset.php:360 src/Form/BulkEditFieldset.php:2084
+#: src/Form/BulkEditFieldset.php:2180
 msgid "By"
 msgstr "Par"
 
-#: src/Form/BulkEditFieldset.php:372 src/Form/BulkEditFieldset.php:2061
-#: src/Form/BulkEditFieldset.php:2157
+#: src/Form/BulkEditFieldset.php:372 src/Form/BulkEditFieldset.php:2096
+#: src/Form/BulkEditFieldset.php:2192
 msgid "String to prepend"
 msgstr "Chaîne à préposer"
 
-#: src/Form/BulkEditFieldset.php:384 src/Form/BulkEditFieldset.php:2073
-#: src/Form/BulkEditFieldset.php:2169
+#: src/Form/BulkEditFieldset.php:384 src/Form/BulkEditFieldset.php:2108
+#: src/Form/BulkEditFieldset.php:2204
 msgid "String to append"
 msgstr "Chaîne à apposer"
 
@@ -377,51 +377,62 @@ msgstr "Choisir une langue"
 msgid "Remove language"
 msgstr "Supprimer la langue"
 
-#: src/Form/BulkEditFieldset.php:468 src/Form/BulkEditFieldset.php:587
+#: src/Form/BulkEditFieldset.php:468 src/Form/BulkEditFieldset.php:604
 msgid "From properties"
 msgstr "Depuis les propriétés"
 
-#: src/Form/BulkEditFieldset.php:486 src/Form/BulkEditFieldset.php:605
+#: src/Form/BulkEditFieldset.php:486 src/Form/BulkEditFieldset.php:622
 msgid "To property"
 msgstr "Vers la propriété"
 
-#: src/Form/BulkEditFieldset.php:503 src/Form/BulkEditFieldset.php:622
-#: src/Form/BulkEditFieldset.php:1148 src/Form/BulkEditFieldset.php:1496
+#: src/Form/BulkEditFieldset.php:503 src/Form/BulkEditFieldset.php:639
+#: src/Form/BulkEditFieldset.php:1183 src/Form/BulkEditFieldset.php:1531
 msgid "Only data types"
 msgstr "Seulement les types de données"
 
-#: src/Form/BulkEditFieldset.php:504 src/Form/BulkEditFieldset.php:623
-#: src/Form/BulkEditFieldset.php:1149 src/Form/BulkEditFieldset.php:1368
-#: src/Form/BulkEditFieldset.php:1497
+#: src/Form/BulkEditFieldset.php:504 src/Form/BulkEditFieldset.php:640
+#: src/Form/BulkEditFieldset.php:1184 src/Form/BulkEditFieldset.php:1403
+#: src/Form/BulkEditFieldset.php:1532
 msgid "[All data types]"
 msgstr "[Tous les types de données]"
 
-#: src/Form/BulkEditFieldset.php:519 src/Form/BulkEditFieldset.php:638
-#: src/Form/BulkEditFieldset.php:1164 src/Form/BulkEditFieldset.php:1512
+#: src/Form/BulkEditFieldset.php:519 src/Form/BulkEditFieldset.php:655
+#: src/Form/BulkEditFieldset.php:1199 src/Form/BulkEditFieldset.php:1547
 msgid "Only languages"
 msgstr "Seulement les langues"
 
-#: src/Form/BulkEditFieldset.php:532 src/Form/BulkEditFieldset.php:651
-#: src/Form/BulkEditFieldset.php:1525
+#: src/Form/BulkEditFieldset.php:532 src/Form/BulkEditFieldset.php:668
+#: src/Form/BulkEditFieldset.php:1560
 msgid "Only visibility"
 msgstr "Seulement la visibilité"
 
-#: src/Form/BulkEditFieldset.php:536 src/Form/BulkEditFieldset.php:655
-#: src/Form/BulkEditFieldset.php:1529
+#: src/Form/BulkEditFieldset.php:536 src/Form/BulkEditFieldset.php:672
+#: src/Form/BulkEditFieldset.php:1564
 msgid "Any"
 msgstr "Tous"
 
-#: src/Form/BulkEditFieldset.php:550 src/Form/BulkEditFieldset.php:669
-#: src/Form/BulkEditFieldset.php:733 src/Form/BulkEditFieldset.php:1019
-#: src/Form/BulkEditFieldset.php:1177
+#: src/Form/BulkEditFieldset.php:550 src/Form/BulkEditFieldset.php:686
+#: src/Form/BulkEditFieldset.php:767 src/Form/BulkEditFieldset.php:1054
+#: src/Form/BulkEditFieldset.php:1212
 msgid "Only containing"
 msgstr "Seulement contenant"
 
-#: src/Form/BulkEditFieldset.php:721
+#: src/Form/BulkEditFieldset.php:562 src/Form/BulkEditFieldset.php:698
+msgid "Change data type in new property (warning: this is not a conversion)"
+msgstr ""
+"Changer le type de données dans la nouvelle propriété (attention :ce n’est "
+"pas une conversion)"
+
+#: src/Form/BulkEditFieldset.php:569 src/Form/BulkEditFieldset.php:705
+#: src/Form/BulkEditFieldset.php:1436
+msgid "Select a data type…"
+msgstr "Choisir un type de données…"
+
+#: src/Form/BulkEditFieldset.php:755
 msgid "Separator"
 msgstr "Séparateur"
 
-#: src/Form/BulkEditFieldset.php:753
+#: src/Form/BulkEditFieldset.php:787
 msgid ""
 "The values are merged two by two, whatever order and initial data type. The "
 "number of values must be even and clean."
@@ -429,225 +440,225 @@ msgstr ""
 "Les valeurs sont fusionnées deux par deux, quelque soient l’ordre et le type "
 "de données. Le nombre de données doit être pair."
 
-#: src/Form/BulkEditFieldset.php:808
+#: src/Form/BulkEditFieldset.php:842
 msgid "From data type"
 msgstr "Depuis le type de données"
 
-#: src/Form/BulkEditFieldset.php:816 src/Form/BulkEditFieldset.php:832
+#: src/Form/BulkEditFieldset.php:850 src/Form/BulkEditFieldset.php:866
 msgid "Select data type"
 msgstr "Choisir un type de données"
 
-#: src/Form/BulkEditFieldset.php:825
+#: src/Form/BulkEditFieldset.php:859
 msgid "To data type"
 msgstr "Vers le type de données"
 
-#: src/Form/BulkEditFieldset.php:862
+#: src/Form/BulkEditFieldset.php:896
 msgid "Convert to literal: Content"
 msgstr "Conversion en texte : contenu"
 
-#: src/Form/BulkEditFieldset.php:864
+#: src/Form/BulkEditFieldset.php:898
 msgid "Label and uri"
 msgstr "Libellé et uri"
 
-#: src/Form/BulkEditFieldset.php:865
+#: src/Form/BulkEditFieldset.php:899
 msgid "Uri and label"
 msgstr "Uri et libellé"
 
-#: src/Form/BulkEditFieldset.php:866
+#: src/Form/BulkEditFieldset.php:900
 msgid "Label if present, else uri"
 msgstr "Libellé si présent, sinon uri"
 
-#: src/Form/BulkEditFieldset.php:867
+#: src/Form/BulkEditFieldset.php:901
 msgid "Label only"
 msgstr "Libellé seul"
 
-#: src/Form/BulkEditFieldset.php:868
+#: src/Form/BulkEditFieldset.php:902
 msgid "Uri only"
 msgstr "Uri seulement"
 
-#: src/Form/BulkEditFieldset.php:877 src/Form/BulkEditFieldset.php:1953
+#: src/Form/BulkEditFieldset.php:903
+msgid "Geonames to coordinates"
+msgstr "Géonames vers coordonnées"
+
+#: src/Form/BulkEditFieldset.php:912 src/Form/BulkEditFieldset.php:1988
 msgid "Select option"
 msgstr "Choisir une option"
 
-#: src/Form/BulkEditFieldset.php:886
+#: src/Form/BulkEditFieldset.php:921
 msgid "Convert to literal: keep only text from html/xml"
 msgstr "Conversion en texte : conserver uniquement le texte pour html/xml"
 
-#: src/Form/BulkEditFieldset.php:900
+#: src/Form/BulkEditFieldset.php:935
 msgid "Convert to html/xml: only html/xml-looking strings"
 msgstr ""
 "Conversion en html/xml : seulement les chaînes similaires à du html/xml"
 
-#: src/Form/BulkEditFieldset.php:914
+#: src/Form/BulkEditFieldset.php:949
 msgid "Convert to linked resource: Preprocess value"
 msgstr "Conversion en ressource liée : pré-traitement de la valeur"
 
-#: src/Form/BulkEditFieldset.php:916
+#: src/Form/BulkEditFieldset.php:951
 msgid "Use full value as identifier"
 msgstr "Utiliser la valeur complète en tant qu’identifiant"
 
-#: src/Form/BulkEditFieldset.php:917
+#: src/Form/BulkEditFieldset.php:952
 msgid "Use basename as identifier"
 msgstr "Utiliser le nom de base en tant qu’identifiant"
 
-#: src/Form/BulkEditFieldset.php:918
+#: src/Form/BulkEditFieldset.php:953
 msgid "Use basename without extension"
 msgstr "Utiliser le nom de fichier sans extension"
 
-#: src/Form/BulkEditFieldset.php:933
+#: src/Form/BulkEditFieldset.php:968
 msgid "Convert to linked resource: Properties where to search the identifier"
 msgstr ""
 "Conversion en ressource liée : propriétés dans lesquelles rechercher "
 "l’identifiant"
 
-#: src/Form/BulkEditFieldset.php:936
+#: src/Form/BulkEditFieldset.php:971
 msgid "Omeka internal id"
 msgstr "Id interne d’Omeka"
 
-#: src/Form/BulkEditFieldset.php:955
+#: src/Form/BulkEditFieldset.php:990
 msgid "Convert to uri: extract label after uri"
 msgstr "Conversion en uri : extraire le libellé après l’uri"
 
-#: src/Form/BulkEditFieldset.php:969
+#: src/Form/BulkEditFieldset.php:1004
 msgid "Convert to uri: Label of uri"
 msgstr "Conversion en uri : libellé de l’uri"
 
-#: src/Form/BulkEditFieldset.php:982
+#: src/Form/BulkEditFieldset.php:1017
 msgid "Convert to place: Language"
 msgstr "Conversion en lieu : langue"
 
-#: src/Form/BulkEditFieldset.php:984
+#: src/Form/BulkEditFieldset.php:1019
 msgid "English"
 msgstr "Anglais"
 
-#: src/Form/BulkEditFieldset.php:985
+#: src/Form/BulkEditFieldset.php:1020
 msgid "French"
 msgstr "Français"
 
-#: src/Form/BulkEditFieldset.php:999
+#: src/Form/BulkEditFieldset.php:1034
 msgid "Convert to uri: Site to use as base url"
 msgstr "Conversion en uri : site pour l’url de base"
 
-#: src/Form/BulkEditFieldset.php:1002
+#: src/Form/BulkEditFieldset.php:1037
 msgid "Api url"
 msgstr "Url de l’api"
 
-#: src/Form/BulkEditFieldset.php:1010
+#: src/Form/BulkEditFieldset.php:1045
 msgid "Select a site"
 msgstr "Choisir un site"
 
-#: src/Form/BulkEditFieldset.php:1053
+#: src/Form/BulkEditFieldset.php:1088
 msgid "Order by language"
 msgstr "Trier par langue"
 
-#: src/Form/BulkEditFieldset.php:1054
+#: src/Form/BulkEditFieldset.php:1089
 msgid "List the language you want to order before other values."
 msgstr "Lister les langues que vous voulez placer avant les autres valeurs."
 
-#: src/Form/BulkEditFieldset.php:1066
+#: src/Form/BulkEditFieldset.php:1101
 msgid "Properties to order"
 msgstr "Propriétés à trier"
 
-#: src/Form/BulkEditFieldset.php:1211
+#: src/Form/BulkEditFieldset.php:1246
 msgid "Append or remove owner"
 msgstr "Ajouter ou supprimer le propriétaire"
 
-#: src/Form/BulkEditFieldset.php:1214
+#: src/Form/BulkEditFieldset.php:1249
 msgid "Remove owner"
 msgstr "Supprimer le propriétaire"
 
-#: src/Form/BulkEditFieldset.php:1221
+#: src/Form/BulkEditFieldset.php:1256
 msgid "Select a user…"
 msgstr "Choisir un utilisateur…"
 
-#: src/Form/BulkEditFieldset.php:1280
+#: src/Form/BulkEditFieldset.php:1315
 msgid "Fill mode"
 msgstr "Mode de remplissage"
 
-#: src/Form/BulkEditFieldset.php:1284
+#: src/Form/BulkEditFieldset.php:1319
 msgid "Fill missing labels of uris"
 msgstr "Remplir les libellés manquants des uris"
 
-#: src/Form/BulkEditFieldset.php:1291
+#: src/Form/BulkEditFieldset.php:1326
 msgid "Reset and fill all labels of uris"
 msgstr "Réinitialiser et remplir tous les libellés des uris"
 
-#: src/Form/BulkEditFieldset.php:1298
+#: src/Form/BulkEditFieldset.php:1333
 msgid "Remove labels of uris"
 msgstr "Supprimer les libellés des uris"
 
-#: src/Form/BulkEditFieldset.php:1305
+#: src/Form/BulkEditFieldset.php:1340
 msgid "Fill missing uri from labels"
 msgstr "Remplir les uris manquantes à partir des libellés"
 
-#: src/Form/BulkEditFieldset.php:1312
+#: src/Form/BulkEditFieldset.php:1347
 msgid "Reset and fill missing uri from labels"
 msgstr "Réinitialiser et remplir les uris à partir des libellés"
 
-#: src/Form/BulkEditFieldset.php:1348 src/Form/BulkEditFieldset.php:1350
+#: src/Form/BulkEditFieldset.php:1383 src/Form/BulkEditFieldset.php:1385
 msgid ""
 "The uri can be filled only when the remote endpoint returns a single result."
 msgstr ""
 "L’uri peut être remplie seulement si le service retourne un résultat unique."
 
-#: src/Form/BulkEditFieldset.php:1363
+#: src/Form/BulkEditFieldset.php:1398
 msgid "Data types to process"
 msgstr "Types de données à traiter"
 
-#: src/Form/BulkEditFieldset.php:1372
+#: src/Form/BulkEditFieldset.php:1407
 msgid "Literal"
 msgstr "Textuel"
 
-#: src/Form/BulkEditFieldset.php:1393
+#: src/Form/BulkEditFieldset.php:1428
 msgid "Data type to use when the value is literal or uri"
 msgstr "Type de données précis à utiliser quand la valeur est texte ou uri"
 
-#: src/Form/BulkEditFieldset.php:1401
-msgid "Select a data type…"
-msgstr "Choisir un type de données…"
-
-#: src/Form/BulkEditFieldset.php:1410
+#: src/Form/BulkEditFieldset.php:1445
 msgid "Language code for querying and filling"
 msgstr "Code de langue pour rechercher et remplir"
 
-#: src/Form/BulkEditFieldset.php:1422
+#: src/Form/BulkEditFieldset.php:1457
 msgid "Update language in value"
 msgstr "Mettre à jour la langue dans la valeur"
 
-#: src/Form/BulkEditFieldset.php:1424
+#: src/Form/BulkEditFieldset.php:1459
 msgid "Keep"
 msgstr "Conserver"
 
-#: src/Form/BulkEditFieldset.php:1440
+#: src/Form/BulkEditFieldset.php:1475
 msgid "Use featured subject (Rameau)"
 msgstr "Utiliser les vedettes-matières (Rameau)"
 
-#: src/Form/BulkEditFieldset.php:1543
+#: src/Form/BulkEditFieldset.php:1578
 msgid "Only equal to"
 msgstr "Seulement égal à"
 
-#: src/Form/BulkEditFieldset.php:1555
+#: src/Form/BulkEditFieldset.php:1590
 msgid "Only containing string (text or uri)"
 msgstr "Seulement contenant la chaîne (texte ou uri)"
 
-#: src/Form/BulkEditFieldset.php:1589 src/Form/BulkEditFieldset.php:1665
+#: src/Form/BulkEditFieldset.php:1624 src/Form/BulkEditFieldset.php:1700
 msgid "What to do with media metadata"
 msgstr "Que faire avec les métadonnées du média"
 
-#: src/Form/BulkEditFieldset.php:1595
+#: src/Form/BulkEditFieldset.php:1630
 msgid "Attach the thumbnail to all resources"
 msgstr "Joindre la vignette à toutes les ressources"
 
-#: src/Form/BulkEditFieldset.php:1596
+#: src/Form/BulkEditFieldset.php:1631
 msgid "Attach the thumbnail only if the resource has no thumbnail"
 msgstr "Attacher la vignette seulement si la ressource n’a pas de vignette"
 
-#: src/Form/BulkEditFieldset.php:1597
+#: src/Form/BulkEditFieldset.php:1632
 msgid "Attach the thumbnail only if the resource has no primary media"
 msgstr ""
 "Attacher la vignette seulement si la ressource n’a pas de média principal"
 
-#: src/Form/BulkEditFieldset.php:1598
+#: src/Form/BulkEditFieldset.php:1633
 msgid ""
 "Attach the thumbnail only if the resource has no thumbnail and no primary "
 "media"
@@ -655,29 +666,29 @@ msgstr ""
 "Attacher la vignette seulement si la ressource n’a pas de vignette et pas de "
 "média principal"
 
-#: src/Form/BulkEditFieldset.php:1599
+#: src/Form/BulkEditFieldset.php:1634
 msgid "Attach the thumbnail only if the resource has already a thumbnail"
 msgstr "Attacher la vignette seulement si la ressource a déjà une vignette"
 
-#: src/Form/BulkEditFieldset.php:1600
+#: src/Form/BulkEditFieldset.php:1635
 msgid "Remove the specified thumbnail only if the resource has it"
 msgstr ""
 "Supprimer la vignette spécifiée uniquement si la ressource en possède une"
 
-#: src/Form/BulkEditFieldset.php:1601
+#: src/Form/BulkEditFieldset.php:1636
 msgid "Remove any thumbnail if the resource has a primary media"
 msgstr "Supprimer toute vignette si la ressource a un média principal"
 
-#: src/Form/BulkEditFieldset.php:1602
+#: src/Form/BulkEditFieldset.php:1637
 msgid "Remove any thumbnail from all resources"
 msgstr "Supprimer la vignette de toutes les ressources"
 
-#: src/Form/BulkEditFieldset.php:1616
+#: src/Form/BulkEditFieldset.php:1651
 msgid "Asset to attach as thumbnail"
 msgstr "Fichier à joindre en tant que vignette"
 
-#: src/Form/BulkEditFieldset.php:1651 src/Form/BulkEditFieldset.php:1653
-#: src/Form/BulkEditFieldset.php:1710 src/Form/BulkEditFieldset.php:1712
+#: src/Form/BulkEditFieldset.php:1686 src/Form/BulkEditFieldset.php:1688
+#: src/Form/BulkEditFieldset.php:1745 src/Form/BulkEditFieldset.php:1747
 msgid ""
 "Check first in jobs and logs that there is no background process working on "
 "medias, for example data extraction or indexation."
@@ -686,211 +697,211 @@ msgstr ""
 "n’est en cours dans les médias, par exemple des extractions ou des "
 "indexations."
 
-#: src/Form/BulkEditFieldset.php:1671
+#: src/Form/BulkEditFieldset.php:1706
 msgid "Append media metadata to item metadata"
 msgstr "Ajouter les métadonnées du média aux métadonnées du contenu"
 
-#: src/Form/BulkEditFieldset.php:1672
+#: src/Form/BulkEditFieldset.php:1707
 msgid "Replace item metadata by media metadata when set"
 msgstr ""
 "Remplacer les métadonnées du contenu par les métadonnées du média quand "
 "elles existent"
 
-#: src/Form/BulkEditFieldset.php:1673
+#: src/Form/BulkEditFieldset.php:1708
 msgid "Remove all item metadata and replace them by media ones"
 msgstr ""
 "Supprimer toutes les données du contenu et les remplacer par celles du média"
 
-#: src/Form/BulkEditFieldset.php:1674
+#: src/Form/BulkEditFieldset.php:1709
 msgid "Do not copy media metadata and keep them in media"
 msgstr "Ne pas copier les métadonnées du média et les conserver dans le média"
 
-#: src/Form/BulkEditFieldset.php:1724
+#: src/Form/BulkEditFieldset.php:1759
 msgid "Process mode"
 msgstr "Mode de traitement"
 
-#: src/Form/BulkEditFieldset.php:1727
+#: src/Form/BulkEditFieldset.php:1762
 msgid "All pdf of each item"
 msgstr "Tous les pdf de chaque contenu"
 
-#: src/Form/BulkEditFieldset.php:1728
+#: src/Form/BulkEditFieldset.php:1763
 msgid "First pdf only"
 msgstr "Seulement le premier pdf"
 
-#: src/Form/BulkEditFieldset.php:1729
+#: src/Form/BulkEditFieldset.php:1764
 msgid "Last pdf only"
 msgstr "Seulement le dernier pdf"
 
-#: src/Form/BulkEditFieldset.php:1743
+#: src/Form/BulkEditFieldset.php:1778
 msgid "Creation process"
 msgstr "Type de traitement"
 
-#: src/Form/BulkEditFieldset.php:1745
+#: src/Form/BulkEditFieldset.php:1780
 msgid "All pages"
 msgstr "Toutes les pages"
 
-#: src/Form/BulkEditFieldset.php:1746
+#: src/Form/BulkEditFieldset.php:1781
 msgid "Skip existing pages (same created file name)"
 msgstr "Ignorer les pages déjà existantes (même nom de fichier)"
 
-#: src/Form/BulkEditFieldset.php:1760
+#: src/Form/BulkEditFieldset.php:1795
 msgid "Resolution, generally 72, 96, 150, 300, 400 (default), 600 or more"
 msgstr ""
 "La résolution, généralement 72, 96, 150, 300, 400 (défaut), 600 ou plus"
 
-#: src/Form/BulkEditFieldset.php:1773
+#: src/Form/BulkEditFieldset.php:1808
 msgid "Processor"
 msgstr "Processeur"
 
-#: src/Form/BulkEditFieldset.php:1776
+#: src/Form/BulkEditFieldset.php:1811
 msgid "pdftoppm (poppler)"
 msgstr "pdftoppm (poppler)"
 
-#: src/Form/BulkEditFieldset.php:1777
+#: src/Form/BulkEditFieldset.php:1812
 msgid "gs (ghostscript)"
 msgstr "gs (ghostscript)"
 
-#: src/Form/BulkEditFieldset.php:1816
+#: src/Form/BulkEditFieldset.php:1851
 msgid "Limited with media types below"
 msgstr "Limiter aux types de médias ci-dessous"
 
-#: src/Form/BulkEditFieldset.php:1817
+#: src/Form/BulkEditFieldset.php:1852
 msgid "Limited with media extensions below"
 msgstr "Limiter aux extensions de fichier ci-dessous"
 
-#: src/Form/BulkEditFieldset.php:1819
+#: src/Form/BulkEditFieldset.php:1854
 msgid "All medias"
 msgstr "Tous les médias"
 
-#: src/Form/BulkEditFieldset.php:1833
+#: src/Form/BulkEditFieldset.php:1868
 msgid "List of media types to remove"
 msgstr "Liste des types de médias à supprimer"
 
-#: src/Form/BulkEditFieldset.php:1840
+#: src/Form/BulkEditFieldset.php:1875
 msgid "Select media-types"
 msgstr "Choisir des types de médias"
 
-#: src/Form/BulkEditFieldset.php:1849
+#: src/Form/BulkEditFieldset.php:1884
 msgid "List of extensions to remove"
 msgstr "Liste des extensions à supprimer"
 
-#: src/Form/BulkEditFieldset.php:1854
+#: src/Form/BulkEditFieldset.php:1889
 msgid "replace"
 msgstr "remplacer"
 
-#: src/Form/BulkEditFieldset.php:1906
+#: src/Form/BulkEditFieldset.php:1941
 msgid "By title"
 msgstr "Par titre"
 
-#: src/Form/BulkEditFieldset.php:1907
+#: src/Form/BulkEditFieldset.php:1942
 msgid "By original source full name"
 msgstr "Par le nom de la source originale complète"
 
-#: src/Form/BulkEditFieldset.php:1908
+#: src/Form/BulkEditFieldset.php:1943
 msgid "By original source basename"
 msgstr "Par le nom de fichier source original"
 
-#: src/Form/BulkEditFieldset.php:1909
+#: src/Form/BulkEditFieldset.php:1944
 msgid "By media type"
 msgstr "Par type de média"
 
-#: src/Form/BulkEditFieldset.php:1910
+#: src/Form/BulkEditFieldset.php:1945
 msgid "By extension"
 msgstr "Par extension"
 
-#: src/Form/BulkEditFieldset.php:1916
+#: src/Form/BulkEditFieldset.php:1951
 msgid "By media type then title"
 msgstr "Par type de média puis par titre"
 
-#: src/Form/BulkEditFieldset.php:1917
+#: src/Form/BulkEditFieldset.php:1952
 msgid "By media type then source"
 msgstr "Par type de média puis par source"
 
-#: src/Form/BulkEditFieldset.php:1918
+#: src/Form/BulkEditFieldset.php:1953
 msgid "By media type then source basename"
 msgstr "Par type de média puis le nom de fichier source"
 
-#: src/Form/BulkEditFieldset.php:1924
+#: src/Form/BulkEditFieldset.php:1959
 msgid "By title then media type"
 msgstr "Par titre puis par type de média"
 
-#: src/Form/BulkEditFieldset.php:1925
+#: src/Form/BulkEditFieldset.php:1960
 msgid "By source then media type"
 msgstr "Par source puis par type de média"
 
-#: src/Form/BulkEditFieldset.php:1926
+#: src/Form/BulkEditFieldset.php:1961
 msgid "By source basename then media type"
 msgstr "Par le nom de fichier source puis par le type de média"
 
-#: src/Form/BulkEditFieldset.php:1932
+#: src/Form/BulkEditFieldset.php:1967
 msgid "By extension then title"
 msgstr "Par extension puis par le titre"
 
-#: src/Form/BulkEditFieldset.php:1933
+#: src/Form/BulkEditFieldset.php:1968
 msgid "By extension then source"
 msgstr "Par extension puis par la source"
 
-#: src/Form/BulkEditFieldset.php:1934
+#: src/Form/BulkEditFieldset.php:1969
 msgid "By extension then source basename"
 msgstr "Par extension puis par le nom de fichier source"
 
-#: src/Form/BulkEditFieldset.php:1940
+#: src/Form/BulkEditFieldset.php:1975
 msgid "By title then extension"
 msgstr "Par le titre puis par l’extension"
 
-#: src/Form/BulkEditFieldset.php:1941
+#: src/Form/BulkEditFieldset.php:1976
 msgid "By source then extension"
 msgstr "Par la source puis par l’extension"
 
-#: src/Form/BulkEditFieldset.php:1942
+#: src/Form/BulkEditFieldset.php:1977
 msgid "By source basename then extension"
 msgstr "Par le nom de fichier source puis par l’extension"
 
-#: src/Form/BulkEditFieldset.php:1962
+#: src/Form/BulkEditFieldset.php:1997
 msgid "List of media types to order first"
 msgstr "Types de médias à trier en premier"
 
-#: src/Form/BulkEditFieldset.php:1981
+#: src/Form/BulkEditFieldset.php:2016
 msgid "List of extensions to order first"
 msgstr "Extensions à trier en premier"
 
-#: src/Form/BulkEditFieldset.php:2023
+#: src/Form/BulkEditFieldset.php:2058
 msgid "Remove whole html"
 msgstr "Supprimer le html complet"
 
-#: src/Form/BulkEditFieldset.php:2119
+#: src/Form/BulkEditFieldset.php:2154
 msgid "Remove whole source"
 msgstr "Supprimer la source complète"
 
-#: src/Form/BulkEditFieldset.php:2202
+#: src/Form/BulkEditFieldset.php:2237
 msgid "Media type to replace"
 msgstr "Média-type à remplacer"
 
-#: src/Form/BulkEditFieldset.php:2214
+#: src/Form/BulkEditFieldset.php:2249
 msgid "By a valid media-type"
 msgstr "Par un média-type valide"
 
-#: src/Form/BulkEditFieldset.php:2266
+#: src/Form/BulkEditFieldset.php:2301
 msgid "Limit to media types"
 msgstr "Limiter aux média-types"
 
-#: src/Form/BulkEditFieldset.php:2267
+#: src/Form/BulkEditFieldset.php:2302
 msgid "All media types"
 msgstr "Tous les types de média"
 
-#: src/Form/BulkEditFieldset.php:2283
+#: src/Form/BulkEditFieldset.php:2318
 msgid "Limit to ingesters"
 msgstr "Limiter aux ingéreurs"
 
-#: src/Form/BulkEditFieldset.php:2284
+#: src/Form/BulkEditFieldset.php:2319
 msgid "All ingesters"
 msgstr "Tous les ingéreurs"
 
-#: src/Form/BulkEditFieldset.php:2301
+#: src/Form/BulkEditFieldset.php:2336
 msgid "Limit to renderers"
 msgstr "Limiter aux gestionnaires de rendu"
 
-#: src/Form/BulkEditFieldset.php:2302
+#: src/Form/BulkEditFieldset.php:2337
 msgid "All renderers"
 msgstr "Tous les gestionnaires de rendu"
 
@@ -942,13 +953,13 @@ msgstr ""
 "Une erreur est survenue pour la ressource #{resource_id}, propriété "
 "« {property} », avec preg_replace."
 
-#: src/Stdlib/BulkEdit.php:686
+#: src/Stdlib/BulkEdit.php:687
 msgid "A conversion requires valid \"from\" dataType and \"to\" dataType."
 msgstr ""
 "Une conversion nécessite des types de données corrects pour \"depuis\" et "
 "\"vers\"."
 
-#: src/Stdlib/BulkEdit.php:694
+#: src/Stdlib/BulkEdit.php:695
 msgid ""
 "A conversion from data type \"{datatype_1}\" to \"{datatype_2}\" requires "
 "the module Bulk Import."
@@ -956,7 +967,7 @@ msgstr ""
 "La conversion du type de données « {datatype_1} » en « {datatype_2} » "
 "nécessite le module Bulk Import."
 
-#: src/Stdlib/BulkEdit.php:701
+#: src/Stdlib/BulkEdit.php:702
 msgid ""
 "To convert into the data type \"{datatype}\", the properties where to find "
 "the identifier should be set."
@@ -964,7 +975,7 @@ msgstr ""
 "Pour convertir vers le type de données « {datatype} », il convient de "
 "définir les propriétés dans lesquelles trouver l’identifiant."
 
-#: src/Stdlib/BulkEdit.php:708
+#: src/Stdlib/BulkEdit.php:709
 msgid ""
 "The conversion from data type \"{datatype_1}\" to \"{datatype_2}\" requires "
 "a site or api to create the url."
@@ -972,7 +983,7 @@ msgstr ""
 "La conversion du type de données « {datatype_1} » en « {datatype_2} » "
 "nécessite un site ou l’api pour créer l’url."
 
-#: src/Stdlib/BulkEdit.php:725
+#: src/Stdlib/BulkEdit.php:726
 msgid ""
 "No linked resource found for resource #{resource_id}, property "
 "\"{property}\", value resource #{linked_resource_id}."
@@ -980,7 +991,7 @@ msgstr ""
 "Aucune ressource liée trouvée pour la ressource #{resource_id}, propriété "
 "« {property} », valeur ressource #{linked_resource_id}."
 
-#: src/Stdlib/BulkEdit.php:750
+#: src/Stdlib/BulkEdit.php:751
 msgid ""
 "For resource #{resource_id}, property \"{property}\", the linked resource "
 "#{linked_resource_id} is not a {resource_type}, but a {resource_name}."
@@ -989,7 +1000,7 @@ msgstr ""
 "liée #{linked_resource_id} n’est pas un {resource_type}, mais un "
 "{resource_name}."
 
-#: src/Stdlib/BulkEdit.php:811
+#: src/Stdlib/BulkEdit.php:822
 msgid ""
 "No linked resource found with properties {properties} for resource "
 "#{resource_id}, property \"{property}\", identifier \"{identifier}\"."
@@ -998,7 +1009,7 @@ msgstr ""
 "ressource #{resource_id}, propriété « {property} », identifiant "
 "« {identifier} »."
 
-#: src/Stdlib/BulkEdit.php:887
+#: src/Stdlib/BulkEdit.php:898
 msgid ""
 "For resource #{resource_id}, property \"{property}\", the uri \"{uri}\" do "
 "not return a valid place."
@@ -1006,7 +1017,7 @@ msgstr ""
 "Pour la ressource #{resource_id}, propriété « {property} », l’uri « {uri} » "
 "ne retourne pas un lieu valide."
 
-#: src/Stdlib/BulkEdit.php:893
+#: src/Stdlib/BulkEdit.php:904
 msgid ""
 "For resource #{resource_id}, property \"{property}\", the uri \"{uri}\" do "
 "not return a record."
@@ -1014,7 +1025,7 @@ msgstr ""
 "Pour la ressource #{resource_id}, propriété « {property} », l’uri « {uri} » "
 "ne retourne pas de notice."
 
-#: src/Stdlib/BulkEdit.php:939
+#: src/Stdlib/BulkEdit.php:959
 msgid ""
 "For resource #{resource_id}, property \"{property}\", the value \"{uri}\" is "
 "not a resource url."
@@ -1022,7 +1033,16 @@ msgstr ""
 "Pour la ressource #{resource_id}, propriété « {property} », la valeur "
 "« {uri} » n’est pas une url de ressource."
 
-#: src/Stdlib/BulkEdit.php:961
+#: src/Stdlib/BulkEdit.php:984
+msgid ""
+"Conversion from data type \"{datatype_1}\" to \"{datatype_2}\" is not "
+"possible in resource #{resource_id}: {value} => {value_2}"
+msgstr ""
+"La conversion du type de données « {datatype_1} » en « {datatype_2} » n’est "
+"pas possible dans la ressource #{resource_id} pour la valeur : {value} => "
+"{value_2}"
+
+#: src/Stdlib/BulkEdit.php:995
 msgid ""
 "Conversion from data type \"{datatype_1}\" to \"{datatype_2}\" is not "
 "possible in resource #{resource_id} for value: {value}"
@@ -1030,11 +1050,11 @@ msgstr ""
 "La conversion du type de données « {datatype_1} » en « {datatype_2} » n’est "
 "pas possible dans la ressource #{resource_id} pour la valeur : {value}"
 
-#: src/Stdlib/BulkEdit.php:1165
+#: src/Stdlib/BulkEdit.php:1205
 msgid "Process is skipped: mode \"{mode}\" is unmanaged"
 msgstr "Le traitement est ignoré : le mode « {mode} » n’est pas géré"
 
-#: src/Stdlib/BulkEdit.php:1182
+#: src/Stdlib/BulkEdit.php:1222
 msgid ""
 "When \"literal\" or \"uri\" is used, the precise dataType should be "
 "specified."
@@ -1042,54 +1062,54 @@ msgstr ""
 "Quand « texte » ou « uri » est utilisé, un type de données précis doit être "
 "indiqué."
 
-#: src/Stdlib/BulkEdit.php:1188
+#: src/Stdlib/BulkEdit.php:1228
 msgid "When filling an uri, the precise dataType should be specified."
 msgstr "Quand une uri est saisie, le type de données précis doit être indiqué."
 
-#: src/Stdlib/BulkEdit.php:1194
+#: src/Stdlib/BulkEdit.php:1234
 msgid "When filling an uri, the module Value Suggest should be available."
 msgstr ""
 "Quand une uri est remplie, le module Value Suggest doit être disponible."
 
-#: src/Stdlib/BulkEdit.php:1466
+#: src/Stdlib/BulkEdit.php:1506
 msgid "The mode \"{mode}\" is invalid."
 msgstr "Le mode « {mode} » est incorrect."
 
-#: src/Stdlib/BulkEdit.php:1473
+#: src/Stdlib/BulkEdit.php:1513
 msgid "The asset is missing."
 msgstr "Le fichier est manquant."
 
-#: src/Stdlib/BulkEdit.php:1548
+#: src/Stdlib/BulkEdit.php:1588
 msgid "The select mode \"{mode}\" is not supported."
 msgstr "Le mode de sélection \"{mode}\" n’est pas pris en charge."
 
-#: src/Stdlib/BulkEdit.php:1554
+#: src/Stdlib/BulkEdit.php:1594
 msgid ""
 "The select mode \"Media types\" require to specify at least one media type."
 msgstr ""
 "Le mode de sélection \"Types de médias\" nécessite de spécifier au moins un "
 "type de média."
 
-#: src/Stdlib/BulkEdit.php:1559
+#: src/Stdlib/BulkEdit.php:1599
 msgid ""
 "The select mode \"Extensions\" require to specify at least one extension."
 msgstr ""
 "Le mode de sélection \"Extensions\" nécessite de spécifier au moins une "
 "extension."
 
-#: src/Stdlib/BulkEdit.php:1659
+#: src/Stdlib/BulkEdit.php:1699
 msgid "Order \"{order}\" is invalid."
 msgstr "Le tri « {order} » est incorrect."
 
-#: src/Stdlib/BulkEdit.php:1921 src/Stdlib/BulkEdit.php:1935
+#: src/Stdlib/BulkEdit.php:1961 src/Stdlib/BulkEdit.php:1975
 msgid "Item #{item_id} cannot be exploded: {message}"
 msgstr "Le contenu #{item_id} ne peut pas être éclaté : {message}"
 
-#: src/Stdlib/BulkEdit.php:1977
+#: src/Stdlib/BulkEdit.php:2017
 msgid "Ghostscript is not available."
 msgstr "Ghostscript n’est pas disponible."
 
-#: src/Stdlib/BulkEdit.php:2010
+#: src/Stdlib/BulkEdit.php:2050
 msgid ""
 "The command \"pdftoppm\" (poppler) or \"gs\" (ghostscript) should be "
 "available to convert pdf to images."
@@ -1097,40 +1117,40 @@ msgstr ""
 "La commande \"pdftoppm\" (poppler) ou \"gs\" (ghostscript) devrait être "
 "disponible pour convertir les pdf en images."
 
-#: src/Stdlib/BulkEdit.php:2016
+#: src/Stdlib/BulkEdit.php:2056
 msgid "The command \"gs\" (ghostscript) will be used to convert pdf to images."
 msgstr ""
 "La commande \"gs\" (ghostscript) sera utilisée pour convertir les pdf en "
 "images."
 
-#: src/Stdlib/BulkEdit.php:2021
+#: src/Stdlib/BulkEdit.php:2061
 msgid ""
 "The command \"pdftoppm\" (poppler) will be used to convert pdf to images."
 msgstr ""
 "La commande \"pdftoppm\" (poppler) sera utilisée pour convertir les pdf en "
 "images."
 
-#: src/Stdlib/BulkEdit.php:2028
+#: src/Stdlib/BulkEdit.php:2068
 msgid ""
 "The command \"gs\" (ghostscript) is not available to convert pdf to images."
 msgstr ""
 "La commande \"gs\" (ghostscript) n’est pas disponible pour convertir les pdf "
 "en images."
 
-#: src/Stdlib/BulkEdit.php:2036
+#: src/Stdlib/BulkEdit.php:2076
 msgid ""
 "The command \"pdftoppm\" (poppler) is not available to convert pdf to images."
 msgstr ""
 "La commande \"pdftoppm\" (poppler) n’est pas disponible pour convertir les "
 "pdf en images."
 
-#: src/Stdlib/BulkEdit.php:2094
+#: src/Stdlib/BulkEdit.php:2134
 msgid "Unable to create temp directory \"{dir}\" for item #{item_id}."
 msgstr ""
 "Impossible de créer le dossier temporaire « {dir} » pour le contenu "
 "#{item_id}."
 
-#: src/Stdlib/BulkEdit.php:2102
+#: src/Stdlib/BulkEdit.php:2142
 msgid ""
 "Unable to create temp directory \"{dir}\" inside \"/files\" for resource "
 "#{resource_id}."
@@ -1138,53 +1158,53 @@ msgstr ""
 "Impossible de créer le dossier temporaire « {dir} » dans « /files » pour la "
 "ressource #{resource_id}."
 
-#: src/Stdlib/BulkEdit.php:2112
+#: src/Stdlib/BulkEdit.php:2152
 msgid "Unable to read pdf #{media_id}."
 msgstr "Impossible de lire le pdf #{media_id}."
 
-#: src/Stdlib/BulkEdit.php:2127
+#: src/Stdlib/BulkEdit.php:2167
 msgid ""
 "Step 1/2 for item #{item_id}, pdf #{media_id}: Extracting pages as image."
 msgstr ""
 "Étape 1/2 pour le contenu #{item_id}, pdf #{media_id} : extraction des pages "
 "en images."
 
-#: src/Stdlib/BulkEdit.php:2156
+#: src/Stdlib/BulkEdit.php:2196
 msgid "Unable to extract images from item #{item_id} pdf #{media_id}."
 msgstr ""
 "Impossible d’extraire les images du contenu #{item_id}, pdf #{media_id}."
 
-#: src/Stdlib/BulkEdit.php:2183
+#: src/Stdlib/BulkEdit.php:2223
 msgid "For item #{item_id}, pdf #{media_id} cannot be exploded into images."
 msgstr ""
 "Pour le contenu #{item_id}, le pdf #{media_id} ne peut pas être éclaté en "
 "images."
 
-#: src/Stdlib/BulkEdit.php:2191
+#: src/Stdlib/BulkEdit.php:2231
 msgid "Step 2/2 for item #{item_id}, pdf #{media_id}: Creating {total} media."
 msgstr ""
 "Étape 2/2 pour le contenu #{item_id}, pdf #{media_id} : création de {total} "
 "médias."
 
-#: src/Stdlib/BulkEdit.php:2218
+#: src/Stdlib/BulkEdit.php:2258
 msgid ""
 "File cannot be saved in temporary directory \"{dir}\" (temp file: \"{file}\")"
 msgstr ""
 "Le fichier ne peut pas être enregistré dans le dossier temporaire "
 "« {dir} » (fichier : « {file} »)"
 
-#: src/Stdlib/BulkEdit.php:2292
+#: src/Stdlib/BulkEdit.php:2332
 msgid "Update media html: Invalid regex."
 msgstr "Mise à jour des média html : regex incorrect."
 
-#: src/Stdlib/BulkEdit.php:2346
+#: src/Stdlib/BulkEdit.php:2386
 msgid ""
 "An error occurred on resource #{resource_id} for html with preg_replace."
 msgstr ""
 "Une erreur s’est produite sur la ressource #{resource_id} pour html avec "
 "preg_replace."
 
-#: src/Stdlib/BulkEdit.php:2434
+#: src/Stdlib/BulkEdit.php:2474
 msgid ""
 "An error occurred on media #{media_id} (item #{item_id}) for source with "
 "preg_replace."
@@ -1192,47 +1212,47 @@ msgstr ""
 "Une erreur s’est produite sur le média #{media_id} (contenu #{item_id} pour "
 "la source avec preg_replace."
 
-#: src/Stdlib/BulkEdit.php:2566
+#: src/Stdlib/BulkEdit.php:2606 src/Stdlib/BulkEdit.php:2697
 msgid "The provided uri \"{uri}\" is not trimmed."
 msgstr "L’uri « {uri} » contient des espaces."
 
-#: src/Stdlib/BulkEdit.php:2623
+#: src/Stdlib/BulkEdit.php:2754
 msgid "The label for uri \"{uri}\" is \"{value}\"."
 msgstr "Le libellé pour l’uri « {uri} » est « {value} »."
 
-#: src/Stdlib/BulkEdit.php:2632 src/Stdlib/BulkEdit.php:2812
+#: src/Stdlib/BulkEdit.php:2763 src/Stdlib/BulkEdit.php:2944
 msgid "The label for uri \"{uri}\" was not found."
 msgstr "Le libellé pour l’uri « {uri} » n’a pas été trouvé."
 
-#: src/Stdlib/BulkEdit.php:2659
+#: src/Stdlib/BulkEdit.php:2790
 msgid "The provided label \"{label}\" is not trimmed."
 msgstr "Le libellé fournie \"{label}\" n’est pas découpée."
 
-#: src/Stdlib/BulkEdit.php:2867
+#: src/Stdlib/BulkEdit.php:2999
 msgid "Connection error when fetching url \"{url}\": {exception}"
 msgstr "Erreur de connexion pour l’url « {url} » : {exception}"
 
-#: src/Stdlib/BulkEdit.php:2878
+#: src/Stdlib/BulkEdit.php:3010
 msgid "Connection issue when fetching url \"{url}\": {message}"
 msgstr "Problème de connexion pour l’url « {url} » : {message}"
 
-#: src/Stdlib/BulkEdit.php:2887
+#: src/Stdlib/BulkEdit.php:3019
 msgid "Output is empty for url \"{url}\"."
 msgstr "La sortie est vide pour l’url « {url} »."
 
-#: src/Stdlib/BulkEdit.php:2911
+#: src/Stdlib/BulkEdit.php:3043
 msgid "Output is not xml for url \"{url}\"."
 msgstr "La sortie n’est pas du xml pour l’url « {url} »."
 
-#: src/Stdlib/BulkEdit.php:2919
+#: src/Stdlib/BulkEdit.php:3051
 msgid "Output is not a valid xml for url \"{url}\"."
 msgstr "La sortie n’est pas du xml valide pour l’url « {url} »."
 
-#: src/Stdlib/BulkEdit.php:3204
+#: src/Stdlib/BulkEdit.php:3336
 msgid "The directory \"{path}\" is not writeable."
 msgstr "Le dossier « {path} » n’est pas inscriptible."
 
-#: src/Stdlib/BulkEdit.php:3215
+#: src/Stdlib/BulkEdit.php:3347
 msgid "The directory \"{path}\" is not writeable: {error}."
 msgstr "Le dossier « {path} » n’est pas inscriptible : {error}."
 

@@ -900,6 +900,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                         'label_or_uri' => 'Label if present, else uri', // @translate
                         'label' => 'Label only', // @translate
                         'uri' => 'Uri only', // @translate
+                        'coordinates' => 'Geonames to coordinates', // @translate
                     ],
                     'empty_option' => '',
                 ],

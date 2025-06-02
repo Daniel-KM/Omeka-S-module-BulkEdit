@@ -796,8 +796,19 @@ class BulkEdit
                         }
                         switch ($toDataTypeMain) {
                             case 'literal':
-                                // For custom vocab or specific data type.
-                                $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => (string) $value['@value'], '@id' => null, 'o:label' => null];
+                                // TODO Add an option to keep value as it? Useless for now.
+                                if ($toDataType === 'geography:coordinates' && strpos($value['@value'], 'geonames.org/') !== false) {
+                                    // TODO Clarify process like uri/place below?
+                                    $coordinates = $this->getCoordinatesForUri((string) $value['@value'], 'valuesuggest:geonames:geonames');
+                                    if (is_null($coordinates)) {
+                                        continue 3;
+                                    }
+                                    $coordinates = $coordinates['latitude'] . ',' . $coordinates['longitude'];
+                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => null, '@value' => $coordinates, '@id' => null, 'o:label' => null];
+                                } else {
+                                    // For custom vocab or specific data type.
+                                    $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => (string) $value['@value'], '@id' => null, 'o:label' => null];
+                                }
                                 break;
                             case 'resource':
                                 $val = $value['@value'];
@@ -924,6 +935,15 @@ class BulkEdit
                                     case 'uri':
                                         $newValue = ['property_id' => $value['property_id'], 'type' => $toDataType, '@language' => $value['@language'] ?? null, '@value' => $value['@id'], '@id' => null, 'o:label' => null];
                                         break;
+                                    case 'coordinates':
+                                        // TODO Clarify process like uri/place above?
+                                        $coordinates = $this->getCoordinatesForUri($value['@id'], 'valuesuggest:geonames:geonames');
+                                        if (is_null($coordinates)) {
+                                            continue 4;
+                                        }
+                                        $coordinates = $coordinates['latitude'] . ',' . $coordinates['longitude'];
+                                        $newValue = ['property_id' => $value['property_id'], 'type' => 'geography:coordinates', '@language' => null, '@value' => $coordinates, '@id' => null, 'o:label' => null];
+                                        break;
                                     default:
                                         return;
                                 }
@@ -958,10 +978,30 @@ class BulkEdit
 
                 if ($newValue) {
                     if (!$toDataTypeAdapter->isValid($newValue)) {
-                        $this->logger->notice(
-                            'Conversion from data type "{datatype_1}" to "{datatype_2}" is not possible in resource #{resource_id} for value: {value}', // @translate
-                            ['datatype_1' => $fromDataType, 'datatype_2' => $toDataType, 'resource_id' => $resource->id(), 'value' => $value[$dataTypeToValueKeys[$fromDataTypeMain]]]
-                        );
+                        $ov = $value[$dataTypeToValueKeys[$fromDataTypeMain]];
+                        $nv = $newValue['@id'] ?? $newValue['@value'] ?? null;
+                        if ($ov !== $nv) {
+                            $this->logger->notice(
+                                'Conversion from data type "{datatype_1}" to "{datatype_2}" is not possible in resource #{resource_id}: {value} => {value_2}', // @translate
+                                [
+                                    'datatype_1' => $fromDataType,
+                                    'datatype_2' => $toDataType,
+                                    'resource_id' => $resource->id(),
+                                    'value' => $ov,
+                                    'value_2' => $nv,
+                                ]
+                            );
+                        } else {
+                            $this->logger->notice(
+                                'Conversion from data type "{datatype_1}" to "{datatype_2}" is not possible in resource #{resource_id} for value: {value}', // @translate
+                                [
+                                    'datatype_1' => $fromDataType,
+                                    'datatype_2' => $toDataType,
+                                    'resource_id' => $resource->id(),
+                                    'value' => $ov,
+                                ]
+                            );
+                        }
                         continue;
                     }
                     $data[$property][$key] = $newValue;
@@ -2556,6 +2596,97 @@ class BulkEdit
         }
     }
 
+    protected function getCoordinatesForUri(string $uri, string $dataType): ?array
+    {
+        static $filleds = [];
+
+        $originalUri = $uri;
+        $uri = trim($uri);
+        if ($uri !== $originalUri) {
+            $this->logger->warn(
+                'The provided uri "{uri}" is not trimmed.', // @translate
+                ['uri' => $uri]
+            );
+        }
+
+        $endpointData = $this->endpointDataType($dataType);
+        if (!$endpointData) {
+            return null;
+        }
+
+        if (array_key_exists($uri, $filleds)) {
+            return $filleds[$uri];
+        }
+
+        // So get the url from the uri.
+        $url = $this->cleanRemoteUri($uri, $dataType);
+        if (!$url) {
+            $filleds[$uri] = null;
+            return null;
+        }
+
+        if (array_key_exists($url, $filleds)) {
+            return $filleds[$url];
+        }
+
+        $dom = $this->fetchUrlXml($url);
+        if (!$dom) {
+            return null;
+        }
+
+        $xpath = new DOMXPath($dom);
+
+        switch ($dataType) {
+            case 'valuesuggest:geonames:geonames':
+                // Probably useless.
+                $xpath->registerNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+                $xpath->registerNamespace('gn', 'http://www.geonames.org/ontology#');
+                break;
+            default:
+                return null;
+        }
+
+        // TODO Manage queries with other queries, but here it is not label and there are two values.
+
+        // See extractPlace().
+
+        $result = [
+            'latitude' => null,
+            'longitude' => null,
+        ];
+
+        $allQueries = [
+            'latitude' => [
+                '/rdf:RDF/gn:Feature/wgs84_pos:lat',
+            ],
+            'longitude' => [
+                '/rdf:RDF/gn:Feature/wgs84_pos:long',
+            ],
+        ];
+
+        $xpath = new DOMXPath($dom);
+
+        foreach ($allQueries as $key => $queries) {
+            foreach (array_filter($queries) as $query) {
+                // Useless: xpaths include prefixes. It should be applied for each xpath.
+                // $xpath->registerNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+                // $xpath->registerNamespace('gn', 'http://www.geonames.org/ontology#');
+                $nodeList = $xpath->query($query);
+                if (!$nodeList || !$nodeList->length) {
+                    continue;
+                }
+                $value = trim((string) $nodeList->item(0)->nodeValue);
+                if ($value === '') {
+                    continue;
+                }
+                $result[$key] = $value;
+                break;
+            }
+        }
+
+        return array_filter($result, 'is_scalar') ? $result : null;
+    }
+
     protected function getLabelForUri(string $uri, string $dataType, array $options = []): ?string
     {
         static $filleds = [];
@@ -2791,6 +2922,7 @@ class BulkEdit
             return null;
         }
 
+        // Check if the uri is an url.
         $isManagedUrl = false;
         foreach ($endpointData['base_url'] as $baseUrl) {
             foreach (['http://', 'https://', 'http://www.', 'https://www.'] as $prefix) {

@@ -424,15 +424,16 @@ class BulkEdit
             $properties = $params['properties'];
             $separator = $params['separator'];
             $contains = (string) $params['contains'];
+            $maxValues = empty($params['max_values']) ? null : (int) $params['max_values'];
 
-            if (empty($properties) || !mb_strlen($separator)) {
-                return;
+            // Speed up process when there is no "contains".
+            if (!strlen($contains)) {
+                $contains = $separator;
             }
 
-            $checkContains = (bool) mb_strlen($contains);
-
             $settings = $params;
-            $settings['checkContains'] = $checkContains;
+            $settings['contains'] = $contains;
+            $settings['maxValues'] = $maxValues;
         } else {
             extract($settings);
         }
@@ -447,6 +448,31 @@ class BulkEdit
             return;
         }
 
+        /**
+         * Explode a string into max values, counted from start or end (negative).
+         *
+         * Unlike explode(), the default limit is null, that means all values; and the
+         * last values are not truncated with a negative limit (first values are not
+         * exploded). So it is the meaningful inverse of explode().
+         */
+        $explodeMaxValues = function (string $delimiter, string $string, ?int $limit = null): array {
+            if ($limit === null) {
+                return explode($delimiter, $string);
+            } elseif (abs($limit) === 1) {
+                return [$string];
+            } elseif ($limit >= 0) {
+                return explode($delimiter, $string, $limit);
+            } else {
+                // TODO Check if it quicker with string reverse. Not in real cases anyway.
+                $parts = explode($delimiter, $string);
+                if (count($parts) <= abs($limit)) {
+                    return $parts;
+                }
+                $first = implode($delimiter, array_slice($parts, 0, $limit + 1));
+                return array_merge([$first], array_slice($parts, $limit + 1));
+            }
+        };
+
         foreach ($properties as $property) {
             // This variable is used to keep order of original values.
             $values = [];
@@ -455,11 +481,13 @@ class BulkEdit
                     $values[] = $value;
                     continue;
                 }
-                if ($checkContains && strpos($value['@value'], $contains) === false) {
+                // There is always a string for "contains", because the
+                // separator is set by default to speed up process.
+                if (strpos($value['@value'], $contains) === false) {
                     $values[] = $value;
                     continue;
                 }
-                $vs = array_filter(array_map('trim', explode($separator, $value['@value'])), 'strlen');
+                $vs = array_filter(array_map('trim', $explodeMaxValues($separator, $value['@value'], $maxValues)), 'strlen');
                 if (empty($vs)) {
                     continue;
                 }

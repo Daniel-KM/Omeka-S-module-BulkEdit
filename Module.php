@@ -633,12 +633,15 @@ class Module extends AbstractModule
 
         $params = $bulkedit['explode'] ?? [];
         if (!empty($params['properties'])) {
+            // Don't use trim for separator, because space can be a separator.
+            // The same for contains.
             $separator = $params['separator'];
             if (mb_strlen($separator)) {
                 $processes['explode'] = [
                     'properties' => $params['properties'],
                     'separator' => $separator,
-                    'contains' => $params['contains'],
+                    'contains' => $params['contains'] ?? '',
+                    'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                 ];
             }
         }

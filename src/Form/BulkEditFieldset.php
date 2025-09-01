@@ -773,7 +773,21 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
-            ]);
+            ])
+            ->add([
+                'name' => 'max_values',
+                'type' => CommonElement\OptionalNumber::class,
+                'options' => [
+                    'label' => 'Max number of values, from start or end (negative number)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_max_values',
+                    'step' => '1',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+        ;
 
         return $this;
     }

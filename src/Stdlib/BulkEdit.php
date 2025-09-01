@@ -1476,6 +1476,7 @@ class BulkEdit
                 return;
             }
 
+            $absMaxValues = $maxValues ? abs($maxValues) : null;
             $processAllProperties = in_array('all', $properties);
             $checkDataType = !empty($dataTypes);
             $checkLanguage = !empty($languages);
@@ -1493,6 +1494,7 @@ class BulkEdit
             $settings['contains'] = $contains;
             $settings['match'] = $match;
             $settings['maxValues'] = $maxValues;
+            $settings['absMaxValues'] = $absMaxValues;
             $settings['mainDataTypes'] = $mainDataTypes;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDataType'] = $checkDataType;
@@ -1516,12 +1518,14 @@ class BulkEdit
             ? array_keys($resource->values())
             : array_intersect($properties, array_keys($resource->values()));
 
+        // Quick process when there is no options.
         if (!$checkDataType
             && !$checkLanguage
             && !$checkVisibility
             && !$checkEqual
             && !$checkContains
             && !$checkMatch
+            && !$maxValues
         ) {
             $data = array_diff_key($data, array_flip($properties));
             return;
@@ -1529,6 +1533,9 @@ class BulkEdit
 
         foreach ($properties as $property) {
             $processed = 0;
+            if ($maxValues < 0) {
+                $data[$property] = array_reverse($data[$property]);
+            }
             foreach ($data[$property] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null, 'value_resource_id' => null, '@id' => null];
                 if ($checkDataType && !in_array($value['type'], $dataTypes)) {
@@ -1565,10 +1572,13 @@ class BulkEdit
                         continue;
                     }
                 }
-                if ($maxValues && $processed++ > $maxValues) {
+                if ($maxValues && $processed++ > $absMaxValues) {
                     break;
                 }
                 unset($data[$property][$key]);
+            }
+            if ($maxValues < 0) {
+                $data[$property] = array_reverse($data[$property]);
             }
         }
     }

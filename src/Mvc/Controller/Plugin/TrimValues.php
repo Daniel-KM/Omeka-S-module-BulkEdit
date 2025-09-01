@@ -44,7 +44,7 @@ class TrimValues extends AbstractPlugin
      */
     public function __invoke(?array $resourceIds = null): int
     {
-        if (!is_null($resourceIds)) {
+        if ($resourceIds !== null) {
             $resourceIds = array_filter(array_map('intval', $resourceIds));
             if (!count($resourceIds)) {
                 return 0;
@@ -57,7 +57,7 @@ class TrimValues extends AbstractPlugin
         // manage regex.
         $connection = $this->entityManager->getConnection();
 
-        $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);
+        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
 
         // Sql "trim" is for space " " only, not end of line, new line or tab.
         // So use regexp_replace, but it's available only with mysql ≥ 8.0.4 and

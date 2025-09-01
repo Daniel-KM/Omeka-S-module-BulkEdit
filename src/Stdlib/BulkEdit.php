@@ -71,7 +71,7 @@ class BulkEdit
             'remove',
         ];
 
-        if (is_null($settings)) {
+        if ($settings === null) {
             $valuePart = $params['value_part'] ?? '';
             $from = $params['from'];
             $to = $params['to'];
@@ -230,7 +230,7 @@ class BulkEdit
                         break;
                     case 'regex':
                         $newValue = preg_replace($from, $to, $val);
-                        if (is_null($newValue)) {
+                        if ($newValue === null) {
                             $this->logger->err(
                                 'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate
                                 ['resource_id' => $resource->id(), 'property' => $property]
@@ -316,7 +316,7 @@ class BulkEdit
 
         $isDisplace = $displace;
 
-        if (is_null($settings)) {
+        if ($settings === null) {
             $fromProperties = $params['from'];
             $toProperty = $params['to'];
             $dataTypes = array_filter($params['datatypes'] ?? []);
@@ -337,7 +337,7 @@ class BulkEdit
             $processAllProperties = in_array('all', $fromProperties);
             $checkDataType = !empty($dataTypes);
             $checkLanguage = !empty($languages);
-            $checkVisibility = !is_null($visibility);
+            $checkVisibility = $visibility !== null;
             $checkContains = (bool) mb_strlen($contains);
 
             $api = $this->services->get('ControllerPluginManager')->get('api');
@@ -420,7 +420,7 @@ class BulkEdit
         array $params
     ): void {
         static $settings;
-        if (is_null($settings)) {
+        if ($settings === null) {
             $properties = $params['properties'];
             $separator = $params['separator'];
             $contains = (string) $params['contains'];
@@ -482,7 +482,7 @@ class BulkEdit
         array $params
     ): void {
         static $settings;
-        if (is_null($settings)) {
+        if ($settings === null) {
             $properties = $params['properties'];
 
             if (empty($properties)) {
@@ -580,7 +580,7 @@ class BulkEdit
         array $params
     ): void {
         static $settings;
-        if (is_null($settings)) {
+        if ($settings === null) {
             $plugins = $this->services->get('ControllerPluginManager');
             $api = $plugins->get('api');
             $findResourcesFromIdentifiers = $plugins->has('findResourcesFromIdentifiers') ? $plugins->get('findResourcesFromIdentifiers') : null;
@@ -800,7 +800,7 @@ class BulkEdit
                                 if ($toDataType === 'geography:coordinates' && strpos($value['@value'], 'geonames.org/') !== false) {
                                     // TODO Clarify process like uri/place below?
                                     $coordinates = $this->getCoordinatesForUri((string) $value['@value'], 'valuesuggest:geonames:geonames');
-                                    if (is_null($coordinates)) {
+                                    if ($coordinates === null) {
                                         continue 3;
                                     }
                                     $coordinates = $coordinates['latitude'] . ',' . $coordinates['longitude'];
@@ -938,7 +938,7 @@ class BulkEdit
                                     case 'coordinates':
                                         // TODO Clarify process like uri/place above?
                                         $coordinates = $this->getCoordinatesForUri($value['@id'], 'valuesuggest:geonames:geonames');
-                                        if (is_null($coordinates)) {
+                                        if ($coordinates === null) {
                                             continue 4;
                                         }
                                         $coordinates = $coordinates['latitude'] . ',' . $coordinates['longitude'];
@@ -1064,7 +1064,7 @@ class BulkEdit
         array $params
     ): void {
         static $settings;
-        if (is_null($settings)) {
+        if ($settings === null) {
             $visibility = (int) !empty($params['visibility']);
             $properties = $params['properties'];
             $dataTypes = array_filter($params['datatypes'] ?? []);
@@ -1130,7 +1130,7 @@ class BulkEdit
         array $params
     ): void {
         static $settings;
-        if (is_null($settings)) {
+        if ($settings === null) {
             $ownerId = (int) $params['owner'] ?: null;
 
             $settings = $params;
@@ -1184,7 +1184,7 @@ class BulkEdit
             */
         ];
 
-        if (is_null($settings)) {
+        if ($settings === null) {
             $mode = $params['mode'];
             $properties = $params['properties'] ?? [];
             $dataTypes = $params['datatypes'] ?? [];
@@ -1326,7 +1326,7 @@ class BulkEdit
                     }
                     $vtype = in_array($value['type'], ['literal', 'uri']) ? $dataType : $value['type'];
                     $vvalueNew = $this->getLabelForUri($vuri, $vtype, $labelAndUriOptions);
-                    if (is_null($vvalueNew)) {
+                    if ($vvalueNew === null) {
                         continue;
                     }
                     $data[$property][$key]['o:label'] = $vvalueNew;
@@ -1395,7 +1395,7 @@ class BulkEdit
         array $params
     ): void {
         static $settings;
-        if (is_null($settings)) {
+        if ($settings === null) {
             $properties = $params['properties'];
             $dataTypes = array_filter($params['datatypes'] ?? []);
             $languages = $params['languages'];
@@ -1410,7 +1410,7 @@ class BulkEdit
             $processAllProperties = in_array('all', $properties);
             $checkDataType = !empty($dataTypes);
             $checkLanguage = !empty($languages);
-            $checkVisibility = !is_null($visibility);
+            $checkVisibility = $visibility !== null;
             $checkEqual = (bool) mb_strlen($equal);
             $checkContains = (bool) mb_strlen($contains);
 
@@ -1498,7 +1498,7 @@ class BulkEdit
     ): void {
         static $settings;
 
-        if (is_null($settings)) {
+        if ($settings === null) {
             $mode = $params['mode'];
             $asset = (int) $params['asset'];
 
@@ -1579,7 +1579,7 @@ class BulkEdit
     ): void {
         static $settings;
 
-        if (is_null($settings)) {
+        if ($settings === null) {
             $mode = $params['mode'];
             $mediaTypes = $params['mediatypes'] ?? [];
             $extensions = $params['extensions'] ?? [];
@@ -1672,7 +1672,7 @@ class BulkEdit
     ): void {
         static $settings;
 
-        if (is_null($settings)) {
+        if ($settings === null) {
             $order = $params['order'];
             $mediaTypes = $params['mediatypes'];
             $extensions = $params['extensions'];
@@ -2383,7 +2383,7 @@ class BulkEdit
                         break;
                     case 'regex':
                         $html = preg_replace($from, $to, $html);
-                        if (is_null($html)) {
+                        if ($html === null) {
                             $this->logger->err(
                                 'An error occurred on resource #{resource_id} for html with preg_replace.', // @translate
                                 ['resource_id' => $resourceId]
@@ -2471,7 +2471,7 @@ class BulkEdit
                         break;
                     case 'regex':
                         $newSource = preg_replace($from, $to, (string) $prevSource);
-                        if (is_null($newSource)) {
+                        if ($newSource === null) {
                             $this->logger->err(
                                 'An error occurred on media #{media_id} (item #{item_id}) for source with preg_replace.', // @translate
                                 ['media_id' => $media->getId(), 'item_id' => $media->getItem()->getId()]

@@ -42,7 +42,7 @@ class SpecifyDataTypeResources extends AbstractPlugin
      */
     public function __invoke(?array $resourceIds = null): int
     {
-        if (!is_null($resourceIds)) {
+        if ($resourceIds !== null) {
             $resourceIds = array_filter(array_map('intval', $resourceIds));
             if (!count($resourceIds)) {
                 return 0;
@@ -60,7 +60,7 @@ class SpecifyDataTypeResources extends AbstractPlugin
             WHERE `v`.`type` = 'resource'
             SQL;
 
-        $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);
+        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
         if ($idsString) {
             $sql .= "\n" . <<<SQL
                 AND `v`.`resource_id` IN ($idsString)

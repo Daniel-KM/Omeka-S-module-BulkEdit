@@ -546,7 +546,7 @@ class Module extends AbstractModule
     {
         static $processes;
 
-        if (!is_null($processes)) {
+        if ($processes !== null) {
             return $processes;
         }
 

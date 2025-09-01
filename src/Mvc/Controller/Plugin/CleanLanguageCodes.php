@@ -52,7 +52,7 @@ class CleanLanguageCodes extends AbstractPlugin
      */
     public function __invoke(?array $resourceIds = null, ?string $from = '', ?string $to = '', ?array $properties = []): int
     {
-        if (!is_null($resourceIds)) {
+        if ($resourceIds !== null) {
             $resourceIds = array_filter(array_map('intval', $resourceIds));
             if (!count($resourceIds)) {
                 return 0;
@@ -78,7 +78,7 @@ class CleanLanguageCodes extends AbstractPlugin
                 `v`.`lang` = $quotedFrom
             SQL;
 
-        $idsString = is_null($resourceIds) ? '' : implode(',', $resourceIds);
+        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
         if ($idsString) {
             $sql .= "\n" . <<<SQL
                 AND `v`.`resource_id` IN ($idsString)

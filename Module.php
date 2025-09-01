@@ -607,7 +607,7 @@ class Module extends AbstractModule
                     'from' => $params['from'],
                     'to' => $to,
                     'datatypes' => $params['datatypes'] ?: [],
-                    'languages' => $params['languages'] ?: [],
+                    'languages' => $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []),
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
                     'datatype' => $params['datatype'],
@@ -623,7 +623,7 @@ class Module extends AbstractModule
                     'from' => $params['from'],
                     'to' => $to,
                     'datatypes' => $params['datatypes'] ?: [],
-                    'languages' => $params['languages'] ?: [],
+                    'languages' => $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []),
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
                     'datatype' => $params['datatype'],
@@ -675,7 +675,7 @@ class Module extends AbstractModule
 
         $params = $bulkedit['order_values'] ?? [];
         if (!empty($params['languages'])) {
-            $languages = array_filter($params['languages']);
+            $languages = $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []);
             $properties = $params['properties'];
             if ($languages && $properties) {
                 $processes['order_values'] = [
@@ -695,7 +695,7 @@ class Module extends AbstractModule
                 'visibility' => $visibility,
                 'properties' => $params['properties'],
                 'datatypes' => $params['datatypes'] ?: [],
-                'languages' => $params['languages'] ?: [],
+                'languages' => $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []),
                 'contains' => $params['contains'],
             ];
         }
@@ -730,7 +730,7 @@ class Module extends AbstractModule
             $processes['remove'] = [
                 'properties' => $params['properties'],
                 'datatypes' => $params['datatypes'] ?? [],
-                'languages' => $params['languages'] ?? [],
+                'languages' => $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []),
                 'visibility' => $params['visibility'],
                 'equal' => $params['equal'],
                 'contains' => $params['contains'],
@@ -772,7 +772,7 @@ class Module extends AbstractModule
             $processes['media_remove'] = [
                 'mode' => $mode,
                 'mediatypes' => $params['mediatypes'] ?? [],
-                'extensions' => $params['extensions'] ?? [],
+                'extensions' => $this->arrayTextSeparatorEqualToSpace($params['extensions'] ?: []),
                 // 'query' => $params['query'] ?? '',
             ];
         }
@@ -783,7 +783,7 @@ class Module extends AbstractModule
             $processes['media_order'] = [
                 'order' => $order,
                 'mediatypes' => $params['mediatypes'] ?? [],
-                'extensions' => $params['extensions'] ?? [],
+                'extensions' => $this->arrayTextSeparatorEqualToSpace($params['extensions'] ?: []),
             ];
         }
 
@@ -1058,5 +1058,15 @@ class Module extends AbstractModule
             }
         }
         return $baseUri;
+    }
+
+    /**
+     * Manage upgrade of option "language" from "=" to " ".
+     *
+     * @deprecated To be removed in a future version.
+     */
+    protected function arrayTextSeparatorEqualToSpace(array $values): array
+    {
+        return array_values(array_unique(array_filter(array_map('trim', explode('=', implode('=', $values))))));
     }
 }

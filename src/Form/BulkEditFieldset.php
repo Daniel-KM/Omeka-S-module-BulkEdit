@@ -517,6 +517,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'Only languages', // @translate
+                    'value_separator' => ' ',
                 ],
                 'attributes' => [
                     'id' => 'copy_languages',
@@ -653,6 +654,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'Only languages', // @translate
+                    'value_separator' => ' ',
                 ],
                 'attributes' => [
                     'id' => 'displace_languages',
@@ -1087,6 +1089,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'options' => [
                     'label' => 'Order by language', // @translate
                     'info' => 'List the language you want to order before other values.', // @translate
+                    'value_separator' => ' ',
                 ],
                 'attributes' => [
                     'id' => 'ordervalues_languages',
@@ -1197,6 +1200,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'Only languages', // @translate
+                    'value_separator' => ' ',
                 ],
                 'attributes' => [
                     'id' => 'propvis_languages',
@@ -1545,6 +1549,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'Only languages', // @translate
+                    'value_separator' => ' ',
                 ],
                 'attributes' => [
                     'id' => 'remove_languages',
@@ -1882,6 +1887,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'List of extensions to remove', // @translate
+                    'value_separator' => ' ',
                 ],
                 'attributes' => [
                     'id' => 'mediaremove_extensions',
@@ -2014,6 +2020,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
                     'label' => 'List of extensions to order first', // @translate
+                    'value_separator' => ' ',
                 ],
                 'attributes' => [
                     'id' => 'mediaorder_extensions',

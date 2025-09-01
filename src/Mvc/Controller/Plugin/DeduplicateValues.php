@@ -2,16 +2,21 @@
 
 namespace BulkEdit\Mvc\Controller\Plugin;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\DBAL\Connection;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 
+/**
+ * Adapted:
+ * @see \EasyAdmin\Job\DbValueClean
+ * @see \BulkEdit\Mvc\Controller\Plugin\DeduplicateValues
+ */
 class DeduplicateValues extends AbstractPlugin
 {
     /**
-     * @var EntityManager
+     * @var Connection
      */
-    protected $entityManager;
+    protected $connection;
 
     /**
      * The logger is required, because there is no controller during job.
@@ -25,14 +30,9 @@ class DeduplicateValues extends AbstractPlugin
      */
     protected $supportAnyValue;
 
-    /**
-     * @param EntityManager $entityManager
-     * @param LoggerInterface $logger
-     * @param bool $supportAnyValue
-     */
-    public function __construct(EntityManager $entityManager, LoggerInterface $logger, bool $supportAnyValue)
+    public function __construct(Connection $connection, LoggerInterface $logger, bool $supportAnyValue)
     {
-        $this->entityManager = $entityManager;
+        $this->connection = $connection;
         $this->logger = $logger;
         $this->supportAnyValue = $supportAnyValue;
     }
@@ -44,40 +44,36 @@ class DeduplicateValues extends AbstractPlugin
      * no ids to process. To process all values, pass a null or no argument.
      * @return int Number of deduplicated values.
      */
-    public function __invoke(array $resourceIds = null)
+    public function __invoke(?array $resourceIds = null): int
     {
-        if (!is_null($resourceIds)) {
+        $count = $this->deduplicateValuesViaSql($resourceIds);
+
+        if ($count) {
+            $this->logger->info(
+                'Deduplicated {count} values.', // @translate
+                ['count' => $count]
+            );
+        }
+
+        return (int) $count;
+    }
+
+    protected function deduplicateValuesViaSql(?array $resourceIds = null): int
+    {
+        if ($resourceIds !== null) {
             $resourceIds = array_filter(array_map('intval', $resourceIds));
             if (!count($resourceIds)) {
                 return 0;
             }
         }
 
-        // For large base, a temporary table is prefered to speed process.
-        $connection = $this->entityManager->getConnection();
+        $bind = [];
+        $types = [];
 
         // The query modifies the sql mode, so it should be reset.
-        $sqlMode = $connection->fetchOne('SELECT @@SESSION.sql_mode;');
+        $sqlMode = $this->connection->fetchOne('SELECT @@SESSION.sql_mode;');
 
-        $query = is_null($resourceIds)
-            ? $this->prepareQuery()
-            : $this->prepareQueryForResourceIds($resourceIds);
-
-        $count = $connection->executeStatement($query);
-
-        $connection->executeStatement("SET sql_mode = '$sqlMode';");
-
-        if ($count) {
-            $this->logger->info(
-                'Deduplicated {count} values.',
-                ['count' => $count]
-            );
-        }
-        return $count;
-    }
-
-    protected function prepareQuery()
-    {
+        // For large base, a temporary table is prefered to speed process.
         // TODO Remove "Any_value", but it cannot be replaced by "Min".
         if ($this->supportAnyValue) {
             $prefix = 'ANY_VALUE(';
@@ -85,46 +81,40 @@ class DeduplicateValues extends AbstractPlugin
         } else {
             $prefix = $suffix = '';
         }
-        return <<<SQL
+
+        if ($resourceIds) {
+            // For specified values.
+            $sqlWhere1 = 'WHERE `resource_id` IN (:resource_ids)';
+            $sqlWhere2 = 'AND`resource_id` IN (:resource_ids)';
+            $bind['resource_ids'] = $resourceIds;
+            $types['resource_ids'] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+        } else {
+            // For all values.
+            $sqlWhere1 = '';
+            $sqlWhere2 = '';
+        }
+
+        $sql = <<<SQL
             SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
             DROP TABLE IF EXISTS `value_temporary`;
             CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
             AS
                 SELECT $prefix`id`$suffix
                 FROM `value`
+                $sqlWhere1
                 GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
-            DELETE `v` FROM `value` AS `v`
+            DELETE `v`
+            FROM `value` AS `v`
             LEFT JOIN `value_temporary` AS `value_temporary`
                 ON `value_temporary`.`id` = `v`.`id`
-            WHERE `value_temporary`.`id` IS NULL;
+            WHERE `value_temporary`.`id` IS NULL
+                $sqlWhere2;
             DROP TABLE IF EXISTS `value_temporary`;
             SQL;
-    }
 
-    protected function prepareQueryForResourceIds(array $resourceIds)
-    {
-        if ($this->supportAnyValue) {
-            $prefix = 'ANY_VALUE(';
-            $suffix = ')';
-        } else {
-            $prefix = $suffix = '';
-        }
-        $idsString = implode(',', $resourceIds);
-        return <<<SQL
-            SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
-            DROP TABLE IF EXISTS `value_temporary`;
-            CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
-            AS
-                SELECT $prefix`id`$suffix
-                FROM `value`
-                WHERE `resource_id` IN ($idsString)
-                GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
-            DELETE `v` FROM `value` AS `v`
-                LEFT JOIN `value_temporary` AS `value_temporary`
-                ON `value_temporary`.`id` = `v`.`id`
-            WHERE `resource_id` IN ($idsString)
-                AND `value_temporary`.`id` IS NULL;
-            DROP TABLE IF EXISTS `value_temporary`;
-            SQL;
+        $count = $this->connection->executeStatement($sql, $bind, $types);
+        $this->connection->executeStatement("SET sql_mode = '$sqlMode';");
+
+        return (int) $count;
     }
 }

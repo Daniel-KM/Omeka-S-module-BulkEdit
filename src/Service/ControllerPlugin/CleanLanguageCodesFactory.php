@@ -11,6 +11,7 @@ class CleanLanguageCodesFactory implements FactoryInterface
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
         return new CleanLanguageCodes(
+            $services->get('Common\EasyMeta'),
             $services->get('Omeka\EntityManager'),
             $services->get('Omeka\Logger')
         );

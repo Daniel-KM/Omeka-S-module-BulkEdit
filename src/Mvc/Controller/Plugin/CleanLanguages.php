@@ -6,6 +6,11 @@ use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 
+/**
+ * Adapted:
+ * @see \EasyAdmin\Job\DbValueClean
+ * @see \BulkEdit\Mvc\Controller\Plugin\CleanLanguages
+ */
 class CleanLanguages extends AbstractPlugin
 {
     /**
@@ -37,7 +42,7 @@ class CleanLanguages extends AbstractPlugin
      * no ids to process. To process all values, pass a null or no argument.
      * @return int Number of cleaned values.
      */
-    public function __invoke(array $resourceIds = null)
+    public function __invoke(?array $resourceIds = null): int
     {
         if (!is_null($resourceIds)) {
             $resourceIds = array_filter(array_map('intval', $resourceIds));
@@ -70,6 +75,7 @@ class CleanLanguages extends AbstractPlugin
                 ['count' => $count]
             );
         }
-        return $count;
+
+        return (int) $count;
     }
 }

@@ -902,6 +902,7 @@ class Module extends AbstractModule
         $bulkEdit = $this->getServiceLocator()->get('BulkEdit');
 
         // It's simpler to process data as a full array.
+        // TODO Don't use json_decode(json_encode()).
         $data = json_decode(json_encode($resource), true);
 
         // Keep data that may have been added during batch pre-process.

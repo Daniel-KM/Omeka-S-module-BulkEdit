@@ -2,12 +2,18 @@
 
 namespace BulkEdit\Mvc\Controller\Plugin;
 
+use Common\Stdlib\EasyMeta;
 use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 
 class CleanLanguageCodes extends AbstractPlugin
 {
+    /**
+     * @var EasyMeta
+     */
+    protected $easyMeta;
+
     /**
      * @var EntityManager
      */
@@ -24,8 +30,12 @@ class CleanLanguageCodes extends AbstractPlugin
      * @param EntityManager $entityManager
      * @param LoggerInterface $logger
      */
-    public function __construct(EntityManager $entityManager, LoggerInterface $logger)
-    {
+    public function __construct(
+        EasyMeta $easyMeta,
+        EntityManager $entityManager,
+        LoggerInterface $logger
+    ) {
+        $this->easyMeta = $easyMeta;
         $this->entityManager = $entityManager;
         $this->logger = $logger;
     }
@@ -40,7 +50,7 @@ class CleanLanguageCodes extends AbstractPlugin
      * @param array|null $properties
      * @return int Number of cleaned values.
      */
-    public function __invoke(array $resourceIds = null, ?string $from = '', ?string $to = '', ?array $properties = [])
+    public function __invoke(?array $resourceIds = null, ?string $from = '', ?string $to = '', ?array $properties = []): int
     {
         if (!is_null($resourceIds)) {
             $resourceIds = array_filter(array_map('intval', $resourceIds));
@@ -76,7 +86,7 @@ class CleanLanguageCodes extends AbstractPlugin
         }
 
         if ($properties && !in_array('all', $properties)) {
-            $propertyIds = $this->checkPropertyIds($properties);
+            $propertyIds = $this->easyMeta->propertyIds($properties);
             if ($propertyIds) {
                 $propertyIds = implode(',', $propertyIds);
                 $sql .= "\n" . <<<SQL
@@ -96,38 +106,7 @@ class CleanLanguageCodes extends AbstractPlugin
                 ['from' => $from, 'to' => $to, 'count' => $count]
             );
         }
-        return $count;
-    }
 
-    protected function checkPropertyIds(array $properties)
-    {
-        return is_numeric(reset($properties))
-            ? array_filter(array_map('intval', $properties))
-            : array_intersect_key($this->getPropertyIds(), array_flip($properties));
-    }
-
-    /**
-     * Get all property ids by term.
-     *
-     * @return array Associative array of ids by term.
-     */
-    public function getPropertyIds(): array
-    {
-        $connection = $this->entityManager->getConnection();
-        $qb = $connection->createQueryBuilder();
-        $qb
-            ->select(
-                'CONCAT(vocabulary.prefix, ":", property.local_name) AS term',
-                'property.id AS id',
-                // Required with only_full_group_by.
-                'vocabulary.id'
-            )
-            ->from('property', 'property')
-            ->innerJoin('property', 'vocabulary', 'vocabulary', 'property.vocabulary_id = vocabulary.id')
-            ->orderBy('vocabulary.id', 'asc')
-            ->addOrderBy('property.id', 'asc')
-            ->addGroupBy('property.id')
-        ;
-        return array_map('intval', $connection->executeQuery($qb)->fetchAllKeyValue());
+        return (int) $count;
     }
 }

@@ -6,6 +6,11 @@ use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 
+/**
+ * Adapted:
+ * @see \EasyAdmin\Job\DbValueClean
+ * @see \BulkEdit\Mvc\Controller\Plugin\TrimValues
+ */
 class TrimValues extends AbstractPlugin
 {
     /**
@@ -37,7 +42,7 @@ class TrimValues extends AbstractPlugin
      * no ids to process. To process all values, pass a null or no argument.
      * @return int Number of trimmed values.
      */
-    public function __invoke(array $resourceIds = null)
+    public function __invoke(?array $resourceIds = null): int
     {
         if (!is_null($resourceIds)) {
             $resourceIds = array_filter(array_map('intval', $resourceIds));
@@ -47,7 +52,8 @@ class TrimValues extends AbstractPlugin
         }
 
         // Use a direct query: during a post action, data are already flushed.
-        // The entity manager can not be used directly, because it doesn't
+
+        // The entity manager can not be used directly, because it does not
         // manage regex.
         $connection = $this->entityManager->getConnection();
 
@@ -65,18 +71,18 @@ class TrimValues extends AbstractPlugin
             $query = <<<'SQL'
                 UPDATE `value` AS `v`
                 SET
-                `v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
-                `v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
-                `v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), "")
+                    `v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
+                    `v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
+                    `v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), "")
                 SQL;
         } else {
             // The pattern uses a simple trim.
             $query = <<<'SQL'
                 UPDATE `value` AS `v`
                 SET
-                `v`.`value` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`value`))))), ""),
-                `v`.`lang` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`lang`))))), ""),
-                `v`.`uri` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`uri`))))), "")
+                    `v`.`value` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`value`))))), ""),
+                    `v`.`lang` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`lang`))))), ""),
+                    `v`.`uri` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`uri`))))), "")
                 SQL;
         }
 
@@ -99,12 +105,12 @@ class TrimValues extends AbstractPlugin
         $query = <<<'SQL'
             DELETE FROM `value`
             WHERE `value_resource_id` IS NULL
-            AND `value` IS NULL
-            AND `uri` IS NULL
+                AND `value` IS NULL
+                AND `uri` IS NULL
             SQL;
-                    if ($idsString) {
-                        $query .= "\n" . <<<SQL
-            AND `resource_id` IN ($idsString)
+        if ($idsString) {
+            $query .= "\n" . <<<SQL
+                AND `resource_id` IN ($idsString)
             SQL;
         }
 
@@ -116,7 +122,7 @@ class TrimValues extends AbstractPlugin
             );
         }
 
-        return $trimmed;
+        return (int) $trimmed;
     }
 
     /**

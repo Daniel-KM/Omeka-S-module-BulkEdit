@@ -6,6 +6,9 @@ use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 
+/**
+ * @todo Check resource template first.
+ */
 class SpecifyDataTypeResources extends AbstractPlugin
 {
     /**
@@ -37,7 +40,7 @@ class SpecifyDataTypeResources extends AbstractPlugin
      * no ids to process. To process all values, pass a null or no argument.
      * @return int Number of trimmed values.
      */
-    public function __invoke(array $resourceIds = null)
+    public function __invoke(?array $resourceIds = null): int
     {
         if (!is_null($resourceIds)) {
             $resourceIds = array_filter(array_map('intval', $resourceIds));
@@ -71,6 +74,7 @@ class SpecifyDataTypeResources extends AbstractPlugin
                 ['count' => $count]
             );
         }
-        return $count;
+
+        return (int) $count;
     }
 }

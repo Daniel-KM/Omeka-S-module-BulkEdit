@@ -1907,6 +1907,7 @@ class BulkEdit
             // Keep current data as fully serialized data.
             // All data are copied for new items, included template, class, etc.
             // $currentItemData = $item->jsonSerialize();
+            // TODO Don't use json_decode(json_encode()).
             $currentItemData = json_decode(json_encode($item), true);
 
             $isFirstMedia = true;

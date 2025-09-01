@@ -611,6 +611,7 @@ class Module extends AbstractModule
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
                     'datatype' => $params['datatype'],
+                    'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                 ];
             }
         }
@@ -627,6 +628,7 @@ class Module extends AbstractModule
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
                     'datatype' => $params['datatype'],
+                    'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                 ];
             }
         }
@@ -737,6 +739,7 @@ class Module extends AbstractModule
                 'visibility' => $params['visibility'],
                 'equal' => $params['equal'],
                 'contains' => $params['contains'],
+                'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
             ];
         }
 

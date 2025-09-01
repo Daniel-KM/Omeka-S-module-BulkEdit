@@ -572,6 +572,20 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-collection-action' => 'replace',
                 ],
             ])
+            ->add([
+                'name' => 'max_values',
+                'type' => CommonElement\OptionalNumber::class,
+                'options' => [
+                    'label' => 'Copy only max number of values', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'displace_max_values',
+                    'min' => '0',
+                    'step' => '1',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
         ;
 
         return $this;
@@ -705,6 +719,20 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'class' => 'chosen-select',
                     'multiple' => false,
                     'data-placeholder' => 'Select a data type…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'max_values',
+                'type' => CommonElement\OptionalNumber::class,
+                'options' => [
+                    'label' => 'Copy only max number of values', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'displace_max_values',
+                    'min' => '0',
+                    'step' => '1',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1613,7 +1641,22 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
-            ]);
+            ])
+            ->add([
+                'name' => 'max_values',
+                'type' => CommonElement\OptionalNumber::class,
+                'options' => [
+                    'label' => 'Remove only max number of values', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'remove_max_values',
+                    'min' => '0',
+                    'step' => '1',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+        ;
 
         return $this;
     }

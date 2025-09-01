@@ -324,6 +324,7 @@ class BulkEdit
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $contains = (string) $params['contains'];
             $toDataType = empty($params['datatype']) ? null : (string) $params['datatype'];
+            $maxValues = empty($params['max_values']) ? null : (int) $params['max_values'];
 
             $to = array_search($toProperty, $fromProperties);
             if ($to !== false) {
@@ -350,6 +351,7 @@ class BulkEdit
             $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
             $settings['contains'] = $contains;
+            $settings['maxValues'] = $maxValues;
             $settings['to'] = $to;
             $settings['toDataType'] = $toDataType;
             $settings['processAllProperties'] = $processAllProperties;
@@ -384,6 +386,7 @@ class BulkEdit
             if ($property === $toProperty) {
                 continue;
             }
+            $processed = 0;
             foreach ($data[$property] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null];
                 if ($checkDataType && !in_array($value['type'], $dataTypes)) {
@@ -403,9 +406,32 @@ class BulkEdit
                     $value['type'] = $toDataType;
                 }
                 unset($value['property_label']);
-                $data[$toProperty][] = $value;
-                if ($displace) {
-                    unset($data[$property][$key]);
+                // Process the max copy/max displace number of values.
+                // A positive number means to copy/displace only first values.
+                // A negative number means to copy/displace only last values.
+                if (!$maxValues) {
+                    $data[$toProperty][] = $value;
+                    if ($displace) {
+                        unset($data[$property][$key]);
+                    }
+                } elseif ($maxValues > 0) {
+                    if ($processed++ > $maxValues) {
+                        break;
+                    }
+                    $data[$toProperty][] = $value;
+                    if ($displace) {
+                        unset($data[$property][$key]);
+                    }
+                } else {
+                    // TODO Manage copy/displace max last values.
+                    // For now, the form does not allow negative numbers.
+                    // if ($processed-- < $maxValues) {
+                    //     break;
+                    // }
+                    $data[$toProperty][] = $value;
+                    if ($displace) {
+                        unset($data[$property][$key]);
+                    }
                 }
             }
         }
@@ -1430,6 +1456,7 @@ class BulkEdit
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $equal = (string) $params['equal'];
             $contains = (string) $params['contains'];
+            $maxValues = empty($params['max_values']) ? null : (int) $params['max_values'];
 
             if (empty($properties)) {
                 return;
@@ -1448,6 +1475,8 @@ class BulkEdit
             unset($settings['datatypes']);
             $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
+            $settings['contains'] = $contains;
+            $settings['maxValues'] = $maxValues;
             $settings['mainDataTypes'] = $mainDataTypes;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDataType'] = $checkDataType;
@@ -1481,6 +1510,7 @@ class BulkEdit
         }
 
         foreach ($properties as $property) {
+            $processed = 0;
             foreach ($data[$property] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null, 'value_resource_id' => null, '@id' => null];
                 if ($checkDataType && !in_array($value['type'], $dataTypes)) {
@@ -1510,6 +1540,9 @@ class BulkEdit
                             continue;
                         }
                     }
+                }
+                if ($maxValues && $processed++ > $maxValues) {
+                    break;
                 }
                 unset($data[$property][$key]);
             }

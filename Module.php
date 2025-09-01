@@ -610,6 +610,7 @@ class Module extends AbstractModule
                     'languages' => $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []),
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
+                    'match' => $params['match'] ?? '',
                     'datatype' => $params['datatype'],
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                 ];
@@ -627,6 +628,7 @@ class Module extends AbstractModule
                     'languages' => $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []),
                     'visibility' => $params['visibility'],
                     'contains' => $params['contains'],
+                    'match' => $params['match'] ?? '',
                     'datatype' => $params['datatype'],
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                 ];
@@ -643,6 +645,7 @@ class Module extends AbstractModule
                     'properties' => $params['properties'],
                     'separator' => $separator,
                     'contains' => $params['contains'] ?? '',
+                    'match' => $params['match'] ?? '',
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                 ];
             }
@@ -739,6 +742,7 @@ class Module extends AbstractModule
                 'visibility' => $params['visibility'],
                 'equal' => $params['equal'],
                 'contains' => $params['contains'],
+                'match' => $params['match'],
                 'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
             ];
         }

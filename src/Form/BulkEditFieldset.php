@@ -557,6 +557,18 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
+                'name' => 'match',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only matching regex', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'copy_match',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'datatype',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
@@ -579,7 +591,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'label' => 'Copy only max number of values', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'displace_max_values',
+                    'id' => 'copy_max_values',
                     'min' => '0',
                     'step' => '1',
                     // This attribute is required to make "batch edit all" working.
@@ -708,6 +720,18 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
+                'name' => 'match',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only matching regex', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'displace_match',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'datatype',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
@@ -727,7 +751,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'max_values',
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [
-                    'label' => 'Copy only max number of values', // @translate
+                    'label' => 'Displace only max number of values', // @translate
                 ],
                 'attributes' => [
                     'id' => 'displace_max_values',
@@ -798,6 +822,18 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'explode_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'match',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only matching regex', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'explode_match',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1638,6 +1674,18 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'remove_contains',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'match',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Only matching regex', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'remove_match',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

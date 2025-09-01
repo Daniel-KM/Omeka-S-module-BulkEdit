@@ -12,6 +12,9 @@ use Omeka\Api\Adapter\MediaAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Api\Representation\ItemRepresentation;
 
+/**
+ * @todo Manage uri (@id) like @value for some processes. See removeValuesForResource().
+ */
 class BulkEdit
 {
     /**
@@ -323,6 +326,7 @@ class BulkEdit
             $languages = $params['languages'];
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $contains = (string) $params['contains'];
+            $match = (string) $params['match'];
             $toDataType = empty($params['datatype']) ? null : (string) $params['datatype'];
             $maxValues = empty($params['max_values']) ? null : (int) $params['max_values'];
 
@@ -340,6 +344,7 @@ class BulkEdit
             $checkLanguage = !empty($languages);
             $checkVisibility = $visibility !== null;
             $checkContains = (bool) mb_strlen($contains);
+            $checkMatch = (bool) mb_strlen($match);
 
             $api = $this->services->get('ControllerPluginManager')->get('api');
             $toId = $api->searchOne('properties', ['term' => $toProperty], ['returnScalar' => 'id'])->getContent();
@@ -351,6 +356,7 @@ class BulkEdit
             $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
             $settings['contains'] = $contains;
+            $settings['match'] = $match;
             $settings['maxValues'] = $maxValues;
             $settings['to'] = $to;
             $settings['toDataType'] = $toDataType;
@@ -359,6 +365,7 @@ class BulkEdit
             $settings['checkLanguage'] = $checkLanguage;
             $settings['checkVisibility'] = $checkVisibility;
             $settings['checkContains'] = $checkContains;
+            $settings['checkMatch'] = $checkMatch;
             $settings['toId'] = $toId;
         } else {
             extract($settings);
@@ -399,6 +406,9 @@ class BulkEdit
                     continue;
                 }
                 if ($checkContains && strpos($value['@value'], $contains) === false) {
+                    continue;
+                }
+                if ($checkMatch && !preg_match($match, $value['@value'])) {
                     continue;
                 }
                 $value['property_id'] = $toId;
@@ -450,15 +460,17 @@ class BulkEdit
             $properties = $params['properties'];
             $separator = $params['separator'];
             $contains = (string) $params['contains'];
+            $match = (string) $params['match'];
             $maxValues = empty($params['max_values']) ? null : (int) $params['max_values'];
 
-            // Speed up process when there is no "contains".
-            if (!strlen($contains)) {
+            // Speed up process when there is no "contains" neither "match".
+            if (!strlen($contains) && !strlen($match)) {
                 $contains = $separator;
             }
 
             $settings = $params;
             $settings['contains'] = $contains;
+            $settings['match'] = $match;
             $settings['maxValues'] = $maxValues;
         } else {
             extract($settings);
@@ -507,9 +519,10 @@ class BulkEdit
                     $values[] = $value;
                     continue;
                 }
-                // There is always a string for "contains", because the
-                // separator is set by default to speed up process.
-                if (strpos($value['@value'], $contains) === false) {
+                if (strlen($contains) && strpos($value['@value'], $contains) === false) {
+                    $values[] = $value;
+                    continue;
+                } elseif (strlen($match) && !preg_match($match, $value['@value'])) {
                     $values[] = $value;
                     continue;
                 }
@@ -1456,6 +1469,7 @@ class BulkEdit
             $visibility = $params['visibility'] === '' ? null : (int) (bool) $params['visibility'];
             $equal = (string) $params['equal'];
             $contains = (string) $params['contains'];
+            $match = (string) $params['match'];
             $maxValues = empty($params['max_values']) ? null : (int) $params['max_values'];
 
             if (empty($properties)) {
@@ -1468,6 +1482,7 @@ class BulkEdit
             $checkVisibility = $visibility !== null;
             $checkEqual = (bool) mb_strlen($equal);
             $checkContains = (bool) mb_strlen($contains);
+            $checkMatch = (bool) mb_strlen($match);
 
             $mainDataTypes = $this->easyMeta->dataTypeMains();
 
@@ -1476,6 +1491,7 @@ class BulkEdit
             $settings['dataTypes'] = $dataTypes;
             $settings['visibility'] = $visibility;
             $settings['contains'] = $contains;
+            $settings['match'] = $match;
             $settings['maxValues'] = $maxValues;
             $settings['mainDataTypes'] = $mainDataTypes;
             $settings['processAllProperties'] = $processAllProperties;
@@ -1484,6 +1500,7 @@ class BulkEdit
             $settings['checkVisibility'] = $checkVisibility;
             $settings['checkEqual'] = $checkEqual;
             $settings['checkContains'] = $checkContains;
+            $settings['checkMatch'] = $checkMatch;
         } else {
             extract($settings);
         }
@@ -1504,6 +1521,7 @@ class BulkEdit
             && !$checkVisibility
             && !$checkEqual
             && !$checkContains
+            && !$checkMatch
         ) {
             $data = array_diff_key($data, array_flip($properties));
             return;
@@ -1522,23 +1540,29 @@ class BulkEdit
                 if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
                     continue;
                 }
-                if ($checkEqual || $checkContains) {
-                    $valueMainDataType = $this->easyMeta->dataTypeMain($value['type']);
-                    if ($checkEqual) {
-                        if (($valueMainDataType === 'literal' && $value['@value'] !== $equal)
-                            || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $equal)
-                            || ($valueMainDataType === 'uri' && $value['@id'] !== $equal)
-                        ) {
-                            continue;
-                        }
+                $valueMainDataType = $this->easyMeta->dataTypeMain($value['type']);
+                if ($checkEqual) {
+                    if (($valueMainDataType === 'literal' && $value['@value'] !== $equal)
+                        || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $equal)
+                        || ($valueMainDataType === 'uri' && $value['@id'] !== $equal)
+                    ) {
+                        continue;
                     }
-                    if ($checkContains) {
-                        if (($valueMainDataType === 'literal' && strpos((string) $value['@value'], $contains) === false)
-                            // || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $contains)
-                            || ($valueMainDataType === 'uri' && strpos((string) $value['@id'], $contains) === false)
-                        ) {
-                            continue;
-                        }
+                }
+                if ($checkContains) {
+                    if (($valueMainDataType === 'literal' && strpos((string) $value['@value'], $contains) === false)
+                        // || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $contains)
+                        || ($valueMainDataType === 'uri' && strpos((string) $value['@id'], $contains) === false)
+                    ) {
+                        continue;
+                    }
+                }
+                if ($checkMatch) {
+                    if (($valueMainDataType === 'literal' && !preg_match($match, (string) $value['@value']))
+                        // || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $contains)
+                        || ($valueMainDataType === 'uri' && !preg_match($match, (string) $value['@id']))
+                    ) {
+                        continue;
                     }
                 }
                 if ($maxValues && $processed++ > $maxValues) {

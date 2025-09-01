@@ -1470,13 +1470,17 @@ class BulkEdit
             $equal = (string) $params['equal'];
             $contains = (string) $params['contains'];
             $match = (string) $params['match'];
+            $keepMaxValues = empty($params['keep_max_values']) ? null : (int) $params['keep_max_values'];
             $maxValues = empty($params['max_values']) ? null : (int) $params['max_values'];
 
-            if (empty($properties)) {
-                return;
+            if ($maxValues && $keepMaxValues) {
+                $this->logger->err(
+                    'The options "max values" and "keep number of values" cannot be used at the same time.' // @translate
+                );
             }
 
             $absMaxValues = $maxValues ? abs($maxValues) : null;
+            $abskeepMaxValues = $keepMaxValues ? abs($keepMaxValues) : null;
             $processAllProperties = in_array('all', $properties);
             $checkDataType = !empty($dataTypes);
             $checkLanguage = !empty($languages);
@@ -1495,6 +1499,8 @@ class BulkEdit
             $settings['match'] = $match;
             $settings['maxValues'] = $maxValues;
             $settings['absMaxValues'] = $absMaxValues;
+            $settings['keepMaxValues'] = $keepMaxValues;
+            $settings['abskeepMaxValues'] = $abskeepMaxValues;
             $settings['mainDataTypes'] = $mainDataTypes;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDataType'] = $checkDataType;
@@ -1507,7 +1513,9 @@ class BulkEdit
             extract($settings);
         }
 
-        if (empty($properties)) {
+        if (empty($properties)
+            || ($keepMaxValues && $maxValues)
+        ) {
             return;
         }
 
@@ -1525,6 +1533,7 @@ class BulkEdit
             && !$checkEqual
             && !$checkContains
             && !$checkMatch
+            && !$keepMaxValues
             && !$maxValues
         ) {
             $data = array_diff_key($data, array_flip($properties));
@@ -1533,7 +1542,7 @@ class BulkEdit
 
         foreach ($properties as $property) {
             $processed = 0;
-            if ($maxValues < 0) {
+            if ($keepMaxValues < 0 || $maxValues < 0) {
                 $data[$property] = array_reverse($data[$property]);
             }
             foreach ($data[$property] as $key => $value) {
@@ -1572,12 +1581,15 @@ class BulkEdit
                         continue;
                     }
                 }
+                if ($keepMaxValues && $processed++ < $abskeepMaxValues) {
+                    continue;
+                }
                 if ($maxValues && $processed++ > $absMaxValues) {
                     break;
                 }
                 unset($data[$property][$key]);
             }
-            if ($maxValues < 0) {
+            if ($keepMaxValues < 0 || $maxValues < 0) {
                 $data[$property] = array_reverse($data[$property]);
             }
         }

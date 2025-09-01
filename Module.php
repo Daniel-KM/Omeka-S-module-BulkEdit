@@ -743,6 +743,7 @@ class Module extends AbstractModule
                 'equal' => $params['equal'],
                 'contains' => $params['contains'],
                 'match' => $params['match'],
+                'keep_max_values' => empty($params['keep_max_values']) ? null : (int) $params['keep_max_values'],
                 'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
             ];
         }

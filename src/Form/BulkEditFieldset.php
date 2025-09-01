@@ -1691,6 +1691,20 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
+                'name' => 'keep_max_values',
+                'type' => CommonElement\OptionalNumber::class,
+                'options' => [
+                    'label' => 'Keep a number of values and remove first or next ones (positive or negative number)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'remove_keep_max_values',
+                    'min' => '0',
+                    'step' => '1',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'max_values',
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [

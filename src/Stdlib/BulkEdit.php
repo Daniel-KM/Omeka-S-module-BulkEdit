@@ -2251,6 +2251,11 @@ class BulkEdit
             $baseDestinationResource = '/temp/bulkedit/' . $resourceId;
             $filesTempDirResource = $basePath . $baseDestinationResource;
 
+            $this->logger->info(
+                'Item #{item_id}: start exploding pdf.', // @translate
+                ['item_id' => $resourceId]
+            );
+
             foreach ($pdfMedias as $pdfMedia) {
                 // To avoid space issue, files are removed after each loop.
                 if (!$this->checkDestinationDir($tmpDirResource)) {
@@ -2409,6 +2414,12 @@ class BulkEdit
                     // TODO Extract ocr into extracted text. See ExtractOcr.
                     // TODO Extract Alto.
 
+                    // Create media from files and append them to item.
+                    $this->logger->info(
+                        'Item #{item_id}: storing file {count}/{total} as media.', // @translate
+                        ['item_id' => $resourceId, 'count' => $index, 'total' => $totalImages]
+                    );
+
                     try {
                         $media = $api->create('media', $data, [], $createOptions)->getContent();
                     } catch (\Omeka\Api\Exception\ExceptionInterface $e) {
@@ -2426,6 +2437,11 @@ class BulkEdit
                 // Delete temp files in all cases.
                 $this->rmDir($tmpDirResource);
                 $this->rmDir($baseDestinationResource);
+
+                $this->logger->info(
+                    'Item #{item_id}: end exploding pdf.', // @translate
+                    ['item_id' => $resourceId]
+                );
             }
         }
     }

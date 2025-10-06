@@ -2161,6 +2161,8 @@ class BulkEdit
         $mode = $params['mode'] ?? 'all';
         $process = $params['process'] ?? 'all';
         $processor = $params['processor'] ?? 'auto';
+        $processEvents = (bool) (int) ($params['process_events'] ?? 0);
+        $createOptions = $processEvents ? [] : ['initialize' => false, 'finalize' => false];
 
         $processor = in_array($processor, ['gs', 'pdftoppm']) ? $processor : 'auto';
         if ($processor === 'auto') {
@@ -2408,7 +2410,7 @@ class BulkEdit
                     // TODO Extract Alto.
 
                     try {
-                        $media = $api->create('media', $data, [])->getContent();
+                        $media = $api->create('media', $data, [], $createOptions)->getContent();
                     } catch (\Omeka\Api\Exception\ExceptionInterface $e) {
                         // Generally a bad or missing pdf file.
                         // $hasError = true;

@@ -193,6 +193,7 @@ $(document).ready(function() {
         'bulkedit[explode_pdf][mode]': '',
         'bulkedit[explode_pdf][process]': 'all',
         'bulkedit[explode_pdf][resolution]': '',
+        'bulkedit[explode_pdf][process_events]': '0',
         'bulkedit[media_order][order]': '',
         'bulkedit[media_order][mediatypes]': 'video audio image application/pdf',
         'bulkedit[media_order][extensions]': '',

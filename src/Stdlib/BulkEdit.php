@@ -1252,6 +1252,8 @@ class BulkEdit
         ];
 
         if ($settings === null) {
+            // "dataTypes" is the list of data types to process;
+            // "dataType" is the destination data type.
             $mode = $params['mode'];
             $properties = $params['properties'] ?? [];
             $dataTypes = $params['datatypes'] ?? [];
@@ -1287,19 +1289,30 @@ class BulkEdit
             }
 
             if ((in_array('literal', $dataTypes) || in_array('uri', $dataTypes)) && in_array($dataType, [null, 'literal', 'uri'])) {
-                $this->logger->warn('When "literal" or "uri" is used, the precise dataType should be specified.'); // @translate
+                $this->logger->warn('When "literal" or "uri" is used, the precise data type to use should be specified. The process is skipped.'); // @translate
                 $skip = true;
             }
 
-            $isModeUri = $mode === 'uri_missing' || $mode === 'uri_all';
-            if ($isModeUri && (!in_array($dataType, $dataTypes) || in_array($dataType, [null, 'literal', 'uri']))) {
-                $this->logger->warn('When filling an uri, the precise dataType should be specified.'); // @translate
+            $isModeFillUri = $mode === 'uri_missing' || $mode === 'uri_all';
+            if ($isModeFillUri && in_array($dataType, [null, 'literal', 'uri'])) {
+                $this->logger->warn('When filling an uri, the precise data type to use should be specified. The process is skipped.'); // @translate
+                $skip = true;
+            }
+
+            if (!in_array($dataType, $managedDataTypes)) {
+                $this->logger->warn(
+                    'Filling an uri from label for data type "{datatype}" is not supported yet. The process is skipped.',  // @translate
+                    ['datatype' => (string) $dataType]
+                );
                 $skip = true;
             }
 
             // Check any ValueSuggest data type to see if the module is enabled.
-            if ($isModeUri && !$this->easyMeta->dataTypeName('valuesuggest:geonames:geonames')) {
-                $this->logger->warn('When filling an uri, the module Value Suggest should be available.'); // @translate
+            if ($isModeFillUri && !$this->easyMeta->dataTypeName('valuesuggest:geonames:geonames')) {
+                $this->logger->warn(
+                    'When filling an uri for data type "{datatype}", the module Value Suggest should be available. The process is skipped.', // @translate
+                    ['datatype' => 'valuesuggest:geonames:geonames']
+                );
                 $skip = true;
             }
 

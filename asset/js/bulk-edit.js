@@ -222,4 +222,23 @@ $(document).ready(function() {
         return true;
     });
 
-});
+    /**
+     * Fix a strange issue with FormData for value "'bulkedit[fill_values][datatypes]'",
+     * that is an array of values that should not contain an empty string.
+     */
+    $('#content form').on('submit', function(e) {
+        const form = $(this);
+        const formData = new FormData(form[0]);
+        const fillValuesDatatypes = formData.getAll('bulkedit[fill_values][datatypes]');
+        if (fillValuesDatatypes.length && fillValuesDatatypes[0] === '') {
+            form.find('[name="bulkedit[fill_values][datatypes]"]').remove();
+            formData.delete('bulkedit[fill_values][datatypes]');
+            fillValuesDatatypes.shift();
+            fillValuesDatatypes.forEach(value => {
+                form.append('<input type="hidden" name="bulkedit[fill_values][datatypes][]" value="' + value + '">');
+            });
+        }
+         return true;
+     });
+
+ });

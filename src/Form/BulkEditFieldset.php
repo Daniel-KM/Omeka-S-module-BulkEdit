@@ -1478,7 +1478,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
                     'label' => 'Data types to process', // @translate
-                    'empty_option' => '',
                     'value_options' => array_merge([
                         [
                             'value' => 'all',
@@ -1493,6 +1492,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                             'label' => 'Uri', // @translate
                         ],
                     ], $datatypesVSAttrs),
+                    'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'fill_datatypes',

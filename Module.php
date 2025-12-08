@@ -914,19 +914,11 @@ class Module extends AbstractModule
         $bulkEdit = $this->getServiceLocator()->get('BulkEdit');
 
         // Start with the data being updated to preserve fields from other modules
-        // (e.g., Item Sets Tree parent relationships).
-        $data = $dataToUpdate;
-
-        // Add all fields from the resource if they're not already in $dataToUpdate.
-        // This allows BulkEdit operations to work on existing values while preserving
-        // non-Omeka fields that may have been set by other modules.
+        // (e.g., Item Sets Tree parent relationships), then add all missing fields
+        // from the resource. The array union operator preserves keys from the left.
         // TODO Don't use json_decode(json_encode()).
         $resourceData = json_decode(json_encode($resource), true);
-        foreach ($resourceData as $key => $value) {
-            if (!isset($data[$key])) {
-                $data[$key] = $value;
-            }
-        }
+        $data = $dataToUpdate + $resourceData;
 
         // Note: $data is passed by reference to each process.
         foreach ($processes as $process => $params) switch ($process) {

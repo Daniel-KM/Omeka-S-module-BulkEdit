@@ -10,6 +10,11 @@ use Laminas\I18n\Translator\TranslatorAwareInterface;
 use Laminas\I18n\Translator\TranslatorAwareTrait;
 use Omeka\Form\Element as OmekaElement;
 
+/**
+ * Adapted:
+ * @see \BulkEdit\Form\BulkEditFieldset
+ * @see \BulkExport\Form\ShaperConfigFieldset
+ */
 class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
 {
     // TODO Fix translation of fieldset legend in core.
@@ -1343,8 +1348,15 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         return $this;
     }
 
+    /**
+     * Adapted
+     * @see \BulkEdit\Form\BulkEditFieldset::appendFieldsetFillValues()
+     * @see \Urify\Form\UrifyForm::init()
+     */
     protected function appendFieldsetFillValues(): self
     {
+        // TODO All datatypes are managed to fill an uri from value through value suggest.
+
         $managedDatatypes = [
             'valuesuggest:geonames:geonames' => 'Geonames',
             'valuesuggest:idref:person' => 'IdRef Personnes',

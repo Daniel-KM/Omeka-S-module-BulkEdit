@@ -1219,6 +1219,13 @@ class BulkEdit
 
     /**
      * Update values for resources.
+     *
+     * Adapted:
+     * @see \BulkEdit\Stdlib\BulkEdit::fillValuesForResources()
+     * @see \BulkEdit\Stdlib\BulkEdit::getLabelForUris()
+     * @see \BulkEdit\Stdlib\BulkEdit::getValueSuggestUriForLabel()
+     * @see \Urify\Job\UrifyValues::getValueSuggestUriForLabel()
+     * @see \Urify\Job\UrifyValues::getLabelForUri()
      */
     public function fillValuesForResource(
         AbstractResourceEntityRepresentation $resource,
@@ -2826,6 +2833,12 @@ class BulkEdit
         return array_filter($result, 'is_scalar') ? $result : null;
     }
 
+   /**
+    * Adapted:
+    * @see \BulkEdit\Stdlib\BulkEdit::fillValuesForResource()
+    * @see \BulkEdit\Stdlib\BulkEdit::getLabelForUri()
+    * @see \Urify\Job\UrifyValues::getLabelForUri()
+    */
     protected function getLabelForUri(string $uri, string $dataType, array $options = []): ?string
     {
         static $filleds = [];
@@ -2909,6 +2922,11 @@ class BulkEdit
 
     /**
      * @see \ValueSuggest\Controller\IndexController::proxyAction()
+     *
+     * Adapted:
+     * @see \BulkEdit\Stdlib\BulkEdit::fillValuesForResource()
+     * @see \BulkEdit\Stdlib\BulkEdit::getValueSuggestUriForLabel()
+     * @see \Urify\Job\UrifyValues::getValueSuggestUriForLabel()
      */
     protected function getValueSuggestUriForLabel(string $label, string $dataType, ?string $language = null): ?string
     {

@@ -363,7 +363,12 @@ class Module extends AbstractModule
         // Keep data that are currently to be updated, but not yet flushed.
         $representation = $adapter->getRepresentation($resource);
         $data = $this->updateResourcePre($adapter, $representation, $data, $bulkedit);
-        $request->setContent($data);
+        
+        // Preserve other fields in request content (e.g., from ItemSetsTree module)
+        // by only updating the 'data' key instead of replacing entire content.
+        $content = $request->getContent();
+        $content['data'] = $data;
+        $request->setContent($content);
     }
 
     /**
@@ -913,12 +918,12 @@ class Module extends AbstractModule
         /** @var \BulkEdit\Stdlib\BulkEdit $bulkEdit */
         $bulkEdit = $this->getServiceLocator()->get('BulkEdit');
 
-        // Start with the data being updated to preserve fields from other modules
-        // (e.g., Item Sets Tree parent relationships), then add all missing fields
-        // from the resource. The array union operator preserves keys from the left.
+        // It's simpler to process data as a full array.
         // TODO Don't use json_decode(json_encode()).
-        $resourceData = json_decode(json_encode($resource), true);
-        $data = $dataToUpdate + $resourceData;
+        $data = json_decode(json_encode($resource), true);
+
+        // Keep data that may have been added during batch pre-process.
+        $data = array_replace($data, $dataToUpdate);
 
         // Note: $data is passed by reference to each process.
         foreach ($processes as $process => $params) switch ($process) {

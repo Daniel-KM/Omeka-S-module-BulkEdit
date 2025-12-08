@@ -913,12 +913,20 @@ class Module extends AbstractModule
         /** @var \BulkEdit\Stdlib\BulkEdit $bulkEdit */
         $bulkEdit = $this->getServiceLocator()->get('BulkEdit');
 
-        // It's simpler to process data as a full array.
-        // TODO Don't use json_decode(json_encode()).
-        $data = json_decode(json_encode($resource), true);
+        // Start with the data being updated to preserve fields from other modules
+        // (e.g., Item Sets Tree parent relationships).
+        $data = $dataToUpdate;
 
-        // Keep data that may have been added during batch pre-process.
-        $data = array_replace($data, $dataToUpdate);
+        // Add property values from the resource if they're not already in $dataToUpdate.
+        // This allows BulkEdit operations to work on existing property values
+        // while preserving non-property fields that may have been set by other modules.
+        // TODO Don't use json_decode(json_encode()).
+        $resourceData = json_decode(json_encode($resource), true);
+        foreach ($resource->values() as $term => $values) {
+            if (!isset($data[$term])) {
+                $data[$term] = $resourceData[$term] ?? [];
+            }
+        }
 
         // Note: $data is passed by reference to each process.
         foreach ($processes as $process => $params) switch ($process) {

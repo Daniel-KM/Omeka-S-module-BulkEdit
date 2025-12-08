@@ -257,7 +257,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'class' => 'chosen-select',
                     'multiple' => true,
                     'required' => false,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -431,7 +431,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'replace_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -474,7 +474,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'copy_from',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -637,7 +637,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'displace_from',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -797,7 +797,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'explode_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -888,7 +888,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'merge_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -964,7 +964,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'convert_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1058,7 +1058,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'class' => 'chosen-select',
                     'multiple' => true,
                     'data-info-datatype' => 'resource',
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1191,7 +1191,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'ordervalues_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1252,7 +1252,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'propvis_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1446,14 +1446,14 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'options' => [
                     'label' => 'For properties', // @translate
                     'term_as_value' => true,
-                    'empty_option' => '',
                     'used_terms' => true,
+                    'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'fill_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1601,7 +1601,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'remove_properties',
                     'class' => 'chosen-select',
                     'multiple' => true,
-                    'data-placeholder' => 'Select properties', // @translate
+                    'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

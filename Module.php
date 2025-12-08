@@ -324,7 +324,7 @@ class Module extends AbstractModule
             return;
         }
 
-        $data = $request->getContent('data');
+        $data = $request->getContent();
         if (empty($data['bulkedit'])) {
             return;
         }
@@ -363,12 +363,7 @@ class Module extends AbstractModule
         // Keep data that are currently to be updated, but not yet flushed.
         $representation = $adapter->getRepresentation($resource);
         $data = $this->updateResourcePre($adapter, $representation, $data, $bulkedit);
-        
-        // Preserve other fields in request content (e.g., from ItemSetsTree module)
-        // by only updating the 'data' key instead of replacing entire content.
-        $content = $request->getContent();
-        $content['data'] = $data;
-        $request->setContent($content);
+        $request->setContent($data);
     }
 
     /**
@@ -427,7 +422,7 @@ class Module extends AbstractModule
             return [];
         }
 
-        $data = $request->getContent('data');
+        $data = $request->getContent();
         if (empty($data['bulkedit'])) {
             return [];
         }
@@ -494,7 +489,7 @@ class Module extends AbstractModule
             return;
         }
 
-        $data = $request->getContent('data');
+        $data = $request->getContent();
         if (empty($data['bulkedit'])) {
             return;
         }

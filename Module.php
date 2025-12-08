@@ -917,24 +917,14 @@ class Module extends AbstractModule
         // (e.g., Item Sets Tree parent relationships).
         $data = $dataToUpdate;
 
-        // Add property values and other Omeka fields from the resource if they're not
-        // already in $dataToUpdate. This allows BulkEdit operations to work on existing
-        // values while preserving non-Omeka fields that may have been set by other modules.
+        // Add all fields from the resource if they're not already in $dataToUpdate.
+        // This allows BulkEdit operations to work on existing values while preserving
+        // non-Omeka fields that may have been set by other modules.
         // TODO Don't use json_decode(json_encode()).
         $resourceData = json_decode(json_encode($resource), true);
-
-        // Add property values
-        foreach ($resource->values() as $term => $values) {
-            if (!isset($data[$term])) {
-                $data[$term] = $resourceData[$term] ?? [];
-            }
-        }
-
-        // Add standard Omeka fields needed by BulkEdit operations
-        $omekaFields = ['o:owner', 'o:thumbnail', 'o:primary_media', 'o:media'];
-        foreach ($omekaFields as $field) {
-            if (!isset($data[$field]) && isset($resourceData[$field])) {
-                $data[$field] = $resourceData[$field];
+        foreach ($resourceData as $key => $value) {
+            if (!isset($data[$key])) {
+                $data[$key] = $value;
             }
         }
 

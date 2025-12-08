@@ -324,10 +324,13 @@ class Module extends AbstractModule
             return;
         }
 
-        $data = $request->getContent('data');
+        $data = $request->getContent();
         if (empty($data['bulkedit'])) {
             return;
         }
+
+        // Store original request content to preserve fields from other modules
+        $originalContent = $data;
 
         // Skip process that can be done globally via a single sql or on another
         // resource or cannot be done via api.
@@ -363,6 +366,12 @@ class Module extends AbstractModule
         // Keep data that are currently to be updated, but not yet flushed.
         $representation = $adapter->getRepresentation($resource);
         $data = $this->updateResourcePre($adapter, $representation, $data, $bulkedit);
+        
+        // Preserve fields from other modules (e.g., item-sets-tree-parent-id from ItemSetsTree)
+        // by merging back fields that aren't standard resource data or bulkedit fields.
+        // Use array union operator so original fields are preserved when not in processed data.
+        $data = $data + $originalContent;
+        
         $request->setContent($data);
     }
 
@@ -422,7 +431,7 @@ class Module extends AbstractModule
             return [];
         }
 
-        $data = $request->getContent('data');
+        $data = $request->getContent();
         if (empty($data['bulkedit'])) {
             return [];
         }
@@ -489,7 +498,7 @@ class Module extends AbstractModule
             return;
         }
 
-        $data = $request->getContent('data');
+        $data = $request->getContent();
         if (empty($data['bulkedit'])) {
             return;
         }

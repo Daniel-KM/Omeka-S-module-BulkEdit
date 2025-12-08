@@ -922,14 +922,14 @@ class Module extends AbstractModule
         // values while preserving non-Omeka fields that may have been set by other modules.
         // TODO Don't use json_decode(json_encode()).
         $resourceData = json_decode(json_encode($resource), true);
-        
+
         // Add property values
         foreach ($resource->values() as $term => $values) {
             if (!isset($data[$term])) {
                 $data[$term] = $resourceData[$term] ?? [];
             }
         }
-        
+
         // Add standard Omeka fields needed by BulkEdit operations
         $omekaFields = ['o:owner', 'o:thumbnail', 'o:primary_media', 'o:media'];
         foreach ($omekaFields as $field) {

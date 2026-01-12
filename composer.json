@@ -24,5 +24,13 @@
         "psr-4": {
             "BulkEdit\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BulkEditTest\\": "tests/BulkEditTest/"
+        }
+    },
+    "extra": {
+        "installer-name": "BulkEdit"
     }
 }

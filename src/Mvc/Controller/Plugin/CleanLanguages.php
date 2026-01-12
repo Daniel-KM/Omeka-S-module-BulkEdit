@@ -2,6 +2,7 @@
 
 namespace BulkEdit\Mvc\Controller\Plugin;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
@@ -55,20 +56,24 @@ class CleanLanguages extends AbstractPlugin
         // The entity manager may be used directly, but it is simpler with sql.
         $connection = $this->entityManager->getConnection();
 
+        $bind = [];
+        $types = [];
+
         $sql = <<<'SQL'
             UPDATE `value` AS `v`
             SET `v`.`lang` = NULL
             WHERE `v`.`lang` = ''
             SQL;
 
-        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
-        if ($idsString) {
-            $sql .= "\n" . <<<SQL
-                AND `v`.`resource_id` IN ($idsString)
+        if ($resourceIds !== null) {
+            $sql .= "\n" . <<<'SQL'
+                AND `v`.`resource_id` IN (:resource_ids)
                 SQL;
+            $bind['resource_ids'] = $resourceIds;
+            $types['resource_ids'] = Connection::PARAM_INT_ARRAY;
         }
 
-        $count = $connection->executeStatement($sql);
+        $count = $connection->executeStatement($sql, $bind, $types);
         if ($count) {
             $this->logger->info(
                 'Updated empty language of {count} values.', // @translate

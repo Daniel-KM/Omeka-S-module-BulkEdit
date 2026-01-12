@@ -3,6 +3,7 @@
 namespace BulkEdit\Mvc\Controller\Plugin;
 
 use Common\Stdlib\EasyMeta;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
@@ -63,6 +64,9 @@ class CleanLanguageCodes extends AbstractPlugin
         // The entity manager may be used directly, but it is simpler with sql.
         $connection = $this->entityManager->getConnection();
 
+        $bind = [];
+        $types = [];
+
         $quotedFrom = empty($from)
             ? '"" OR `v`.`lang` IS NULL'
             : $connection->quote($from);
@@ -78,20 +82,22 @@ class CleanLanguageCodes extends AbstractPlugin
                 `v`.`lang` = $quotedFrom
             SQL;
 
-        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
-        if ($idsString) {
-            $sql .= "\n" . <<<SQL
-                AND `v`.`resource_id` IN ($idsString)
+        if ($resourceIds !== null) {
+            $sql .= "\n" . <<<'SQL'
+                AND `v`.`resource_id` IN (:resource_ids)
                 SQL;
+            $bind['resource_ids'] = $resourceIds;
+            $types['resource_ids'] = Connection::PARAM_INT_ARRAY;
         }
 
         if ($properties && !in_array('all', $properties)) {
             $propertyIds = $this->easyMeta->propertyIds($properties);
             if ($propertyIds) {
-                $propertyIds = implode(',', $propertyIds);
-                $sql .= "\n" . <<<SQL
-                    AND `v`.`property_id` IN ($propertyIds)
+                $sql .= "\n" . <<<'SQL'
+                    AND `v`.`property_id` IN (:property_ids)
                     SQL;
+                $bind['property_ids'] = array_values($propertyIds);
+                $types['property_ids'] = Connection::PARAM_INT_ARRAY;
             } else {
                 $sql .= "\n" . <<<'SQL'
                     AND 1 = 1
@@ -99,7 +105,7 @@ class CleanLanguageCodes extends AbstractPlugin
             }
         }
 
-        $count = $connection->executeStatement($sql);
+        $count = $connection->executeStatement($sql, $bind, $types);
         if ($count) {
             $this->logger->info(
                 'Updated language from "{from}" to "{to}" of {count} values.', // @translate

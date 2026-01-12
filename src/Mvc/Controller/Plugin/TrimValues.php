@@ -2,6 +2,7 @@
 
 namespace BulkEdit\Mvc\Controller\Plugin;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
@@ -57,7 +58,12 @@ class TrimValues extends AbstractPlugin
         // manage regex.
         $connection = $this->entityManager->getConnection();
 
-        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
+        $bind = [];
+        $types = [];
+        if ($resourceIds !== null) {
+            $bind['resource_ids'] = $resourceIds;
+            $types['resource_ids'] = Connection::PARAM_INT_ARRAY;
+        }
 
         // Sql "trim" is for space " " only, not end of line, new line or tab.
         // So use regexp_replace, but it's available only with mysql ≥ 8.0.4 and
@@ -86,13 +92,13 @@ class TrimValues extends AbstractPlugin
                 SQL;
         }
 
-        if ($idsString) {
-            $query .= "\n" . <<<SQL
-                WHERE `v`.`resource_id` IN ($idsString)
+        if ($resourceIds !== null) {
+            $query .= "\n" . <<<'SQL'
+                WHERE `v`.`resource_id` IN (:resource_ids)
                 SQL;
         }
 
-        $count = $connection->executeStatement($query);
+        $count = $connection->executeStatement($query, $bind, $types);
         if ($count) {
             $this->logger->info(
                 'Trimmed {count} values.', // @translate
@@ -108,13 +114,13 @@ class TrimValues extends AbstractPlugin
                 AND `value` IS NULL
                 AND `uri` IS NULL
             SQL;
-        if ($idsString) {
-            $query .= "\n" . <<<SQL
-                AND `resource_id` IN ($idsString)
+        if ($resourceIds !== null) {
+            $query .= "\n" . <<<'SQL'
+                AND `resource_id` IN (:resource_ids)
             SQL;
         }
 
-        $count = $connection->executeStatement($query);
+        $count = $connection->executeStatement($query, $bind, $types);
         if ($count) {
             $this->logger->info(
                 'Removed {count} empty string values after trimming.', // @translate

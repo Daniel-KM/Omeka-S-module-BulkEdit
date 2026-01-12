@@ -85,7 +85,7 @@ class DeduplicateValues extends AbstractPlugin
         if ($resourceIds) {
             // For specified values.
             $sqlWhere1 = 'WHERE `resource_id` IN (:resource_ids)';
-            $sqlWhere2 = 'AND`resource_id` IN (:resource_ids)';
+            $sqlWhere2 = 'AND `resource_id` IN (:resource_ids)';
             $bind['resource_ids'] = $resourceIds;
             $types['resource_ids'] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
         } else {
@@ -113,7 +113,7 @@ class DeduplicateValues extends AbstractPlugin
             SQL;
 
         $count = $this->connection->executeStatement($sql, $bind, $types);
-        $this->connection->executeStatement("SET sql_mode = '$sqlMode';");
+        $this->connection->executeStatement('SET sql_mode = ?;', [$sqlMode]);
 
         return (int) $count;
     }

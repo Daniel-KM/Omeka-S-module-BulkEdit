@@ -2,6 +2,7 @@
 
 namespace BulkEdit\Mvc\Controller\Plugin;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
@@ -56,6 +57,9 @@ class CleanEmptyValues extends AbstractPlugin
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $this->entityManager->getConnection();
 
+        $bind = [];
+        $types = [];
+
         $sql = <<<'SQL'
             UPDATE `value` AS `v`
             SET
@@ -63,14 +67,15 @@ class CleanEmptyValues extends AbstractPlugin
                 `v`.`uri` = IF(`v`.`uri` IS NULL OR `v`.`uri` = "", NULL, `v`.`uri`)
             SQL;
 
-        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
-        if ($idsString) {
-            $sql .= "\n" . <<<SQL
-                WHERE `v`.`resource_id` IN ($idsString)
+        if ($resourceIds !== null) {
+            $sql .= "\n" . <<<'SQL'
+                WHERE `v`.`resource_id` IN (:resource_ids)
                 SQL;
+            $bind['resource_ids'] = $resourceIds;
+            $types['resource_ids'] = Connection::PARAM_INT_ARRAY;
         }
 
-        $count = $connection->executeStatement($sql);
+        $count = $connection->executeStatement($sql, $bind, $types);
         if ($count) {
             $this->logger->info(
                 'Updated empty values and uris of {count} values.', // @translate

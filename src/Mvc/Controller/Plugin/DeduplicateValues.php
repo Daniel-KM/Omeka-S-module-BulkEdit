@@ -25,16 +25,10 @@ class DeduplicateValues extends AbstractPlugin
      */
     protected $logger;
 
-    /**
-     * @param bool
-     */
-    protected $supportAnyValue;
-
-    public function __construct(Connection $connection, LoggerInterface $logger, bool $supportAnyValue)
+    public function __construct(Connection $connection, LoggerInterface $logger)
     {
         $this->connection = $connection;
         $this->logger = $logger;
-        $this->supportAnyValue = $supportAnyValue;
     }
 
     /**
@@ -70,18 +64,6 @@ class DeduplicateValues extends AbstractPlugin
         $bind = [];
         $types = [];
 
-        // The query modifies the sql mode, so it should be reset.
-        $sqlMode = $this->connection->fetchOne('SELECT @@SESSION.sql_mode;');
-
-        // For large base, a temporary table is prefered to speed process.
-        // TODO Remove "Any_value", but it cannot be replaced by "Min".
-        if ($this->supportAnyValue) {
-            $prefix = 'ANY_VALUE(';
-            $suffix = ')';
-        } else {
-            $prefix = $suffix = '';
-        }
-
         if ($resourceIds) {
             // For specified values.
             $sqlWhere1 = 'WHERE `resource_id` IN (:resource_ids)';
@@ -94,26 +76,38 @@ class DeduplicateValues extends AbstractPlugin
             $sqlWhere2 = '';
         }
 
-        $sql = <<<SQL
-            SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
-            DROP TABLE IF EXISTS `value_temporary`;
+        // Use MIN(id) to get one ID per group of duplicates.
+        // This is standard SQL that works with ONLY_FULL_GROUP_BY enabled,
+        // avoiding the need to modify sql_mode which could affect other queries.
+        // For deduplication, keeping the value with the lowest ID is reasonable.
+
+        // Drop temporary table if it exists from a previous failed run.
+        $this->connection->executeStatement('DROP TABLE IF EXISTS `value_temporary`');
+
+        // Create temporary table with one ID per unique value combination.
+        $sqlCreate = <<<SQL
             CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
             AS
-                SELECT $prefix`id`$suffix
+                SELECT MIN(`id`) AS `id`
                 FROM `value`
                 $sqlWhere1
-                GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`;
+                GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`
+            SQL;
+        $this->connection->executeStatement($sqlCreate, $bind, $types);
+
+        // Delete duplicates (values not in the temporary table).
+        $sqlDelete = <<<SQL
             DELETE `v`
             FROM `value` AS `v`
             LEFT JOIN `value_temporary` AS `value_temporary`
                 ON `value_temporary`.`id` = `v`.`id`
             WHERE `value_temporary`.`id` IS NULL
-                $sqlWhere2;
-            DROP TABLE IF EXISTS `value_temporary`;
+                $sqlWhere2
             SQL;
+        $count = $this->connection->executeStatement($sqlDelete, $bind, $types);
 
-        $count = $this->connection->executeStatement($sql, $bind, $types);
-        $this->connection->executeStatement('SET sql_mode = ?;', [$sqlMode]);
+        // Clean up temporary table.
+        $this->connection->executeStatement('DROP TABLE IF EXISTS `value_temporary`');
 
         return (int) $count;
     }

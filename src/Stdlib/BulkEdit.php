@@ -2087,8 +2087,9 @@ class BulkEdit
 
             $settings = [];
             $settings['mode'] = $mode;
-            $settings['mediaTypes'] = $mediaTypes;
-            $settings['extensions'] = $extensions;
+            // Use flipped arrays for O(1) lookup with isset() instead of in_array().
+            $settings['mediaTypes'] = array_flip($mediaTypes);
+            $settings['extensions'] = array_flip($extensions);
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
             /**
@@ -2118,7 +2119,7 @@ class BulkEdit
                 $medias = $resource->media();
                 $mediaIds = [];
                 foreach ($medias as $media) {
-                    if (in_array($media->mediaType(), $mediaTypes)) {
+                    if (isset($mediaTypes[$media->mediaType()])) {
                         $mediaIds[$media->id()] = true;
                     }
                 }
@@ -2132,7 +2133,7 @@ class BulkEdit
                 $medias = $resource->media();
                 $mediaIds = [];
                 foreach ($medias as $media) {
-                    if (in_array($media->extension(), $extensions)) {
+                    if (isset($extensions[$media->extension()])) {
                         $mediaIds[$media->id()] = true;
                     }
                 }

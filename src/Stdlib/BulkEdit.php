@@ -1046,14 +1046,22 @@ class BulkEdit
             'uri' => '@id',
         ];
 
-        $resourceFromId = function ($id, $property) use ($resource, $api): ?AbstractResourceEntityRepresentation {
+        // Cache for resource lookups to avoid repeated API calls for the same ID.
+        static $resourceCache = [];
+        $resourceFromId = function ($id, $property) use ($resource, $api, &$resourceCache): ?AbstractResourceEntityRepresentation {
+            // Return cached result if available (including null for not found).
+            if (array_key_exists($id, $resourceCache)) {
+                return $resourceCache[$id];
+            }
             try {
-                return $api->read('resources', $id)->getContent();
+                $resourceCache[$id] = $api->read('resources', $id)->getContent();
+                return $resourceCache[$id];
             } catch (\Exception $e) {
                 $this->logger->info(
                     'No linked resource found for resource #{resource_id}, property "{property}", value resource #{linked_resource_id}.', // @translate
                     ['resource_id' => $resource->id(), 'property' => $property, 'linked_resource_id' => $id]
                 );
+                $resourceCache[$id] = null;
                 return null;
             }
         };

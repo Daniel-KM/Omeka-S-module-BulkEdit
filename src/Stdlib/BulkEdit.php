@@ -2390,11 +2390,27 @@ class BulkEdit
             UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
             SQL;
 
+        // Batch load all items at once to avoid N+1 queries.
+        // Use 'limit' => 0 to get all items without pagination.
+        // This is inside batch loop, so normally never more than 100 resources.
+        $items = [];
+        try {
+            $response = $api->search('items', ['id' => $resourceIds, 'limit' => 0]);
+            foreach ($response->getContent() as $item) {
+                $items[$item->id()] = $item;
+            }
+        } catch (\Exception $e) {
+            $this->logger->err(
+                'Cannot load items for explode: {message}', // @translate
+                ['message' => $e->getMessage()]
+            );
+            return;
+        }
+
         foreach ($resourceIds as $resourceId) {
-            try {
-                /** @var \Omeka\Api\Representation\ItemRepresentation $item */
-                $item = $api->read('items', ['id' => $resourceId])->getContent();
-            } catch (\Exception $e) {
+            /** @var \Omeka\Api\Representation\ItemRepresentation $item */
+            $item = $items[$resourceId] ?? null;
+            if (!$item) {
                 continue;
             }
 
@@ -2590,11 +2606,26 @@ class BulkEdit
         // Default is 72 in ghostscript, but it has bad output for native pdf.
         $resolution = empty($params['resolution']) ? 400 : (int) $params['resolution'];
 
+        // Batch load all items at once to avoid N+1 queries.
+        // This is inside batch loop, so normally never more than 100 resources.
+        $items = [];
+        try {
+            $response = $api->search('items', ['id' => $resourceIds, 'limit' => 0], ['initialize' => false]);
+            foreach ($response->getContent() as $item) {
+                $items[$item->id()] = $item;
+            }
+        } catch (\Exception $e) {
+            $this->logger->err(
+                'Cannot load items for PDF explode: {message}', // @translate
+                ['message' => $e->getMessage()]
+            );
+            return;
+        }
+
         foreach ($resourceIds as $resourceId) {
-            try {
-                /** @var \Omeka\Api\Representation\ItemRepresentation $item */
-                $item = $api->read('items', ['id' => $resourceId], [], ['initialize' => false])->getContent();
-            } catch (\Exception $e) {
+            /** @var \Omeka\Api\Representation\ItemRepresentation $item */
+            $item = $items[$resourceId] ?? null;
+            if (!$item) {
                 continue;
             }
 

@@ -553,6 +553,14 @@ class Module extends AbstractModule
     protected function prepareProcesses($bulkedit = null)
     {
         static $processes;
+        static $bulkeditHash;
+
+        // Reset cache if bulkedit params changed (different batch operation).
+        $currentHash = md5(serialize($bulkedit));
+        if ($bulkeditHash !== $currentHash) {
+            $processes = null;
+            $bulkeditHash = $currentHash;
+        }
 
         if ($processes !== null) {
             return $processes;

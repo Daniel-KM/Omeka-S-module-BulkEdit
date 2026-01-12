@@ -32,6 +32,20 @@ class BulkEdit
      */
     protected $services;
 
+    /**
+     * Cache for settings per method, keyed by method name.
+     *
+     * @var array
+     */
+    protected static $settingsCache = [];
+
+    /**
+     * Cache for params hash per method, keyed by method name.
+     *
+     * @var array
+     */
+    protected static $paramsHashCache = [];
+
     public function __construct(ServiceLocatorInterface $services)
     {
         $this->services = $services;
@@ -41,10 +55,60 @@ class BulkEdit
 
     /**
      * The params of each process should be cleaned first.
+     *
      * @todo Check input data here.
      */
     public function __invoke(): self
     {
+        return $this;
+    }
+
+    /**
+     * Check if cached settings should be reset due to changed params.
+     *
+     * This helper ensures that static settings caches are invalidated when a
+     * new batch operation starts with different parameters (default/remove/append).
+     * Without this, multiple batch operations in the same process would
+     * incorrectly reuse cached settings from the first operation.
+     *
+     * @see \Omeka\Job\BatchUpdate
+     *
+     * @param string $method The calling method name.
+     * @param mixed $params The current params to check against cache.
+     * @return bool True if cache was reset.
+     */
+    protected function shouldResetSettingsCache(string $method, $params): bool
+    {
+        $currentHash = md5(serialize($params));
+        if (!isset(self::$paramsHashCache[$method]) || self::$paramsHashCache[$method] !== $currentHash) {
+            self::$settingsCache[$method] = null;
+            self::$paramsHashCache[$method] = $currentHash;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get cached settings for a method.
+     *
+     * @param string $method The calling method name.
+     * @return mixed|null Cached settings or null if not cached.
+     */
+    protected function getCachedSettings(string $method)
+    {
+        return self::$settingsCache[$method] ?? null;
+    }
+
+    /**
+     * Set cached settings for a method.
+     *
+     * @param string $method The calling method name.
+     * @param mixed $settings The settings to cache.
+     * @return self
+     */
+    protected function setCachedSettings(string $method, $settings): self
+    {
+        self::$settingsCache[$method] = $settings;
         return $this;
     }
 
@@ -61,7 +125,8 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
 
         $supportedModes = [
             'raw',
@@ -135,6 +200,7 @@ class BulkEdit
             $settings['fromProperties'] = $fromProperties;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkFrom'] = $checkFrom;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -308,16 +374,9 @@ class BulkEdit
         array $params,
         bool $displace = false
     ): void {
-        static $isDisplace;
-        static $settings;
-
-        // Allow to have a copy and a displace in the same process, even if it
-        // is not recommended, and to process multiple batch loops.
-        if ($isDisplace !== $displace) {
-            $settings = null;
-        }
-
-        $isDisplace = $displace;
+        // Include $displace in cache key to handle copy vs displace modes.
+        $this->shouldResetSettingsCache(__METHOD__, [$params, $displace]);
+        $settings = $this->getCachedSettings(__METHOD__);
 
         if ($settings === null) {
             $fromProperties = $params['from'];
@@ -367,6 +426,7 @@ class BulkEdit
             $settings['checkContains'] = $checkContains;
             $settings['checkMatch'] = $checkMatch;
             $settings['toId'] = $toId;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -455,7 +515,9 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
+
         if ($settings === null) {
             $properties = $params['properties'];
             $separator = $params['separator'];
@@ -472,6 +534,7 @@ class BulkEdit
             $settings['contains'] = $contains;
             $settings['match'] = $match;
             $settings['maxValues'] = $maxValues;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -548,7 +611,9 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
+
         if ($settings === null) {
             $properties = $params['properties'];
 
@@ -557,6 +622,7 @@ class BulkEdit
             }
 
             $settings = $params;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -646,7 +712,9 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
+
         if ($settings === null) {
             $plugins = $this->services->get('ControllerPluginManager');
             $api = $plugins->get('api');
@@ -732,6 +800,7 @@ class BulkEdit
             $settings['uriBaseResource'] = $uriBaseResource;
             $settings['uriIsApi'] = $uriIsApi;
             $settings['checkContains'] = $checkContains;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -1130,7 +1199,9 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
+
         if ($settings === null) {
             $visibility = (int) !empty($params['visibility']);
             $properties = $params['properties'];
@@ -1150,6 +1221,7 @@ class BulkEdit
             $settings['checkDataType'] = $checkDataType;
             $settings['checkLanguage'] = $checkLanguage;
             $settings['checkContains'] = $checkContains;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -1196,12 +1268,15 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
+
         if ($settings === null) {
             $ownerId = (int) $params['owner'] ?: null;
 
             $settings = $params;
             $settings['ownerId'] = $ownerId;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -1232,7 +1307,8 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
 
         // TODO Only geonames and idref are managed.
         // TODO Add a query for a single value in ValueSuggest (or dereferenceable).
@@ -1342,6 +1418,7 @@ class BulkEdit
             $settings['language'] = $language;
             $settings['updateLanguage'] = $updateLanguage;
             $settings['skip'] = $skip;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -1481,7 +1558,9 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
+
         if ($settings === null) {
             $properties = $params['properties'];
             $dataTypes = array_filter($params['datatypes'] ?? []);
@@ -1529,6 +1608,7 @@ class BulkEdit
             $settings['checkEqual'] = $checkEqual;
             $settings['checkContains'] = $checkContains;
             $settings['checkMatch'] = $checkMatch;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -1623,7 +1703,8 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
 
         if ($settings === null) {
             $mode = $params['mode'];
@@ -1646,6 +1727,7 @@ class BulkEdit
             $settings = $params;
             $settings['mode'] = $mode;
             $settings['asset'] = $asset;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -1704,7 +1786,8 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
 
         if ($settings === null) {
             $mode = $params['mode'];
@@ -1740,6 +1823,7 @@ class BulkEdit
             $settings['mode'] = $mode;
             $settings['mediaTypes'] = $mediaTypes;
             $settings['extensions'] = $extensions;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }
@@ -1797,7 +1881,8 @@ class BulkEdit
         array &$data,
         array $params
     ): void {
-        static $settings;
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
 
         if ($settings === null) {
             $order = $params['order'];
@@ -1834,6 +1919,7 @@ class BulkEdit
             $settings['order'] = $order;
             $settings['mainOrder'] = $mainOrder;
             $settings['subOrder'] = $subOrder;
+            $this->setCachedSettings(__METHOD__, $settings);
         } else {
             extract($settings);
         }

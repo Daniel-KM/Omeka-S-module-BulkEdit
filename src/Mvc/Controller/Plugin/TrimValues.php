@@ -148,17 +148,15 @@ class TrimValues extends AbstractPlugin
 
         $sql = 'SHOW VARIABLES LIKE "version";';
         $version = $connection->executeQuery($sql)->fetchAllKeyValue();
-        $version = reset($version);
+        $version = reset($version) ?: '';
 
-        $isMySql = stripos($version, 'mysql') !== false;
-        if ($isMySql) {
+        if ($version !== '' && stripos($version, 'mysql') !== false) {
             $result['db'] = 'mysql';
             $result['version'] = $version;
             return $result;
         }
 
-        $isMariaDb = stripos($version, 'mariadb') !== false;
-        if ($isMariaDb) {
+        if ($version !== '' && stripos($version, 'mariadb') !== false) {
             $result['db'] = 'mariadb';
             $result['version'] = $version;
             return $result;
@@ -166,9 +164,8 @@ class TrimValues extends AbstractPlugin
 
         $sql = 'SHOW VARIABLES LIKE "innodb_version";';
         $version = $connection->executeQuery($sql)->fetchAllKeyValue();
-        $version = reset($version);
-        $isInnoDb = !empty($version);
-        if ($isInnoDb) {
+        $version = reset($version) ?: '';
+        if ($version !== '') {
             $result['db'] = 'innodb';
             $result['version'] = $version;
             return $result;

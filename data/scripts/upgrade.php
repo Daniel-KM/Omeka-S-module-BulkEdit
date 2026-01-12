@@ -86,3 +86,10 @@ if (version_compare($oldVersion, '3.4.34', '<')) {
     );
     $messenger->addSuccess($message);
 }
+
+if (version_compare($oldVersion, '3.4.38', '<')) {
+    $message = new PsrMessage(
+        'It’s now possible to create values with any data type, not only literal, uri, and resource.' // @translate
+    );
+    $messenger->addSuccess($message);
+}

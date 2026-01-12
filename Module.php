@@ -571,6 +571,7 @@ class Module extends AbstractModule
         }
 
         $processes = [
+            'create_values' => null,
             'replace' => null,
             'copy' => null,
             'displace' => null,
@@ -599,6 +600,19 @@ class Module extends AbstractModule
             'clean_language_codes' => null,
             'deduplicate_values' => null,
         ];
+
+        $params = $bulkedit['create_values'] ?? [];
+        if (!empty($params['properties']) && !empty($params['datatype'])) {
+            $processes['create_values'] = [
+                'properties' => $params['properties'],
+                'datatype' => $params['datatype'],
+                'value' => $params['value'] ?? '',
+                'uri_label' => $params['uri_label'] ?? '',
+                'value_resource_id' => $params['value_resource_id'] ?? null,
+                'language' => $params['language'] ?? '',
+                'visibility' => isset($params['visibility']) ? (int) (bool) $params['visibility'] : 1,
+            ];
+        }
 
         $params = $bulkedit['replace'] ?? [];
         if (!empty($params['mode']) && !empty($params['properties'])) {
@@ -938,6 +952,9 @@ class Module extends AbstractModule
 
         // Note: $data is passed by reference to each process.
         foreach ($processes as $process => $params) switch ($process) {
+            case 'create_values':
+                $bulkEdit->createValuesForResource($resource, $data, $params);
+                break;
             case 'replace':
                 $bulkEdit->updateValuesForResource($resource, $data, $params);
                 break;

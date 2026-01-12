@@ -113,6 +113,118 @@ class BulkEdit
     }
 
     /**
+     * Create a new value for all resources.
+     *
+     * Unlike core batch edit that only supports literal/uri/resource types,
+     * this method supports all registered data types (CustomVocab, ValueSuggest, etc.).
+     */
+    public function createValuesForResource(
+        AbstractResourceEntityRepresentation $resource,
+        array &$data,
+        array $params
+    ): void {
+        $this->shouldResetSettingsCache(__METHOD__, $params);
+        $settings = $this->getCachedSettings(__METHOD__);
+
+        if ($settings === null) {
+            $property = $params['properties'] ?? null;
+            $dataType = $params['datatype'] ?? null;
+            $value = trim((string) ($params['value'] ?? ''));
+            $uriLabel = trim((string) ($params['uri_label'] ?? ''));
+            $valueResourceId = $params['value_resource_id'] ?? null;
+            $language = trim((string) ($params['language'] ?? ''));
+            $visibility = isset($params['visibility']) ? (int) (bool) $params['visibility'] : 1;
+
+            // Skip if required fields are missing.
+            if (empty($property) || empty($dataType)) {
+                return;
+            }
+
+            $propertyId = $this->easyMeta->propertyId($property);
+            if (!$propertyId) {
+                $this->logger->warn(
+                    'Property "{property}" not found for creating value.', // @translate
+                    ['property' => $property]
+                );
+                return;
+            }
+
+            // Determine the main type for the data type.
+            $dataTypeMain = $this->easyMeta->dataTypeMain($dataType);
+
+            // Validate that we have the required value for the data type.
+            $hasValue = false;
+            if ($dataTypeMain === 'resource') {
+                $hasValue = !empty($valueResourceId);
+            } elseif ($dataTypeMain === 'uri') {
+                $hasValue = mb_strlen($value) > 0;
+            } else {
+                // literal and other types
+                $hasValue = mb_strlen($value) > 0;
+            }
+
+            if (!$hasValue) {
+                return;
+            }
+
+            $settings = [
+                'property' => $property,
+                'propertyId' => $propertyId,
+                'dataType' => $dataType,
+                'dataTypeMain' => $dataTypeMain,
+                'value' => $value,
+                'uriLabel' => $uriLabel,
+                'valueResourceId' => $valueResourceId,
+                'language' => $language ?: null,
+                'visibility' => $visibility,
+            ];
+
+            $this->setCachedSettings(__METHOD__, $settings);
+        } else {
+            /**
+             * @var string $property
+             * @var int $propertyId
+             * @var string $dataType
+             * @var string $dataTypeMain
+             * @var string $value
+             * @var string $uriLabel
+             * @var int|null $valueResourceId
+             * @var string|null $language
+             * @var int $visibility
+             */
+            extract($settings);
+            /** @phpstan-ignore-line */
+        }
+
+        if (empty($propertyId)) {
+            return;
+        }
+
+        // Build the value array based on data type.
+        $valueData = [
+            'type' => $dataType,
+            'property_id' => $propertyId,
+            'is_public' => $visibility,
+        ];
+
+        if ($dataTypeMain === 'resource') {
+            $valueData['value_resource_id'] = (int) $valueResourceId;
+        } elseif ($dataTypeMain === 'uri') {
+            $valueData['@id'] = $value;
+            $valueData['o:label'] = $uriLabel ?: null;
+        } else {
+            // literal and other types (customvocab, valuesuggest with literal storage, etc.)
+            $valueData['@value'] = $value;
+            if ($language) {
+                $valueData['@language'] = $language;
+            }
+        }
+
+        // Append the new value to the property.
+        $data[$property][] = $valueData;
+    }
+
+    /**
      * Update values for resources.
      *
      * @param AbstractResourceEntityRepresentation $resource

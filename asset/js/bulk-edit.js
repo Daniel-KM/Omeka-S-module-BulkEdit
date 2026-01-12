@@ -111,6 +111,32 @@ $(document).ready(function() {
     });
     // $('input[name="bulkedit[fill_values][mode]"]').trigger('change');
 
+    // Show/hide fields based on selected data type for create_values.
+    $('.batch-edit').on('change', '#create_values_datatype', function() {
+        const datatypes = $(this).data('datatypes') || {};
+        const datatype = $(this).val();
+        const datatypeMain = datatypes[datatype] || 'literal';
+
+        // Hide all type-specific fields first.
+        $('#create_values_value, #create_values_uri_label, #create_values_value_resource_id, #create_values_language')
+            .closest('.field').hide();
+
+        if (!datatype) {
+            return;
+        }
+
+        // Show fields based on main data type.
+        if (datatypeMain === 'resource') {
+            $('#create_values_value_resource_id').closest('.field').show();
+        } else if (datatypeMain === 'uri') {
+            $('#create_values_value, #create_values_uri_label').closest('.field').show();
+        } else {
+            // literal and other types
+            $('#create_values_value, #create_values_language').closest('.field').show();
+        }
+    });
+    $('#create_values_datatype').trigger('change');
+
     $('.batch-edit').on('change', '#mediahtml_remove', function() {
         const fields = $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_prepend, #mediahtml_append').closest('.field');
         this.checked ? fields.hide() : fields.show();
@@ -206,6 +232,13 @@ $(document).ready(function() {
         'bulkedit[media_type][from]': '',
         'bulkedit[media_type][to]': '',
         'bulkedit[media_visibility][visibility]': '',
+        'bulkedit[create_values][properties]': '',
+        'bulkedit[create_values][datatype]': '',
+        'bulkedit[create_values][value]': '',
+        'bulkedit[create_values][uri_label]': '',
+        'bulkedit[create_values][value_resource_id]': '',
+        'bulkedit[create_values][language]': '',
+        'bulkedit[create_values][visibility]': '1',
     };
 
    $('#content form').on('submit', function(e) {

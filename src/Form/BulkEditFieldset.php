@@ -63,6 +63,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             // TODO Remove all the attributes for each field. May still be used in previous versions (< 2.0).
             ->setAttribute('data-collection-action', 'replace')
             ->appendFieldsetCleaning()
+            ->appendFieldsetCreateValues()
             ->appendFieldsetReplace()
             ->appendFieldsetCopy()
             ->appendFieldsetDisplace()
@@ -277,6 +278,132 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'cleaning_clean_deduplicate_values',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        return $this;
+    }
+
+    protected function appendFieldsetCreateValues(): self
+    {
+        $this
+            ->add([
+                'name' => 'create_values',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => $this->translator->translate('Create values'), // @translate
+                ],
+                'attributes' => [
+                    'id' => 'create_values',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+        $fieldset = $this->get('create_values');
+        $fieldset
+            ->add([
+                'name' => 'properties',
+                'type' => CommonElement\OptionalPropertySelect::class,
+                'options' => [
+                    'label' => 'Property', // @translate
+                    'term_as_value' => true,
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'create_values_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-placeholder' => 'Select property…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'datatype',
+                'type' => CommonElement\DataTypeSelect::class,
+                'options' => [
+                    'label' => 'Data type', // @translate
+                    'empty_option' => '',
+                ],
+                'attributes' => [
+                    'id' => 'create_values_datatype',
+                    'class' => 'chosen-select',
+                    'multiple' => false,
+                    'data-datatypes' => json_encode($this->dataTypesMain, 320),
+                    'data-placeholder' => 'Select data type…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'value',
+                'type' => Element\Textarea::class,
+                'options' => [
+                    'label' => 'Value', // @translate
+                    'info' => 'For literal and uri data types. For uri, the label can be set separately below.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'create_values_value',
+                    'rows' => 3,
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'uri_label',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Uri label', // @translate
+                    'info' => 'Optional label for uri data types.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'create_values_uri_label',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'value_resource_id',
+                'type' => CommonElement\OptionalNumber::class,
+                'options' => [
+                    'label' => 'Resource id', // @translate
+                    'info' => 'For resource data types (resource:item, resource:media, etc.).', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'create_values_value_resource_id',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'language',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Language', // @translate
+                    'info' => 'Optional language code for literal values (ISO 639-1 or 639-2).', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'create_values_language',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'visibility',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Visibility', // @translate
+                    'value_options' => [
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'create_values_visibility',
+                    'value' => '1',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

@@ -526,6 +526,9 @@ class BulkEdit
             $processAllProperties = in_array('all', $fromProperties);
             $checkDataType = !empty($dataTypes);
             $checkLanguage = !empty($languages);
+            // Flip arrays for O(1) lookup in loops.
+            $dataTypesFlipped = $checkDataType ? array_flip($dataTypes) : [];
+            $languagesFlipped = $checkLanguage ? array_flip($languages) : [];
             $checkVisibility = $visibility !== null;
             $checkContains = (bool) mb_strlen($contains);
             $checkMatch = (bool) mb_strlen($match);
@@ -538,6 +541,8 @@ class BulkEdit
             $settings['fromProperties'] = $fromProperties;
             $settings['toProperty'] = $toProperty;
             $settings['dataTypes'] = $dataTypes;
+            $settings['dataTypesFlipped'] = $dataTypesFlipped;
+            $settings['languagesFlipped'] = $languagesFlipped;
             $settings['visibility'] = $visibility;
             $settings['contains'] = $contains;
             $settings['match'] = $match;
@@ -557,6 +562,8 @@ class BulkEdit
              * @var array $fromProperties
              * @var string $toProperty
              * @var array $dataTypes
+             * @var array $dataTypesFlipped
+             * @var array $languagesFlipped
              * @var array $languages
              * @var int|null $visibility
              * @var string $contains
@@ -600,10 +607,10 @@ class BulkEdit
             $processed = 0;
             foreach ($data[$property] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null];
-                if ($checkDataType && !in_array($value['type'], $dataTypes)) {
+                if ($checkDataType && !isset($dataTypesFlipped[$value['type']])) {
                     continue;
                 }
-                if ($checkLanguage && !in_array($value['@language'], $languages)) {
+                if ($checkLanguage && !isset($languagesFlipped[$value['@language']])) {
                     continue;
                 }
                 if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
@@ -1512,25 +1519,26 @@ class BulkEdit
 
         // TODO Only geonames and idref are managed.
         // TODO Add a query for a single value in ValueSuggest (or dereferenceable).
+        // Use flipped array for O(1) lookups.
         $managedDataTypes = [
-            'literal',
-            'uri',
-            'valuesuggest:geonames:geonames',
-            'valuesuggest:idref:all',
-            'valuesuggest:idref:person',
-            'valuesuggest:idref:corporation',
-            'valuesuggest:idref:conference',
-            'valuesuggest:idref:subject',
-            'valuesuggest:idref:rameau',
+            'literal' => true,
+            'uri' => true,
+            'valuesuggest:geonames:geonames' => true,
+            'valuesuggest:idref:all' => true,
+            'valuesuggest:idref:person' => true,
+            'valuesuggest:idref:corporation' => true,
+            'valuesuggest:idref:conference' => true,
+            'valuesuggest:idref:subject' => true,
+            'valuesuggest:idref:rameau' => true,
             /* // No mapping currently.
-            'valuesuggest:idref:fmesh',
-            'valuesuggest:idref:geo',
-            'valuesuggest:idref:family',
-            'valuesuggest:idref:title',
-            'valuesuggest:idref:authorTitle',
-            'valuesuggest:idref:trademark',
-            'valuesuggest:idref:ppn',
-            'valuesuggest:idref:library',
+            'valuesuggest:idref:fmesh' => true,
+            'valuesuggest:idref:geo' => true,
+            'valuesuggest:idref:family' => true,
+            'valuesuggest:idref:title' => true,
+            'valuesuggest:idref:authorTitle' => true,
+            'valuesuggest:idref:trademark' => true,
+            'valuesuggest:idref:ppn' => true,
+            'valuesuggest:idref:library' => true,
             */
         ];
 
@@ -1553,7 +1561,14 @@ class BulkEdit
             $processAllDataTypes = in_array('all', $dataTypes);
 
             $skip = false;
-            if (!in_array($mode, ['label_missing', 'label_all', 'label_remove', 'uri_missing', 'uri_all'])) {
+            static $validModes = [
+                'label_missing' => true,
+                'label_all' => true,
+                'label_remove' => true,
+                'uri_missing' => true,
+                'uri_all' => true,
+            ];
+            if (!isset($validModes[$mode])) {
                 $this->logger->warn(
                     'Process is skipped: mode "{mode}" is unmanaged', // @translate
                     ['mode' => $mode]
@@ -1563,26 +1578,31 @@ class BulkEdit
 
             // Flat the list of dataTypes.
             $dataTypeManager = $this->services->get('Omeka\DataTypeManager');
+            $managedDataTypeKeys = array_keys($managedDataTypes);
             $dataTypes = $processAllDataTypes
-                ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDataTypes)
-                : array_intersect($dataTypeManager->getRegisteredNames(), $dataTypes, $managedDataTypes);
+                ? array_intersect($dataTypeManager->getRegisteredNames(), $managedDataTypeKeys)
+                : array_intersect($dataTypeManager->getRegisteredNames(), $dataTypes, $managedDataTypeKeys);
 
-            if (!$dataType && count($dataTypes) === 1 && in_array(reset($dataTypes), $managedDataTypes)) {
+            if (!$dataType && count($dataTypes) === 1 && isset($managedDataTypes[reset($dataTypes)])) {
                 $dataType = reset($dataTypes);
             }
 
-            if ((in_array('literal', $dataTypes) || in_array('uri', $dataTypes)) && in_array($dataType, [null, 'literal', 'uri'])) {
+            // Flip $dataTypes for O(1) lookups.
+            $dataTypesLookup = array_flip($dataTypes);
+            if ((isset($dataTypesLookup['literal']) || isset($dataTypesLookup['uri']))
+                && ($dataType === null || $dataType === 'literal' || $dataType === 'uri')
+            ) {
                 $this->logger->warn('When "literal" or "uri" is used, the precise data type to use should be specified. The process is skipped.'); // @translate
                 $skip = true;
             }
 
             $isModeFillUri = $mode === 'uri_missing' || $mode === 'uri_all';
-            if ($isModeFillUri && in_array($dataType, [null, 'literal', 'uri'])) {
+            if ($isModeFillUri && ($dataType === null || $dataType === 'literal' || $dataType === 'uri')) {
                 $this->logger->warn('When filling an uri, the precise data type to use should be specified. The process is skipped.'); // @translate
                 $skip = true;
             }
 
-            if (!in_array($dataType, $managedDataTypes)) {
+            if (!isset($managedDataTypes[$dataType])) {
                 $this->logger->warn(
                     'Filling an uri from label for data type "{datatype}" is not supported yet. The process is skipped.',  // @translate
                     ['datatype' => (string) $dataType]
@@ -1604,6 +1624,9 @@ class BulkEdit
                 'featured_subject' => $featuredSubject,
             ];
 
+            // Flip arrays for O(1) lookup in loops.
+            $dataTypesFlipped = !empty($dataTypes) ? array_flip($dataTypes) : [];
+
             $settings = $params;
             unset($settings['datatypes']);
             unset($settings['datatype']);
@@ -1612,6 +1635,7 @@ class BulkEdit
             $settings['featuredSubject'] = $featuredSubject;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['dataTypes'] = $dataTypes;
+            $settings['dataTypesFlipped'] = $dataTypesFlipped;
             $settings['dataType'] = $dataType;
             $settings['processAllDataTypes'] = $processAllDataTypes;
             $settings['labelAndUriOptions'] = $labelAndUriOptions;
@@ -1626,6 +1650,7 @@ class BulkEdit
              * @var bool $featuredSubject
              * @var bool $processAllProperties
              * @var array $dataTypes
+             * @var array $dataTypesFlipped
              * @var string|null $dataType
              * @var bool $processAllDataTypes
              * @var array $labelAndUriOptions
@@ -1653,7 +1678,7 @@ class BulkEdit
             foreach ($properties as $property) {
                 foreach ($data[$property] as $key => $value) {
                     if ($value['type'] === 'literal'
-                        || !in_array($value['type'], $dataTypes)
+                        || !isset($dataTypesFlipped[$value['type']])
                     ) {
                         continue;
                     }
@@ -1687,7 +1712,7 @@ class BulkEdit
                     if (empty($value['@id'])) {
                         $data[$property][$key]['@id'] = $value['@id'] = null;
                     }
-                    if (!in_array($value['type'], $dataTypes)
+                    if (!isset($dataTypesFlipped[$value['type']])
                         || !in_array($value['type'], ['literal', 'uri', $dataType])
                     ) {
                         continue;
@@ -1702,7 +1727,7 @@ class BulkEdit
                     if ($onlyMissing && strlen((string) $vvalue)) {
                         continue;
                     }
-                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $dataType : $value['type'];
+                    $vtype = $value['type'] === 'literal' || $value['type'] === 'uri' ? $dataType : $value['type'];
                     $vvalueNew = $this->getLabelForUri($vuri, $vtype, $labelAndUriOptions);
                     if ($vvalueNew === null) {
                         continue;
@@ -1729,7 +1754,7 @@ class BulkEdit
                     if (empty($value['@id'])) {
                         $data[$property][$key]['@id'] = $value['@id'] = null;
                     }
-                    if (!in_array($value['type'], $dataTypes)
+                    if (!isset($dataTypesFlipped[$value['type']])
                         || !in_array($value['type'], ['literal', 'uri', $dataType])
                     ) {
                         continue;
@@ -1745,7 +1770,7 @@ class BulkEdit
                     if (empty($vvalue)) {
                         continue;
                     }
-                    $vtype = in_array($value['type'], ['literal', 'uri']) ? $dataType : $value['type'];
+                    $vtype = $value['type'] === 'literal' || $value['type'] === 'uri' ? $dataType : $value['type'];
                     $vuri = $this->getValueSuggestUriForLabel($vvalue, $vtype, $language);
                     if (!$vuri) {
                         continue;

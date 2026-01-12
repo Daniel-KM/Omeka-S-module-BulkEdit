@@ -85,13 +85,14 @@ class DeduplicateValues extends AbstractPlugin
         $this->connection->executeStatement('DROP TABLE IF EXISTS `value_temporary`');
 
         // Create temporary table with one ID per unique value combination.
+        // Include value_annotation_id so values with different annotations are not duplicates.
         $sqlCreate = <<<SQL
             CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
             AS
                 SELECT MIN(`id`) AS `id`
                 FROM `value`
                 $sqlWhere1
-                GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`
+                GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`, `value_annotation_id`
             SQL;
         $this->connection->executeStatement($sqlCreate, $bind, $types);
 

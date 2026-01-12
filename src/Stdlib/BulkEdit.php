@@ -833,8 +833,8 @@ class BulkEdit
                 $mainValueB = $pair[1]['type'] === 'uri' ? $pair[1]['@id'] : $pair[1]['@value'];
 
                 // There should be one and only one url unless they are the same.
-                $isUrlA = mb_strpos($mainValueA, 'http://') === 0 || mb_strpos($mainValueA, 'https://') === 0;
-                $isUrlB = mb_strpos($mainValueB, 'http://') === 0 || mb_strpos($mainValueB, 'https://') === 0;
+                $isUrlA = $this->isHttpUrl($mainValueA);
+                $isUrlB = $this->isHttpUrl($mainValueB);
                 if ($isUrlA && $isUrlB) {
                     if ($mainValueA !== $mainValueB) {
                         continue 2;
@@ -853,7 +853,7 @@ class BulkEdit
             foreach ($pairs as $pair) {
                 $mainValueA = $pair[0]['type'] === 'uri' ? $pair[0]['@id'] : $pair[0]['@value'];
                 $mainValueB = $pair[1]['type'] === 'uri' ? $pair[1]['@id'] : $pair[1]['@value'];
-                $isUrlA = mb_strpos($mainValueA, 'http://') === 0 || mb_strpos($mainValueA, 'https://') === 0;
+                $isUrlA = $this->isHttpUrl($mainValueA);
                 $data[$property][] = [
                     'type' => 'uri',
                     'property_id' => $pair[0]['property_id'],
@@ -1770,7 +1770,7 @@ class BulkEdit
                     if ($value['@id']
                         && $onlyMissing
                         // Manage badly formatted values.
-                        && (substr($value['@id'], 0, 8) === 'https://' || substr($value['@id'], 0, 7) === 'http://')
+                        && $this->isHttpUrl($value['@id'])
                     ) {
                         continue;
                     }
@@ -2424,8 +2424,14 @@ class BulkEdit
 
             // Keep current data as fully serialized data.
             // All data are copied for new items, included template, class, etc.
-            // $currentItemData = $item->jsonSerialize();
-            // TODO Don't use json_decode(json_encode()).
+            /**
+             * Workaround: jsonSerialize() returns nested objects (owner, items,
+             * values, etc.) that cause Doctrine cache issues in bulk loops.
+             * Converting to pure arrays avoids these problems.
+             *
+             * @todo Don't use json_decode(json_encode()): use $item->jsonSerialize()
+             * @see https://github.com/omeka/omeka-s/pull/2317
+             */
             $currentItemData = json_decode(json_encode($item), true);
 
             $isFirstMedia = true;
@@ -2437,7 +2443,7 @@ class BulkEdit
                         foreach ($media->values() as $term => $propertyData) {
                             /** @var \Omeka\Api\Representation\ValueRepresentation $value */
                             foreach ($propertyData['values'] as $value) {
-                                // $itemData[$term][] = $value->jsonSerialize();
+                                /** @see https://github.com/omeka/omeka-s/pull/2317 */
                                 $itemData[$term][] = json_decode(json_encode($value), true);
                             }
                         }
@@ -2447,7 +2453,7 @@ class BulkEdit
                             if (!empty($propertyData['values'])) {
                                 $itemData[$term] = [];
                                 foreach ($propertyData['values'] as $value) {
-                                    // $itemData[$term][] = $value->jsonSerialize();
+                                    /** @see https://github.com/omeka/omeka-s/pull/2317 */
                                     $itemData[$term][] = json_decode(json_encode($value), true);
                                 }
                             }
@@ -2459,7 +2465,7 @@ class BulkEdit
                             if (!empty($propertyData['values'])) {
                                 $itemData[$term] = [];
                                 foreach ($propertyData['values'] as $value) {
-                                    // $itemData[$term][] = $value->jsonSerialize();
+                                    /** @see https://github.com/omeka/omeka-s/pull/2317 */
                                     $itemData[$term][] = json_decode(json_encode($value), true);
                                 }
                             }
@@ -4029,5 +4035,16 @@ class BulkEdit
         $string = preg_replace('#\&[^;]+\;#', '_', $string);
         $string = preg_replace('/[^[:alnum:]\[\]_\-\.#~@+:]/', '_', $string);
         return substr(preg_replace('/_+/', '_', $string), -180);
+    }
+
+    /**
+     * Check if a string starts with http:// or https://.
+     *
+     * Uses strpos() instead of mb_strpos() since urls are ascii-only.
+     */
+    protected function isHttpUrl(?string $value): bool
+    {
+        return $value !== null
+            && (strpos($value, 'http://') === 0 || strpos($value, 'https://') === 0);
     }
 }

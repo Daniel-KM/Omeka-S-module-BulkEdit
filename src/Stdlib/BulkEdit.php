@@ -314,7 +314,20 @@ class BulkEdit
             $settings['checkFrom'] = $checkFrom;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var string $valuePart
+             * @var string|array $from
+             * @var string|array $to
+             * @var string $prepend
+             * @var string $append
+             * @var bool $languageClear
+             * @var string|null $language
+             * @var array $fromProperties
+             * @var bool $processAllProperties
+             * @var int $checkFrom
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if (!in_array($params['mode'], $supportedModes)) {
@@ -540,7 +553,26 @@ class BulkEdit
             $settings['toId'] = $toId;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var array $fromProperties
+             * @var string $toProperty
+             * @var array $dataTypes
+             * @var array $languages
+             * @var int|null $visibility
+             * @var string $contains
+             * @var string $match
+             * @var int|null $maxValues
+             * @var string|null $toDataType
+             * @var bool $processAllProperties
+             * @var bool $checkDataType
+             * @var bool $checkLanguage
+             * @var bool $checkVisibility
+             * @var bool $checkContains
+             * @var bool $checkMatch
+             * @var int|null $toId
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if (empty($fromProperties) || empty($toProperty)) {
@@ -648,7 +680,15 @@ class BulkEdit
             $settings['maxValues'] = $maxValues;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var array $properties
+             * @var string $separator
+             * @var string $contains
+             * @var string $match
+             * @var int|null $maxValues
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if (empty($properties) || !mb_strlen($separator)) {
@@ -736,7 +776,11 @@ class BulkEdit
             $settings = $params;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var array $properties
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if (empty($properties)) {
@@ -914,7 +958,36 @@ class BulkEdit
             $settings['checkContains'] = $checkContains;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var \Omeka\Mvc\Controller\Plugin\Api $api
+             * @var \Common\Mvc\Controller\Plugin\FindResourcesFromIdentifiers|null $findResourcesFromIdentifiers
+             * @var string $fromDataType
+             * @var string $toDataType
+             * @var \Omeka\DataType\DataTypeInterface|null $toDataTypeAdapter
+             * @var string $fromDataTypeMain
+             * @var string $toDataTypeMain
+             * @var bool $toDataTypeItem
+             * @var bool $toDataTypeCustomVocab
+             * @var bool $toDataTypeValueSuggest
+             * @var string $fromToMain
+             * @var string $fromTo
+             * @var array $properties
+             * @var bool $processAllProperties
+             * @var array $literalValue
+             * @var bool $literalExtractHtmlText
+             * @var bool $literalHtmlOnlyTaggedString
+             * @var string $resourceValuePreprocess
+             * @var array $resourceProperties
+             * @var bool $uriExtractLabel
+             * @var string|null $uriLabel
+             * @var string|null $uriLanguage
+             * @var string $uriBasePath
+             * @var string|null $uriBaseResource
+             * @var bool $uriIsApi
+             * @var bool $checkContains
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if ($fromDataType === $toDataType) {
@@ -1335,7 +1408,18 @@ class BulkEdit
             $settings['checkContains'] = $checkContains;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var array $properties
+             * @var array $dataTypes
+             * @var array $languages
+             * @var int $visibility
+             * @var string $contains
+             * @var bool $checkDataType
+             * @var bool $checkLanguage
+             * @var bool $checkContains
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if (empty($properties)) {
@@ -1390,7 +1474,11 @@ class BulkEdit
             $settings['ownerId'] = $ownerId;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var int|null $ownerId
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         $currentResourceOwner = $resource->owner();
@@ -1532,7 +1620,21 @@ class BulkEdit
             $settings['skip'] = $skip;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var string $mode
+             * @var array $properties
+             * @var bool $featuredSubject
+             * @var bool $processAllProperties
+             * @var array $dataTypes
+             * @var string|null $dataType
+             * @var bool $processAllDataTypes
+             * @var array $labelAndUriOptions
+             * @var string|null $language
+             * @var string $updateLanguage
+             * @var bool $skip
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if ($skip) {
@@ -1722,7 +1824,29 @@ class BulkEdit
             $settings['checkMatch'] = $checkMatch;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var array $properties
+             * @var array $dataTypes
+             * @var array $languages
+             * @var int|null $visibility
+             * @var string $equal
+             * @var string $contains
+             * @var string $match
+             * @var int|null $maxValues
+             * @var int|null $absMaxValues
+             * @var int|null $keepMaxValues
+             * @var int|null $abskeepMaxValues
+             * @var array $mainDataTypes
+             * @var bool $processAllProperties
+             * @var bool $checkDataType
+             * @var bool $checkLanguage
+             * @var bool $checkVisibility
+             * @var bool $checkEqual
+             * @var bool $checkContains
+             * @var bool $checkMatch
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if (empty($properties)
@@ -1841,7 +1965,12 @@ class BulkEdit
             $settings['asset'] = $asset;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var string $mode
+             * @var int $asset
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         switch ($mode) {
@@ -1937,7 +2066,13 @@ class BulkEdit
             $settings['extensions'] = $extensions;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var string $mode
+             * @var array $mediaTypes
+             * @var array $extensions
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if (!$mode || !$resource instanceof ItemRepresentation) {
@@ -2033,7 +2168,15 @@ class BulkEdit
             $settings['subOrder'] = $subOrder;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
+            /**
+             * @var string $order
+             * @var array $mediaTypes
+             * @var array $extensions
+             * @var string|null $mainOrder
+             * @var string|null $subOrder
+             */
             extract($settings);
+            /** @phpstan-ignore-line */
         }
 
         if (!$order || !$resource instanceof ItemRepresentation) {

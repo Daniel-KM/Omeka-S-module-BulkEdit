@@ -3,7 +3,7 @@
 namespace BulkEdit\Service\ControllerPlugin;
 
 use BulkEdit\Mvc\Controller\Plugin\CleanLanguageCodes;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class CleanLanguageCodesFactory implements FactoryInterface

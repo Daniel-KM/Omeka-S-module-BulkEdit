@@ -3,7 +3,7 @@
 namespace BulkEdit\Service\Stdlib;
 
 use BulkEdit\Stdlib\BulkEdit;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class BulkEditFactory implements FactoryInterface

@@ -3513,8 +3513,9 @@ class BulkEdit
 
         switch ($dataType) {
             case 'valuesuggest:geonames:geonames':
-                // Extract the id.
-                $id = preg_replace('~.*/(?<id>[\d]+).*~m', '$1', $uri);
+                // Extract the id. The uri may contain a suffix with the name of
+                // the place and may be skipped.
+                $id = preg_replace('~.*/(?<id>[\d]+)(?:\s*|/.*)~m', '$1', $uri);
                 if (!$id) {
                     $this->logger->err(
                         'The label for uri "{uri}" was not found.', // @translate

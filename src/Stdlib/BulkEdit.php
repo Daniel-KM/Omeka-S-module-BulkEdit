@@ -3614,7 +3614,7 @@ class BulkEdit
         libxml_use_internal_errors(true);
         $doc = new DOMDocument();
         try {
-            $doc->loadXML($xml);
+            $doc->loadXML($xml, LIBXML_NONET);
         } catch (\Exception $e) {
             $this->logger->err(
                 'Output is not xml for url "{url}".', // @translate
@@ -3922,7 +3922,7 @@ class BulkEdit
         if (!$result) {
             $this->logger->err(
                 'The directory "{path}" is not writeable: {error}.', // @translate
-                ['path' => $dirPath, 'error' => error_get_last()['message']]
+                ['path' => $dirPath, 'error' => error_get_last()['message'] ?? 'unknown error']
             );
             return null;
         }

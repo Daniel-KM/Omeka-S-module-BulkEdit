@@ -77,9 +77,9 @@ class TrimValues extends AbstractPlugin
             $query = <<<'SQL'
                 UPDATE `value` AS `v`
                 SET
-                    `v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
-                    `v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
-                    `v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), "")
+                    `v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[[:space:]]+|[[:space:]]+$", ""), ""),
+                    `v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[[:space:]]+|[[:space:]]+$", ""), ""),
+                    `v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[[:space:]]+|[[:space:]]+$", ""), "")
                 SQL;
         } else {
             // The pattern uses a simple trim.

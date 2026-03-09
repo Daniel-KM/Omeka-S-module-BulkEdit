@@ -671,7 +671,13 @@ class BulkEdit
 
         if ($settings === null) {
             $properties = $params['properties'];
-            $separator = $params['separator'];
+            // Support common escape sequences in separator.
+            $separator = strtr($params['separator'], [
+                '\\n' => "\n",
+                '\\r' => "\r",
+                '\\t' => "\t",
+                '\\\\' => '\\',
+            ]);
             $contains = (string) $params['contains'];
             $match = (string) $params['match'];
             $maxValues = empty($params['max_values']) ? null : (int) $params['max_values'];

@@ -939,6 +939,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Separator', // @translate
+                    'info' => 'Use \n for newline, \r for carriage return, \t for tab. Use \\n for a literal \n.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_separator',

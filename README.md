@@ -16,6 +16,7 @@ Current processes are:
 - Replace value of a property (directly or via regex)
 - Remove the literal value of a property
 - Prepend or append a string to a value of a property
+- Replace the whole value or uri of a property, with placeholders
 - Set or remove language of a property
 - Order values by language (in particular for the title)
 - Set visibility of a property public or private
@@ -84,6 +85,13 @@ Usage
 The tool is available via the standard bulk process in Admin > Items, Admin > Item Sets,
 and Admin > Media. Simply select specific resources or all, then click Go, then
 select and config the process to do.
+
+The resources managed by some modules are supported too: annotations (module
+[Annotate]), concepts (module [Thesaurus]) and digital objects (module
+[Digital Object]). They are automatically trimmed and deduplicated on save like
+the standard resources. For digital objects, the available processes are the
+same as for media: update of the html, the source, the media type and the
+visibility.
 
 To improve search of resources, you can use module [Advanced Search], that
 allows to search by creation date, modification date, or by visibility.
@@ -157,6 +165,25 @@ string. In that case, the value is kept, else it is removed.
 #### Prepend or append a string
 
 Fill fields "Prepend" and/or "Append" and select the properties to update.
+
+#### Replace the whole value or uri
+
+Select the mode "Replace whole value": the value, the uri or the label of the
+uri, according to the option "Part of value", is replaced by the content of the
+field "By", without having to write a catch-all regex.
+
+The fields "By", "String to prepend" and "String to append" support the
+placeholders of the module [Common]: `{resource_id}`, `{resource_url}`,
+`{resource_url_admin}`, `{resource_title}`, `{main_url}`, and any property term,
+like `{dcterms:identifier}`. Unknown placeholders are kept as is. The
+placeholders that need a current site or a current user, like `{site_url}`, are
+replaced by an empty string, because a batch edit may be processed in the
+background.
+
+So, to rewrite all the uris of a property as the url of the resource itself, use
+"Part of value" = "Uri", mode = "Replace whole value", and "By" = `{resource_url}`
+(default site), or a specific base url, like `https://example.org/item/{resource_id}`
+for other sites.
 
 #### Set or remove language of a property
 
@@ -325,6 +352,9 @@ then improved for various projects.
 [Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
 [omeka/omeka-s#1258]: https://github.com/omeka/omeka-s/issues/1258
 [Reference]: https://gitlab.com/Daniel-KM/Omeka-S-module-Reference
+[Annotate]: https://gitlab.com/Daniel-KM/Omeka-S-module-Annotate
+[Thesaurus]: https://gitlab.com/Daniel-KM/Omeka-S-module-Thesaurus
+[Digital Object]: https://gitlab.com/Daniel-KM/Omeka-S-module-DigitalObject
 [Data Type Geometry]: https://gitlab.com/Daniel-KM/Omeka-S-module-DataTypeGeometry
 [Geonames]: https://www.geonames.org/
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit/-/issues

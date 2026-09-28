@@ -1074,7 +1074,7 @@ class BulkEdit
             try {
                 $resourceCache[$id] = $api->read('resources', $id)->getContent();
                 return $resourceCache[$id];
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->info(
                     'No linked resource found for resource #{resource_id}, property "{property}", value resource #{linked_resource_id}.', // @translate
                     ['resource_id' => $resource->id(), 'property' => $property, 'linked_resource_id' => $id]
@@ -2417,7 +2417,7 @@ class BulkEdit
             foreach ($response->getContent() as $item) {
                 $items[$item->id()] = $item;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->err(
                 'Cannot load items for explode: {message}', // @translate
                 ['message' => $e->getMessage()]
@@ -2500,7 +2500,7 @@ class BulkEdit
                     // Store data for first item.
                     try {
                         $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['isPartial' => true, 'responseContent' => 'resource'])->getContent();
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                         $this->logger->err(
                             'Item #{item_id} cannot be exploded: {message}', // @translate
                             ['item_id' => $resourceId, 'message' => $e->getMessage()]
@@ -2514,7 +2514,7 @@ class BulkEdit
                     try {
                         $itemData['o:id'] = null;
                         $newItem = $api->create('items', $itemData, [], ['isPartial' => true, 'responseContent' => 'resource'])->getContent();
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                         $this->logger->err(
                             'Item #{item_id} cannot be exploded: {message}', // @translate
                             ['item_id' => $resourceId, 'message' => $e->getMessage()]
@@ -2638,7 +2638,7 @@ class BulkEdit
             foreach ($response->getContent() as $item) {
                 $items[$item->id()] = $item;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->err(
                 'Cannot load items for PDF explode: {message}', // @translate
                 ['message' => $e->getMessage()]
@@ -2864,7 +2864,7 @@ class BulkEdit
                         // $hasError = true;
                         $this->logger->err($e->getMessage() ?: $e);
                         break;
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                         // $hasError = true;
                         $this->logger->err($e);
                         break;
@@ -3627,7 +3627,7 @@ class BulkEdit
         $doc = new DOMDocument();
         try {
             $doc->loadXML($xml, LIBXML_NONET);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->err(
                 'Output is not xml for url "{url}".', // @translate
                 ['url' => $url]

@@ -239,7 +239,7 @@ class Module extends AbstractModule
                         $linkedResourceName = $api->read('resources', ['id' => $value['value_resource_id']], [], ['initialize' => false, 'finalize' => false])
                             ->getContent()->getResourceName();
                         $value['type'] = $resourceNameToTypes[$linkedResourceName] ?? $value['type'];
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                     }
                 }
             }
@@ -366,7 +366,7 @@ class Module extends AbstractModule
         $adapter = $event->getTarget();
         try {
             $resource = $adapter->findEntity($request->getId());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return;
         }
 

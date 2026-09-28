@@ -2529,7 +2529,9 @@ class BulkEdit
             foreach ($itemsAndMedias as $newItemId => $mediaId) {
                 $sqls .= sprintf($sqlMedia, $newItemId, $mediaId) . PHP_EOL;
             }
-            $connection->executeStatement($sqls);
+            foreach (array_filter(array_map('trim', explode(";\n", $sqls))) as $sql) {
+                $connection->executeStatement($sql);
+            }
         }
     }
 

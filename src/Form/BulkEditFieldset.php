@@ -100,6 +100,16 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     ->appendFieldsetMediaVisibility()
                 ;
                 break;
+            case 'digital_objects':
+            case 'digital-object':
+            case 'digitalObject':
+                $this
+                    ->appendFieldsetMediaHtml()
+                    ->appendFieldsetMediaSource()
+                    ->appendFieldsetMediaType()
+                    ->appendFieldsetMediaVisibility()
+                ;
+                break;
             case 'item_sets':
             case 'item-set':
             case 'itemSet':

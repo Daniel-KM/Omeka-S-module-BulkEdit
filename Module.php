@@ -51,6 +51,7 @@ class Module extends AbstractModule
             \Omeka\Api\Adapter\ItemSetAdapter::class,
             \Omeka\Api\Adapter\MediaAdapter::class,
             \Annotate\Api\Adapter\AnnotationAdapter::class,
+            \DigitalObject\Api\Adapter\DigitalObjectAdapter::class,
             \Thesaurus\Api\Adapter\ConceptAdapter::class,
         ];
         foreach ($adapters as $adapter) {
@@ -218,6 +219,7 @@ class Module extends AbstractModule
             // Modules with a specific resource type.
             'annotations' => 'resource:annotation',
             'concepts' => 'resource:concept',
+            'digital_objects' => 'resource:digitalobject',
         ];
         foreach ($data as $term => &$values) {
             // Process properties only.

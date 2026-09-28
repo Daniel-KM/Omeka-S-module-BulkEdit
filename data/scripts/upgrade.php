@@ -94,3 +94,10 @@ if (version_compare($oldVersion, '3.4.38', '<')) {
     );
     $messenger->addSuccess($message);
 }
+
+if (version_compare($oldVersion, '3.4.40', '<')) {
+    $message = new PsrMessage(
+        'It’s now possible to replace the whole value or uri of a property and to use placeholders like {resource_id} or {resource_url} in the replacement strings.' // @translate
+    );
+    $messenger->addSuccess($message);
+}

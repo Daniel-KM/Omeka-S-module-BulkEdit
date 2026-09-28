@@ -8,19 +8,8 @@ return [
             'BulkEdit' => Service\Stdlib\BulkEditFactory::class,
         ],
     ],
-    'view_helpers' => [
-        'invokables' => [
-            'formNote' => Form\View\Helper\FormNote::class,
-        ],
-        'delegators' => [
-            'Laminas\Form\View\Helper\FormElement' => [
-                __NAMESPACE__ => Service\Delegator\FormElementDelegatorFactory::class,
-            ],
-        ],
-    ],
     'form_elements' => [
         'invokables' => [
-            Form\Element\Note::class => Form\Element\Note::class,
             Form\SettingsFieldset::class => Form\SettingsFieldset::class,
         ],
         'factories' => [

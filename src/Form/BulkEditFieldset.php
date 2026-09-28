@@ -1622,10 +1622,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'note_uri',
-                'type' => BulkEditElement\Note::class,
+                'type' => CommonElement\Note::class,
                 'options' => [
-                    'content' => 'The uri can be filled only when the remote endpoint returns a single result.', // @translate
-                    // TODO For compatibility with other modules, the content is passed as text too. Will be removed in Omeka S v4.
                     'text' => 'The uri can be filled only when the remote endpoint returns a single result.', // @translate
                 ],
                 'attributes' => [
@@ -1966,10 +1964,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'note_process',
-                'type' => BulkEditElement\Note::class,
+                'type' => CommonElement\Note::class,
                 'options' => [
-                    'content' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
-                    // TODO For compatibility with other modules, the content is passed as text too. Will be removed in Omeka S v4.
                     'text' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
                 ],
                 'attributes' => [
@@ -2025,10 +2021,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'note_process',
-                'type' => BulkEditElement\Note::class,
+                'type' => CommonElement\Note::class,
                 'options' => [
-                    'content' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
-                    // TODO For compatibility with other modules, the content is passed as text too. Will be removed in Omeka S v4.
                     'text' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
                 ],
                 'attributes' => [

@@ -248,6 +248,7 @@ class BulkEdit
             'regex',
             'basename',
             'filename',
+            'whole',
             'remove',
         ];
 
@@ -333,6 +334,14 @@ class BulkEdit
         if (!in_array($params['mode'], $supportedModes)) {
             return;
         }
+
+        // The placeholders are filled for each resource, so they cannot be
+        // stored in the cached settings.
+        if ($mode === 'whole') {
+            $to = $this->fillPlaceholders($to, $resource);
+        }
+        $prepend = $this->fillPlaceholders($prepend, $resource);
+        $append = $this->fillPlaceholders($append, $resource);
 
         // Note: this is the original values.
         $properties = $processAllProperties
@@ -431,6 +440,9 @@ class BulkEdit
                             );
                             return;
                         }
+                        break;
+                    case 'whole':
+                        $newValue = $to;
                         break;
                     case 'remove':
                         // Unsetting is done in last step.
@@ -3872,6 +3884,30 @@ class BulkEdit
         uasort($toOrder, $cmp);
 
         return $toOrder;
+    }
+
+    /**
+     * Fill the placeholders of a string with the data of a resource.
+     *
+     * The placeholders are the ones managed by the module Common for messages,
+     * mainly {resource_id}, {resource_url}, {resource_url_admin},
+     * {resource_title}, {main_url}, and the property terms {dcterms:identifier}.
+     * Unknown placeholders are kept as is. The placeholders that require a
+     * current site or a current user, like {site_url}, are replaced by an empty
+     * string, because there is none during a background job.
+     *
+     * @see \Common\Stdlib\MessagePreparerTrait::fillMessage()
+     */
+    protected function fillPlaceholders(string $string, AbstractResourceEntityRepresentation $resource): string
+    {
+        if (mb_strpos($string, '{') === false) {
+            return $string;
+        }
+
+        // The view helper manager shares its helpers, so it is already cached.
+        return $this->services->get('ViewRenderer')
+            ->plugin('prepareMessage')()
+            ->fillMessage($string, [], ['resource' => $resource]);
     }
 
     /**

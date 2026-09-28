@@ -463,6 +463,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                         'regex' => 'Regex (full pattern)', // @translate
                         'basename' => 'Base name (last part of a file path or url)', // @translate
                         'filename' => 'Base name without extension', // @translate
+                        'whole' => 'Replace whole value', // @translate
                         'remove' => 'Remove whole value', // @translate
                     ],
                 ],
@@ -566,6 +567,17 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-placeholder' => 'Select properties…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'note_placeholders',
+                'type' => CommonElement\Note::class,
+                'options' => [
+                    'text' => 'The fields "By", "String to prepend" and "String to append" support placeholders of the resource: {resource_id}, {resource_url}, {resource_url_admin}, {resource_title}, and any property term, like {dcterms:identifier}. So, to replace an uri by the url of the resource, use the mode "Replace whole value" with "By" = {resource_url}, or with a specific base url, like https://example.org/item/{resource_id}.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'replace_note_placeholders',
+                    'class' => 'field',
                 ],
             ])
         ;

@@ -268,6 +268,48 @@ trait BulkEditTestTrait
     }
 
     /**
+     * Run a batch update job with a full set of params for the replace process.
+     *
+     * @param array $query Query to select items.
+     * @param array $params Params of the process, merged with defaults.
+     * @return Job
+     */
+    protected function runBatchReplaceParams(array $query, array $params): Job
+    {
+        $params += [
+            'value_part' => 'value',
+            'mode' => 'raw',
+            'from' => '',
+            'to' => '',
+            'prepend' => '',
+            'append' => '',
+            'language' => '',
+            'language_clear' => false,
+            'properties' => ['all'],
+        ];
+
+        return $this->runJob(BatchUpdate::class, [
+            'resource' => 'items',
+            'query' => $query,
+            'data' => ['bulkedit' => ['replace' => $params]],
+            'data_remove' => [],
+            'data_append' => [],
+        ]);
+    }
+
+    /**
+     * Get the uri (@id) of the first value of a property.
+     */
+    protected function getItemValueUri(ItemRepresentation $item, string $term): ?string
+    {
+        $values = $item->value($term, ['all' => true]);
+        if (empty($values)) {
+            return null;
+        }
+        return $values[0]->uri();
+    }
+
+    /**
      * Get the last exception from job execution.
      */
     protected function getLastJobException(): ?\Throwable

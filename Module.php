@@ -51,6 +51,7 @@ class Module extends AbstractModule
             \Omeka\Api\Adapter\ItemSetAdapter::class,
             \Omeka\Api\Adapter\MediaAdapter::class,
             \Annotate\Api\Adapter\AnnotationAdapter::class,
+            \Thesaurus\Api\Adapter\ConceptAdapter::class,
         ];
         foreach ($adapters as $adapter) {
             // Trim, specify resource type, deduplicate on save.
@@ -214,7 +215,9 @@ class Module extends AbstractModule
             'items' => 'resource:item',
             'media' => 'resource:media',
             'item_sets' => 'resource:itemset',
+            // Modules with a specific resource type.
             'annotations' => 'resource:annotation',
+            'concepts' => 'resource:concept',
         ];
         foreach ($data as $term => &$values) {
             // Process properties only.

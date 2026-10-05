@@ -108,19 +108,39 @@ class TrimValues extends AbstractPlugin
         $trimmed = $count;
 
         // Remove empty values, even if there is a language.
-        $query = <<<'SQL'
-            DELETE FROM `value`
+        $where = <<<'SQL'
             WHERE `value_resource_id` IS NULL
                 AND `value` IS NULL
                 AND `uri` IS NULL
             SQL;
         if ($resourceIds !== null) {
-            $query .= "\n" . <<<'SQL'
+            $where .= "\n" . <<<'SQL'
                 AND `resource_id` IN (:resource_ids)
             SQL;
         }
 
-        $count = $connection->executeStatement($query, $bind, $types);
+        // The annotations of the removed values are removed too, else they
+        // remain orphan.
+        $valueAnnotationIds = $connection->executeQuery(
+            "SELECT `value_annotation_id` FROM `value` $where AND `value_annotation_id` IS NOT NULL",
+            $bind,
+            $types
+        )->fetchFirstColumn();
+
+        $count = $connection->executeStatement("DELETE FROM `value` $where", $bind, $types);
+
+        if ($valueAnnotationIds) {
+            $connection->executeStatement(
+                'DELETE FROM `value` WHERE `resource_id` IN (:ids)',
+                ['ids' => array_map('intval', $valueAnnotationIds)],
+                ['ids' => Connection::PARAM_INT_ARRAY]
+            );
+            $connection->executeStatement(
+                'DELETE FROM `resource` WHERE `id` IN (:ids) AND `resource_type` = :type',
+                ['ids' => array_map('intval', $valueAnnotationIds), 'type' => \Omeka\Entity\ValueAnnotation::class],
+                ['ids' => Connection::PARAM_INT_ARRAY]
+            );
+        }
         if ($count) {
             $this->logger->info(
                 'Removed {count} empty string values after trimming.', // @translate

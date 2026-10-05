@@ -440,6 +440,62 @@ class Module extends AbstractModule
         // The entity manager clear is required to avoid a doctrine issue about
         // non-persisted new entity.
         $entityManager->clear();
+
+        $this->reindexResources($event, $processes);
+    }
+
+    /**
+     * Update title, full text and search indexes after direct updates.
+     *
+     * The direct processes use sql or entities, so without api events. A partial
+     * update without data appends nothing, but runs the hydration and the events.
+     */
+    protected function reindexResources(Event $event, array $processes): void
+    {
+        $ids = [];
+        foreach ($event->getParam('response')->getContent() ?: [] as $entity) {
+            $ids[] = $entity->getId();
+        }
+        if (!$ids) {
+            return;
+        }
+
+        $resourceName = $event->getParam('request')->getResource();
+        $mediaProcesses = array_intersect_key($processes, array_flip(['media_html', 'media_source', 'media_type', 'media_visibility']));
+        $valueProcesses = array_intersect_key($processes, array_flip(['trim_values', 'specify_datatypes', 'clean_empty_values', 'clean_languages', 'clean_language_codes', 'deduplicate_values']));
+
+        $services = $this->getServiceLocator();
+        $resources = [];
+        if ($valueProcesses || ($mediaProcesses && $resourceName === 'media')) {
+            $resources[$resourceName] = $ids;
+        }
+        if ($mediaProcesses && $resourceName === 'items') {
+            $connection = $services->get('Omeka\Connection');
+            $resources['media'] = $connection->executeQuery(
+                'SELECT `id` FROM `media` WHERE `item_id` IN (:ids)',
+                ['ids' => $ids],
+                ['ids' => $connection::PARAM_INT_ARRAY]
+            )->fetchFirstColumn();
+        }
+
+        $api = $services->get('Omeka\ApiManager');
+        $logger = $services->get('Omeka\Logger');
+        foreach ($resources as $name => $resourceIds) {
+            foreach ($resourceIds as $resourceId) {
+                try {
+                    $api->update($name, $resourceId, [], [], [
+                        'isPartial' => true,
+                        'collectionAction' => 'append',
+                        'responseContent' => 'resource',
+                    ]);
+                } catch (\Throwable $e) {
+                    $logger->err(
+                        'Resource #{resource_id} cannot be reindexed after bulk edit: {message}', // @translate
+                        ['resource_id' => $resourceId, 'message' => $e->getMessage()]
+                    );
+                }
+            }
+        }
     }
 
     protected function getProcessesToBatchUpdateDirectly(Event $event): array

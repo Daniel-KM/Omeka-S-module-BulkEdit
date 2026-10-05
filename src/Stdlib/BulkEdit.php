@@ -1103,6 +1103,10 @@ class BulkEdit
 
         // Cache for resource lookups to avoid repeated API calls for the same ID.
         static $resourceCache = [];
+        // Limit the memory on big batches.
+        if (count($resourceCache) > 10000) {
+            $resourceCache = [];
+        }
         $resourceFromId = function ($id, $property) use ($resource, $api, &$resourceCache): ?AbstractResourceEntityRepresentation {
             // Return cached result if available (including null for not found).
             if (array_key_exists($id, $resourceCache)) {
@@ -3217,6 +3221,8 @@ class BulkEdit
 
         $dom = $this->fetchUrlXml($url);
         if (!$dom) {
+            // Avoid to fetch an unavailable uri for each value.
+            $filleds[$uri] = null;
             return null;
         }
 
@@ -3317,6 +3323,8 @@ class BulkEdit
 
         $dom = $this->fetchUrlXml($url);
         if (!$dom) {
+            // Avoid to fetch an unavailable uri for each value.
+            $filleds[$uri] = null;
             return null;
         }
 
@@ -3377,8 +3385,9 @@ class BulkEdit
             $dataTypeManager = $this->services->get('Omeka\DataTypeManager');
         }
 
-        if (array_key_exists($label, $filleds)) {
-            return $filleds[$label];
+        $cacheKey = $dataType . '|' . $language . '|' . $label;
+        if (array_key_exists($cacheKey, $filleds)) {
+            return $filleds[$cacheKey];
         }
 
         $originalLabel = $label;
@@ -3409,16 +3418,9 @@ class BulkEdit
         }
 
         $suggestions = $suggester->getSuggestions($label, $language);
-        if (!is_array($suggestions) || !count($suggestions)) {
-            return null;
-        }
-
-        if (count($suggestions) > 1) {
-            return null;
-        }
-
-        $suggestion = reset($suggestions);
-        return $suggestion['data']['uri'] ?? null;
+        // Only a single suggestion is reliable.
+        $suggestion = is_array($suggestions) && count($suggestions) === 1 ? reset($suggestions) : null;
+        return $filleds[$cacheKey] = $suggestion['data']['uri'] ?? null;
     }
 
     /**

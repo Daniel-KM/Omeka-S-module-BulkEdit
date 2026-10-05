@@ -59,7 +59,7 @@ class SpecifyDataTypeResources extends AbstractPlugin
 
         $sql = <<<'SQL'
             UPDATE `value` AS `v`
-            INNER JOIN `resource` ON `resource`.`id` = `v`.`resource_id`
+            INNER JOIN `resource` ON `resource`.`id` = `v`.`value_resource_id`
             SET `v`.`type` = CONCAT('resource:', LOWER(SUBSTRING_INDEX(`resource`.`resource_type`, '\\', -1)))
             WHERE `v`.`type` = 'resource'
             SQL;

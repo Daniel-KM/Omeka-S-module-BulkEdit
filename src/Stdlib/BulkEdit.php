@@ -298,9 +298,10 @@ class BulkEdit
                         }
                         break;
                     case 'html':
+                        // The entity is first, else its "&" is replaced before it.
                         $from = [
-                            $from,
                             htmlentities($from, ENT_NOQUOTES | ENT_HTML5 | ENT_SUBSTITUTE),
+                            $from,
                         ];
                         $to = [$to, $to];
                         break;
@@ -2910,9 +2911,10 @@ class BulkEdit
                     }
                     break;
                 case 'html':
+                    // The entity is first, else its "&" is replaced before it.
                     $from = [
-                        $from,
                         htmlentities($from, ENT_NOQUOTES | ENT_HTML5 | ENT_SUBSTITUTE),
+                        $from,
                     ];
                     $to = [$to, $to];
                     break;

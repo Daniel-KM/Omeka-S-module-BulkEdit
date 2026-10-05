@@ -8,6 +8,11 @@ return [
             'BulkEdit' => Service\Stdlib\BulkEditFactory::class,
         ],
     ],
+    'media_ingesters' => [
+        'factories' => [
+            'bulkedit_local' => Service\Media\Ingester\LocalFileFactory::class,
+        ],
+    ],
     'form_elements' => [
         'invokables' => [
             Form\SettingsFieldset::class => Form\SettingsFieldset::class,

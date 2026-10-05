@@ -2594,18 +2594,7 @@ class BulkEdit
         $tmpDir = $this->services->get('Config')['temp_dir'];
         $basePath = $this->services->get('Config')['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
 
-        /**@see \ExtractOcr\Job\ExtractOcr::extractOcrForMedia() */
-        // It's not possible to save a local file via the "upload" ingester. So
-        // the ingester "url" can be used, but it requires the file to be in the
-        // omeka files directory.
-        // Else, use module FileSideload or inject sql.
-
         if (!$this->checkDestinationDir($tmpDir . '/bulkedit')) {
-            return;
-        }
-
-        $baseDestination = '/temp/bulkedit';
-        if (!$this->checkDestinationDir($basePath . $baseDestination)) {
             return;
         }
 
@@ -2653,8 +2642,6 @@ class BulkEdit
                 return;
             }
         }
-
-        $baseUri = empty($params['base_uri']) ? $this->getBaseUri() : $params['base_uri'];
 
         // Default is 72 in ghostscript, but it has bad output for native pdf.
         $resolution = empty($params['resolution']) ? 400 : (int) $params['resolution'];
@@ -2714,8 +2701,6 @@ class BulkEdit
             $currentPosition = count($medias);
 
             $tmpDirResource = $tmpDir . '/bulkedit/' . $resourceId;
-            $baseDestinationResource = '/temp/bulkedit/' . $resourceId;
-            $filesTempDirResource = $basePath . $baseDestinationResource;
 
             $this->logger->info(
                 'Item #{item_id}: start exploding pdf.', // @translate
@@ -2728,14 +2713,6 @@ class BulkEdit
                     $this->logger->err(
                         'Unable to create temp directory "{dir}" for item #{item_id}.', // @translate
                         ['dir' => '/bulkedit/' . $resourceId, 'item_id' => $resourceId]
-                    );
-                    return;
-                }
-
-                if (!$this->checkDestinationDir($filesTempDirResource)) {
-                    $this->logger->err(
-                        'Unable to create temp directory "{dir}" inside "/files" for resource #{resource_id}.', // @translate
-                        ['dir' => $baseDestinationResource, 'item_id' => $resourceId]
                     );
                     return;
                 }
@@ -2841,40 +2818,19 @@ class BulkEdit
                             break;
                         }
 
-                        $destination = sprintf('%s/%s.%04d.jpg', $filesTempDirResource, $sourceBasename, $index);
-                        $storageId = basename($source);
-                        $sourceFilename = basename($destination);
+                        $sourceFilename = sprintf('%s.%04d.jpg', $sourceBasename, $index);
 
                         if ($process === 'skip' && in_array($sourceFilename, $imageJpegSourceNames)) {
                             ++$currentPosition;
                             continue;
                         }
 
-                        $result = @copy($source, $destination);
-                        if (!$result) {
-                            // $hasError = true;
-                            $this->logger->err(
-                                'File cannot be saved in temporary directory "{dir}" (temp file: "{file}")', // @translate
-                                ['dir' => basename($destination), 'file' => $source]
-                            );
-                            break;
-                        }
-
-                        $fileImage = [
-                            'filepath' => $destination,
-                            'filename' => $sourceFilename,
-                            'url' => $baseUri . $baseDestinationResource . '/' . $sourceFilename,
-                            'url_file' => $baseDestinationResource . '/' . $sourceFilename,
-                            'storageId' => $storageId,
-                        ];
-
                         $data = [
-                            'o:ingester' => 'url',
+                            'o:ingester' => 'bulkedit_local',
                             'o:item' => [
                                 'o:id' => $resourceId,
                             ],
                             'o:source' => $sourceFilename,
-                            'ingest_url' => $fileImage['url'],
                             'file_index' => 0,
                             'values_json' => '{}',
                             'o:lang' => null,
@@ -2891,7 +2847,7 @@ class BulkEdit
                         );
 
                         try {
-                            $media = $api->create('media', $data, [], $createOptions)->getContent();
+                            $media = $api->create('media', $data, [], ['bulkedit_filepath' => $source] + $createOptions)->getContent();
                         } catch (\Omeka\Api\Exception\ExceptionInterface $e) {
                             // Generally a bad or missing pdf file.
                             // $hasError = true;
@@ -2906,7 +2862,6 @@ class BulkEdit
 
                 } finally {
                     $this->rmDir($tmpDirResource);
-                    $this->rmDir($filesTempDirResource);
                 }
 
                 $this->logger->info(
@@ -3948,31 +3903,6 @@ class BulkEdit
         return $this->services->get('ViewRenderer')
             ->plugin('prepareMessage')()
             ->fillMessage($string, [], ['resource' => $resource]);
-    }
-
-    /**
-     * @todo To get the base uri is useless now, since base uri is passed as job argument.
-     */
-    protected function getBaseUri()
-    {
-        $config = $this->services->get('Config');
-        $baseUri = $config['file_store']['local']['base_uri'];
-        if (!$baseUri) {
-            $helpers = $this->services->get('ViewHelperManager');
-            $serverUrlHelper = $helpers->get('serverUrl');
-            $basePathHelper = $helpers->get('basePath');
-            $baseUri = $serverUrlHelper($basePathHelper('files'));
-            if ($baseUri === 'http:///files' || $baseUri === 'https:///files') {
-                $t = $this->services->get('MvcTranslator');
-                throw new \Omeka\Mvc\Exception\RuntimeException(
-                    sprintf(
-                        $t->translate('The base uri is not set (key [file_store][local][base_uri]) in the config file of Omeka "config/local.config.php". It must be set for now (key [file_store][local][base_uri]) in order to process background jobs.'), //@translate
-                        $baseUri
-                    )
-                );
-            }
-        }
-        return $baseUri;
     }
 
     /**

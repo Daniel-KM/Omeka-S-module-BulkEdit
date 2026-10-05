@@ -119,6 +119,12 @@ class Module extends AbstractModule
             );
         }
 
+        $sharedEventManager->attach(
+            \Omeka\Media\Ingester\Manager::class,
+            'service.registered_names',
+            [$this, 'handleMediaIngesterRegisteredNames']
+        );
+
         // Extend the batch edit form via js.
         $sharedEventManager->attach(
             '*',
@@ -829,8 +835,6 @@ class Module extends AbstractModule
                 'resolution' => (int) $params['resolution'] ?? null,
                 'processor' => $params['processor'] ?? 'auto',
                 'process_events' => (bool) (int) ($params['process_events'] ?? 0),
-                // TODO Use server-url from job.
-                'base_uri' => $this->getBaseUri(),
             ];
         }
 
@@ -1106,29 +1110,16 @@ class Module extends AbstractModule
     }
 
     /**
-     * @todo To get the base uri is useless now, since base uri is passed as job argument.
+     * Avoid to display the ingester in item edit, because it's an internal one.
      */
-    protected function getBaseUri()
+    public function handleMediaIngesterRegisteredNames(Event $event): void
     {
-        $services = $this->getServiceLocator();
-        $config = $services->get('Config');
-        $baseUri = $config['file_store']['local']['base_uri'];
-        if (!$baseUri) {
-            $helpers = $services->get('ViewHelperManager');
-            $serverUrlHelper = $helpers->get('serverUrl');
-            $basePathHelper = $helpers->get('basePath');
-            $baseUri = $serverUrlHelper($basePathHelper('files'));
-            if ($baseUri === 'http:///files' || $baseUri === 'https:///files') {
-                $t = $services->get('MvcTranslator');
-                throw new \Omeka\Mvc\Exception\RuntimeException(
-                    sprintf(
-                        $t->translate('The base uri is not set (key [file_store][local][base_uri]) in the config file of Omeka "config/local.config.php". It must be set for now (key [file_store][local][base_uri]) in order to process background jobs.'), //@translate
-                        $baseUri
-                    )
-                );
-            }
+        $names = $event->getParam('registered_names');
+        $key = array_search('bulkedit_local', $names);
+        if ($key !== false) {
+            unset($names[$key]);
+            $event->setParam('registered_names', $names);
         }
-        return $baseUri;
     }
 
     /**

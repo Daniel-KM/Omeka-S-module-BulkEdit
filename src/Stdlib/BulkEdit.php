@@ -1530,10 +1530,10 @@ class BulkEdit
                 if ($checkDataType && !in_array($value['type'], $dataTypes)) {
                     continue;
                 }
-                if ($checkLanguage && !in_array($value['@language'], $languages)) {
+                if ($checkLanguage && !in_array($value['@language'] ?? $value['o:lang'] ?? null, $languages)) {
                     continue;
                 }
-                if ($checkContains && strpos((string) $value['@value'], $contains) === false) {
+                if ($checkContains && strpos((string) ($value['@value'] ?? $value['@id'] ?? ''), $contains) === false) {
                     continue;
                 }
                 $data[$property][$key]['is_public'] = $visibility;
@@ -1998,7 +1998,7 @@ class BulkEdit
                 if ($checkDataType && !in_array($value['type'], $dataTypes)) {
                     continue;
                 }
-                if ($checkLanguage && !in_array($value['@language'], $languages)) {
+                if ($checkLanguage && !in_array($value['@language'] ?? $value['o:lang'] ?? null, $languages)) {
                     continue;
                 }
                 if ($checkVisibility && (int) $value['is_public'] !== $visibility) {

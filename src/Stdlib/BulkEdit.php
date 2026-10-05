@@ -1667,7 +1667,9 @@ class BulkEdit
                 $skip = true;
             }
 
-            if (!isset($managedDataTypes[$dataType])) {
+            // The destination data type is required only to fill an uri, or for
+            // literal or uri values, that are checked above.
+            if (($dataType !== null || $isModeFillUri) && !isset($managedDataTypes[$dataType])) {
                 $this->logger->warn(
                     'Filling an uri from label for data type "{datatype}" is not supported yet. The process is skipped.',  // @translate
                     ['datatype' => (string) $dataType]
@@ -1778,7 +1780,7 @@ class BulkEdit
                         $data[$property][$key]['@id'] = $value['@id'] = null;
                     }
                     if (!isset($dataTypesFlipped[$value['type']])
-                        || !in_array($value['type'], ['literal', 'uri', $dataType])
+                        || ($dataType !== null && !in_array($value['type'], ['literal', 'uri', $dataType]))
                     ) {
                         continue;
                     }
@@ -1831,7 +1833,10 @@ class BulkEdit
                     ) {
                         continue;
                     }
-                    $vvalue = $value['@id'] ?? $value['o:label'] ?? $value['@value'] ?? null;
+                    // The search is done on the label. An id that is not a url is
+                    // a label badly stored.
+                    $vvalue = ($value['o:label'] ?? null) ?: ($value['@value'] ?? null)
+                        ?: ($this->isHttpUrl($value['@id']) ? null : $value['@id']);
                     if (empty($vvalue)) {
                         continue;
                     }

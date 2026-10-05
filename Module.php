@@ -421,6 +421,11 @@ class Module extends AbstractModule
          * @var \Omeka\Api\Adapter\AbstractResourceEntityAdapter $adapter,
          * @var \Omeka\Api\Request $request
          */
+        // The core detaches the new values after its flush, but they remain in
+        // the collection of their resource, so the next flush would insert them
+        // again. The direct processes load their own entities.
+        $this->getServiceLocator()->get('Omeka\EntityManager')->clear();
+
         $adapter = $event->getTarget();
         // Process only the updated resources, not the ones that failed (error
         // or not allowed), that are skipped with option "continueOnError".

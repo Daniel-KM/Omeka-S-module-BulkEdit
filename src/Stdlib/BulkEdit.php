@@ -1966,30 +1966,24 @@ class BulkEdit
                     if (($valueMainDataType === 'literal' && $value['@value'] !== $equal)
                         || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $equal)
                         || ($valueMainDataType === 'uri' && $value['@id'] !== $equal)
+                        || !in_array($valueMainDataType, ['literal', 'resource', 'uri'], true)
                     ) {
                         continue;
                     }
                 }
-                if ($checkContains) {
-                    if (($valueMainDataType === 'literal' && strpos((string) $value['@value'], $contains) === false)
-                        // || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $contains)
-                        || ($valueMainDataType === 'uri' && strpos((string) $value['@id'], $contains) === false)
-                    ) {
-                        continue;
-                    }
+                // A value without string (a linked resource) cannot match, so
+                // it should not be removed.
+                $valueString = ['literal' => $value['@value'], 'uri' => $value['@id']][$valueMainDataType] ?? null;
+                if ($checkContains && ($valueString === null || strpos((string) $valueString, $contains) === false)) {
+                    continue;
                 }
-                if ($checkMatch) {
-                    if (($valueMainDataType === 'literal' && !preg_match($match, (string) $value['@value']))
-                        // || ($valueMainDataType === 'resource' && (int) $value['value_resource_id'] !== (int) $contains)
-                        || ($valueMainDataType === 'uri' && !preg_match($match, (string) $value['@id']))
-                    ) {
-                        continue;
-                    }
+                if ($checkMatch && ($valueString === null || !preg_match($match, (string) $valueString))) {
+                    continue;
                 }
                 if ($keepMaxValues && $processed++ < $abskeepMaxValues) {
                     continue;
                 }
-                if ($maxValues && $processed++ > $absMaxValues) {
+                if ($maxValues && $processed++ >= $absMaxValues) {
                     break;
                 }
                 unset($data[$property][$key]);

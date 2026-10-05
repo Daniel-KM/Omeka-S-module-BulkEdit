@@ -851,22 +851,29 @@ class BulkEdit
                 $pairs[$key][] = $value;
             }
 
+            $mainValue = fn (array $value): ?string => $value['@id'] ?? $value['@value'] ?? null;
+
             // Second loop to check values.
             foreach ($pairs as $pair) {
+                // A linked resource cannot be merged.
+                if (!empty($pair[0]['value_resource_id']) || !empty($pair[1]['value_resource_id'])) {
+                    continue 2;
+                }
+
                 // Check if values are two uri.
-                if ($pair[0]['type'] === 'uri' && $pair[1]['type'] === 'uri') {
+                if (isset($pair[0]['@id']) && isset($pair[1]['@id'])) {
                     continue 2;
                 }
 
                 // When they are uri, check if the value has already a url and a label.
-                if (($pair[0]['type'] === 'uri' && mb_strlen($pair[0]['@id']) && isset($pair[0]['o:label']) && mb_strlen($pair[0]['o:label']))
-                    || ($pair[1]['type'] === 'uri' && mb_strlen($pair[1]['@id']) && isset($pair[1]['o:label']) && mb_strlen($pair[1]['o:label']))
+                if ((isset($pair[0]['@id']) && mb_strlen($pair[0]['@id']) && isset($pair[0]['o:label']) && mb_strlen($pair[0]['o:label']))
+                    || (isset($pair[1]['@id']) && mb_strlen($pair[1]['@id']) && isset($pair[1]['o:label']) && mb_strlen($pair[1]['o:label']))
                 ) {
                     continue 2;
                 }
 
-                $mainValueA = $pair[0]['type'] === 'uri' ? $pair[0]['@id'] : $pair[0]['@value'];
-                $mainValueB = $pair[1]['type'] === 'uri' ? $pair[1]['@id'] : $pair[1]['@value'];
+                $mainValueA = $mainValue($pair[0]);
+                $mainValueB = $mainValue($pair[1]);
 
                 // There should be one and only one url unless they are the same.
                 $isUrlA = $this->isHttpUrl($mainValueA);
@@ -887,18 +894,24 @@ class BulkEdit
             // Third loop to update data.
             $data[$property] = [];
             foreach ($pairs as $pair) {
-                $mainValueA = $pair[0]['type'] === 'uri' ? $pair[0]['@id'] : $pair[0]['@value'];
-                $mainValueB = $pair[1]['type'] === 'uri' ? $pair[1]['@id'] : $pair[1]['@value'];
+                $mainValueA = $mainValue($pair[0]);
+                $mainValueB = $mainValue($pair[1]);
                 $isUrlA = $this->isHttpUrl($mainValueA);
-                $data[$property][] = [
+                $labelValue = $isUrlA ? $pair[1] : $pair[0];
+                $merged = [
                     'type' => 'uri',
                     'property_id' => $pair[0]['property_id'],
                     'is_public' => (int) !empty($pair[0]['is_public']),
-                    '@language' => null,
+                    'o:lang' => $labelValue['@language'] ?? $labelValue['o:lang'] ?? null,
                     '@value' => null,
                     '@id' => $isUrlA ? $mainValueA : $mainValueB,
                     'o:label' => $isUrlA ? $mainValueB : $mainValueA,
                 ];
+                $annotation = ($pair[0]['@annotation'] ?? null) ?: ($pair[1]['@annotation'] ?? null);
+                if ($annotation) {
+                    $merged['@annotation'] = $annotation;
+                }
+                $data[$property][] = $merged;
             }
         }
     }

@@ -561,6 +561,9 @@ class BulkEdit
             $settings['maxValues'] = $maxValues;
             $settings['to'] = $to;
             $settings['toDataType'] = $toDataType;
+            $settings['toDataTypeAdapter'] = $toDataType && $this->services->get('Omeka\DataTypeManager')->has($toDataType)
+                ? $this->services->get('Omeka\DataTypeManager')->get($toDataType)
+                : null;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDataType'] = $checkDataType;
             $settings['checkLanguage'] = $checkLanguage;
@@ -582,6 +585,7 @@ class BulkEdit
              * @var string $match
              * @var int|null $maxValues
              * @var string|null $toDataType
+             * @var \Omeka\DataType\DataTypeInterface|null $toDataTypeAdapter
              * @var bool $processAllProperties
              * @var bool $checkDataType
              * @var bool $checkLanguage
@@ -619,24 +623,37 @@ class BulkEdit
             $processed = 0;
             foreach ($data[$property] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null];
+                // The data type uri has a label and the language in "o:lang".
+                $valueLanguage = (string) ($value['@language'] ?? $value['o:lang'] ?? '');
+                $valueString = (string) ($value['@value'] ?? $value['@id'] ?? '');
                 if ($checkDataType && !isset($dataTypesFlipped[$value['type']])) {
                     continue;
                 }
-                if ($checkLanguage && !isset($languagesFlipped[$value['@language']])) {
+                if ($checkLanguage && !isset($languagesFlipped[$valueLanguage])) {
                     continue;
                 }
                 if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
                     continue;
                 }
-                if ($checkContains && strpos($value['@value'], $contains) === false) {
+                if ($checkContains && strpos($valueString, $contains) === false) {
                     continue;
                 }
-                if ($checkMatch && !preg_match($match, $value['@value'])) {
+                if ($checkMatch && !preg_match($match, $valueString)) {
                     continue;
                 }
                 $value['property_id'] = $toId;
                 if ($toDataType) {
                     $value['type'] = $toDataType;
+                    // The structure of the value is unchanged, so a value of
+                    // another main type (literal to uri…) is invalid and would
+                    // be lost when it is displaced.
+                    if ($toDataTypeAdapter && !$toDataTypeAdapter->isValid($value)) {
+                        $this->logger->notice(
+                            'A value of resource #{resource_id}, property "{property}", cannot be set to data type "{datatype}": it is skipped.', // @translate
+                            ['resource_id' => $resource->id(), 'property' => $property, 'datatype' => $toDataType]
+                        );
+                        continue;
+                    }
                 }
                 unset($value['property_label']);
                 // Process the max copy/max displace number of values.
@@ -648,7 +665,7 @@ class BulkEdit
                         unset($data[$property][$key]);
                     }
                 } elseif ($maxValues > 0) {
-                    if ($processed++ > $maxValues) {
+                    if ($processed++ >= $maxValues) {
                         break;
                     }
                     $data[$toProperty][] = $value;

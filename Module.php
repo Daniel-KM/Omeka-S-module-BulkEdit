@@ -496,7 +496,9 @@ class Module extends AbstractModule
             'deduplicate_values' => null,
         ]);
 
-        $processes = $this->prepareProcesses();
+        // The processes are cached with the raw params of the request, so pass
+        // them, else the cache is reset and no process is returned.
+        $processes = $this->prepareProcesses($data['bulkedit']);
         return array_intersect_key($processes, $postProcesses);
     }
 
@@ -563,7 +565,7 @@ class Module extends AbstractModule
             'deduplicate_values' => null,
         ]);
 
-        $processes = $this->prepareProcesses();
+        $processes = $this->prepareProcesses($data['bulkedit']);
         $bulkedit = array_intersect_key($processes, $postProcesses);
         if (!count($bulkedit)) {
             return;

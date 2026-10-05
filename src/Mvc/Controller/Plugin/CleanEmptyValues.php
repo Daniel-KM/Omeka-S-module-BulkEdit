@@ -14,6 +14,8 @@ use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
  */
 class CleanEmptyValues extends AbstractPlugin
 {
+    use RemoveEmptyValuesTrait;
+
     /**
      * @var EntityManager
      */
@@ -80,6 +82,14 @@ class CleanEmptyValues extends AbstractPlugin
             $this->logger->info(
                 'Updated empty values and uris of {count} values.', // @translate
                 ['count' => $count]
+            );
+        }
+
+        $removed = $this->removeEmptyValues($connection, $resourceIds);
+        if ($removed) {
+            $this->logger->info(
+                'Removed {count} empty values.', // @translate
+                ['count' => $removed]
             );
         }
 

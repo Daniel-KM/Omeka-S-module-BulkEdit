@@ -700,6 +700,7 @@ class BulkEdit
             }
 
             $settings = $params;
+            $settings['separator'] = $separator;
             $settings['contains'] = $contains;
             $settings['match'] = $match;
             $settings['maxValues'] = $maxValues;

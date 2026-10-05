@@ -2409,11 +2409,11 @@ class BulkEdit
             SQL;
 
         // Batch load all items at once to avoid N+1 queries.
-        // Use 'limit' => 0 to get all items without pagination.
+        // No limit to get all items: "limit" = 0 returns no resource.
         // This is inside batch loop, so normally never more than 100 resources.
         $items = [];
         try {
-            $response = $api->search('items', ['id' => $resourceIds, 'limit' => 0]);
+            $response = $api->search('items', ['id' => $resourceIds]);
             foreach ($response->getContent() as $item) {
                 $items[$item->id()] = $item;
             }
@@ -2630,7 +2630,7 @@ class BulkEdit
         // This is inside batch loop, so normally never more than 100 resources.
         $items = [];
         try {
-            $response = $api->search('items', ['id' => $resourceIds, 'limit' => 0], ['initialize' => false]);
+            $response = $api->search('items', ['id' => $resourceIds], ['initialize' => false]);
             foreach ($response->getContent() as $item) {
                 $items[$item->id()] = $item;
             }

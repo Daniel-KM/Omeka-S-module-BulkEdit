@@ -101,3 +101,14 @@ if (version_compare($oldVersion, '3.4.40', '<')) {
     );
     $messenger->addSuccess($message);
 }
+
+if (version_compare($oldVersion, '3.4.41', '<')) {
+    $message = new PsrMessage(
+        'The cleanings and the processes on media of the batch edit are now applied: they were skipped in previous versions.' // @translate
+    );
+    $messenger->addWarning($message);
+    $message = new PsrMessage(
+        'The slow processes of the batch edit of selected resources are now run in background.' // @translate
+    );
+    $messenger->addSuccess($message);
+}

@@ -462,7 +462,8 @@ class BulkEdit
             }
         }
 
-        if (mb_strlen($prepend) || mb_strlen($append)) {
+        // A removed value should remain empty to be removed in last step.
+        if ($mode !== 'remove' && (mb_strlen($prepend) || mb_strlen($append))) {
             foreach ($properties as $property) {
                 foreach ($data[$property] ?? [] as $key => $value) {
                     $val = $getVal($value, true);

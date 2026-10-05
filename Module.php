@@ -868,7 +868,8 @@ class Module extends AbstractModule
             $append = rtrim($params['append'] ?? '');
             // TODO Add the check of the validity of the regex in the form.
             // Early check validity of the regex.
-            if (($from . $to . $prepend . $append) !== ''
+            // The modes "unicode" and "remove" do not require a string.
+            if ((($from . $to . $prepend . $append) !== '' || in_array($mode, ['unicode', 'remove']))
                 && ($mode !== 'regex' || @preg_match($from, '') !== false)
             ) {
                 $processes['media_html'] = [
@@ -890,7 +891,8 @@ class Module extends AbstractModule
             $append = rtrim($params['append'] ?? '');
             // TODO Add the check of the validity of the regex in the form.
             // Early check validity of the regex.
-            if (($from . $to . $prepend . $append) !== ''
+            // Some modes do not require a string.
+            if ((($from . $to . $prepend . $append) !== '' || in_array($mode, ['basename', 'filename', 'unicode', 'remove']))
                 && ($mode !== 'regex' || @preg_match($from, '') !== false)
             ) {
                 $processes['media_source'] = [

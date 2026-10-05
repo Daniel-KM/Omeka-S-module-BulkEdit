@@ -568,9 +568,10 @@ class BulkEdit
             $settings['maxValues'] = $maxValues;
             $settings['to'] = $to;
             $settings['toDataType'] = $toDataType;
-            $settings['toDataTypeAdapter'] = $toDataType && $this->services->get('Omeka\DataTypeManager')->has($toDataType)
+            $toDataTypeAdapter = $toDataType && $this->services->get('Omeka\DataTypeManager')->has($toDataType)
                 ? $this->services->get('Omeka\DataTypeManager')->get($toDataType)
                 : null;
+            $settings['toDataTypeAdapter'] = $toDataTypeAdapter;
             $settings['processAllProperties'] = $processAllProperties;
             $settings['checkDataType'] = $checkDataType;
             $settings['checkLanguage'] = $checkLanguage;
@@ -650,11 +651,12 @@ class BulkEdit
                 }
                 $value['property_id'] = $toId;
                 if ($toDataType) {
+                    $isSameMainType = $this->easyMeta->dataTypeMain($value['type']) === $this->easyMeta->dataTypeMain($toDataType);
                     $value['type'] = $toDataType;
                     // The structure of the value is unchanged, so a value of
                     // another main type (literal to uri…) is invalid and would
                     // be lost when it is displaced.
-                    if ($toDataTypeAdapter && !$toDataTypeAdapter->isValid($value)) {
+                    if (!$isSameMainType || ($toDataTypeAdapter && !$toDataTypeAdapter->isValid($value))) {
                         $this->logger->notice(
                             'A value of resource #{resource_id}, property "{property}", cannot be set to data type "{datatype}": it is skipped.', // @translate
                             ['resource_id' => $resource->id(), 'property' => $property, 'datatype' => $toDataType]

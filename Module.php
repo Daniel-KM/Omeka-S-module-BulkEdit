@@ -334,13 +334,104 @@ class Module extends AbstractModule
         /** @var \Omeka\Api\Request $request */
         $request = $event->getParam('request');
         $data = $event->getParam('data');
-        $bulkedit = $this->prepareProcesses($request->getValue('bulkedit'));
+        $rawBulkedit = $request->getValue('bulkedit');
+        $bulkedit = $this->prepareProcesses($rawBulkedit);
+
+        // Only the controller of the batch edit of selected resources disables
+        // the detachment of entities: it is the only synchronous process. Jobs
+        // never set it, so a job cannot dispatch itself in loop.
+        if ($bulkedit
+            && $request->getOption('detachEntities') === false
+            && $request->getOption('collectionAction', 'replace') === 'replace'
+        ) {
+            $slowProcesses = $this->getSlowProcesses($bulkedit, $request->getResource());
+            if ($slowProcesses) {
+                $content = $request->getContent();
+                $content['bulkedit'] = array_diff_key($rawBulkedit, $slowProcesses);
+                $request->setContent($content);
+                $request->setOption('bulkedit_background', array_intersect_key($rawBulkedit, $slowProcesses));
+                $bulkedit = $this->prepareProcesses($content['bulkedit']);
+            }
+        }
+
         if (empty($bulkedit)) {
             unset($data['bulkedit']);
         } else {
             $data['bulkedit'] = $bulkedit;
         }
         $event->setParam('data', $data);
+    }
+
+    /**
+     * Get the processes that should not be run during a web request.
+     *
+     * They use remote requests, external commands or process all media of the
+     * selected items.
+     */
+    protected function getSlowProcesses(array $processes, string $resourceName): array
+    {
+        $names = ['explode_item', 'explode_pdf', 'media_remove', 'media_order'];
+        if ($resourceName === 'items') {
+            $names = array_merge($names, ['media_html', 'media_source', 'media_type', 'media_visibility']);
+        }
+        $slowProcesses = array_intersect_key($processes, array_flip($names));
+
+        // Only the removal of labels has no remote request.
+        if (!empty($processes['fill_values']) && $processes['fill_values']['mode'] !== 'label_remove') {
+            $slowProcesses['fill_values'] = $processes['fill_values'];
+        }
+
+        // Some conversions use geonames.
+        $convert = $processes['convert'] ?? null;
+        if ($convert
+            && (in_array($convert['to'], ['place', 'geography:coordinates'])
+                || $convert['literal_value'] === 'coordinates')
+        ) {
+            $slowProcesses['convert'] = $convert;
+        }
+
+        return $slowProcesses;
+    }
+
+    /**
+     * Run in background the slow processes of a synchronous batch update.
+     */
+    protected function dispatchSlowProcesses(Event $event): void
+    {
+        $request = $event->getParam('request');
+        $background = $request->getOption('bulkedit_background');
+        if (!$background) {
+            return;
+        }
+
+        $ids = [];
+        foreach ($event->getParam('response')->getContent() ?: [] as $entity) {
+            $ids[] = $entity->getId();
+        }
+        if (!$ids) {
+            return;
+        }
+
+        $services = $this->getServiceLocator();
+        $job = $services->get('Omeka\Job\Dispatcher')->dispatch(\Omeka\Job\BatchUpdate::class, [
+            'resource' => $request->getResource(),
+            'query' => ['id' => $ids],
+            'data' => ['bulkedit' => $background],
+            'data_remove' => [],
+            'data_append' => [],
+        ]);
+
+        $url = $services->get('ViewHelperManager')->get('url');
+        $message = new \Common\Stdlib\PsrMessage(
+            'The slow processes are run in background (job {link}#{job_id}{link_end}).', // @translate
+            [
+                'link' => sprintf('<a href="%s">', htmlspecialchars($url('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
+                'job_id' => $job->getId(),
+                'link_end' => '</a>',
+            ]
+        );
+        $message->setEscapeHtml(false);
+        $services->get('ControllerPluginManager')->get('messenger')->addSuccess($message);
     }
 
     /**
@@ -448,6 +539,8 @@ class Module extends AbstractModule
 
     public function handleResourcesBatchUpdatePostFlush(Event $event): void
     {
+        $this->dispatchSlowProcesses($event);
+
         $processes = $this->getProcessesToBatchUpdateDirectly($event);
         if (!count($processes)) {
             return;

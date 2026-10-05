@@ -1144,13 +1144,13 @@ class BulkEdit
                     continue;
                 }
                 if ($checkContains) {
-                    if ($fromDataType === 'literal' && mb_strpos($value['@value'], $contains) === false) {
-                        continue;
-                    }
-                    if ($fromDataType === 'uri' && mb_strpos($value['@id'], $contains) === false) {
+                    $valueString = ['literal' => $value['@value'] ?? null, 'uri' => $value['@id'] ?? null, 'resource' => $value['display_title'] ?? null][$fromDataTypeMain] ?? null;
+                    if ($valueString === null || mb_strpos((string) $valueString, $contains) === false) {
                         continue;
                     }
                 }
+                // The language of the data type uri is stored in "o:lang".
+                $value['@language'] = $value['@language'] ?? $value['o:lang'] ?? null;
                 $newValue = null;
                 switch ($fromDataTypeMain) {
                     case 'literal':
@@ -1197,7 +1197,7 @@ class BulkEdit
                                     );
                                     continue 3;
                                 }
-                                $vr = $api->read('resources', ['id' => $valueResourceId])->getContent();
+                                $vr = $resourceFromId($valueResourceId, $property);
                                 if (!$checkResourceNameAndToDataType($vr, null, $property)) {
                                     continue 3;
                                 }
@@ -1375,6 +1375,14 @@ class BulkEdit
                             );
                         }
                         continue;
+                    }
+                    // The new value is rebuilt, so keep visibility and annotation.
+                    $newValue['is_public'] = $value['is_public'] ?? 1;
+                    if (!empty($value['@annotation'])) {
+                        $newValue['@annotation'] = $value['@annotation'];
+                    }
+                    if ($toDataTypeMain === 'uri') {
+                        $newValue['o:lang'] = $newValue['@language'] ?? null;
                     }
                     $data[$property][$key] = $newValue;
                 }

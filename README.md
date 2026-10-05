@@ -42,6 +42,11 @@ Current processes are:
 Furthermore, values are automatically trimmed and deduplicated when a resource
 is saved.
 
+The slow processes are never run during a web request. When selected resources
+are edited, they are run in a background job: explode items and pdf, fill values
+from remote services, convert to places or coordinates, remove or order media,
+and update html, source, type or visibility of media from items.
+
 
 Installation
 ------------
@@ -350,6 +355,7 @@ then improved for various projects.
 [installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [Advanced Search]: https://gitlab.com/Daniel-KM/Omeka-S-module-AdvancedSearch
 [Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
+[BulkEdit.zip]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit/-/releases
 [omeka/omeka-s#1258]: https://github.com/omeka/omeka-s/issues/1258
 [Reference]: https://gitlab.com/Daniel-KM/Omeka-S-module-Reference
 [Annotate]: https://gitlab.com/Daniel-KM/Omeka-S-module-Annotate

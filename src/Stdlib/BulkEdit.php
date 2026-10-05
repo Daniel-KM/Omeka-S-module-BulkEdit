@@ -464,7 +464,7 @@ class BulkEdit
 
         if (mb_strlen($prepend) || mb_strlen($append)) {
             foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
+                foreach ($data[$property] ?? [] as $key => $value) {
                     $val = $getVal($value, true);
                     if ($val === null) {
                         continue;
@@ -477,7 +477,7 @@ class BulkEdit
 
         if ($languageClear || mb_strlen((string) $language)) {
             foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
+                foreach ($data[$property] ?? [] as $key => $value) {
                     $val = $getVal($value, true);
                     if ($val === null) {
                         continue;
@@ -494,7 +494,7 @@ class BulkEdit
 
         if ($valuePart !== 'uri_label') {
             foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
+                foreach ($data[$property] ?? [] as $key => $value) {
                     $val = $getVal($value, true);
                     if ($val === null) {
                         continue;
@@ -627,7 +627,7 @@ class BulkEdit
                 continue;
             }
             $processed = 0;
-            foreach ($data[$property] as $key => $value) {
+            foreach ($data[$property] ?? [] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null];
                 // The data type uri has a label and the language in "o:lang".
                 $valueLanguage = (string) ($value['@language'] ?? $value['o:lang'] ?? '');
@@ -778,7 +778,7 @@ class BulkEdit
         foreach ($properties as $property) {
             // This variable is used to keep order of original values.
             $values = [];
-            foreach ($data[$property] as $value) {
+            foreach ($data[$property] ?? [] as $value) {
                 if ($value['type'] !== 'literal') {
                     $values[] = $value;
                     continue;
@@ -1156,7 +1156,7 @@ class BulkEdit
         };
 
         foreach ($properties as $property) {
-            foreach ($data[$property] as $key => $value) {
+            foreach ($data[$property] ?? [] as $key => $value) {
                 if ($value['type'] !== $fromDataType
                     || $value['type'] === $toDataType
                 ) {
@@ -1439,7 +1439,7 @@ class BulkEdit
         foreach ($properties as $property) {
             // This two loops process is quicker with many languages.
             $values = $languages;
-            foreach ($data[$property] as $value) {
+            foreach ($data[$property] ?? [] as $value) {
                 if ($value['type'] !== 'literal' || empty($value['@language'])) {
                     $values[''][] = $value;
                     continue;
@@ -1514,7 +1514,7 @@ class BulkEdit
         }
 
         foreach ($properties as $property) {
-            foreach ($data[$property] as $key => $value) {
+            foreach ($data[$property] ?? [] as $key => $value) {
                 $value += ['@language' => null, 'type' => null, '@value' => null];
                 $currentVisibility = isset($value['is_public']) ? (int) $value['is_public'] : 1;
                 if ($currentVisibility === $visibility) {
@@ -1749,7 +1749,7 @@ class BulkEdit
 
         if ($mode === 'label_remove') {
             foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
+                foreach ($data[$property] ?? [] as $key => $value) {
                     if ($value['type'] === 'literal'
                         || !isset($dataTypesFlipped[$value['type']])
                     ) {
@@ -1780,7 +1780,7 @@ class BulkEdit
         if ($mode === 'label_missing' || $mode === 'label_all') {
             $onlyMissing = $mode === 'label_missing';
             foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
+                foreach ($data[$property] ?? [] as $key => $value) {
                     // Manage and store badly formatted id.
                     if (empty($value['@id'])) {
                         $data[$property][$key]['@id'] = $value['@id'] = null;
@@ -1822,7 +1822,7 @@ class BulkEdit
         if ($mode === 'uri_missing' || $mode === 'uri_all') {
             $onlyMissing = $mode === 'uri_missing';
             foreach ($properties as $property) {
-                foreach ($data[$property] as $key => $value) {
+                foreach ($data[$property] ?? [] as $key => $value) {
                     // Manage and store badly formatted id.
                     if (empty($value['@id'])) {
                         $data[$property][$key]['@id'] = $value['@id'] = null;
@@ -1979,10 +1979,14 @@ class BulkEdit
 
         foreach ($properties as $property) {
             $processed = 0;
+            // The property may have been removed by a previous process.
+            if (empty($data[$property])) {
+                continue;
+            }
             if ($keepMaxValues < 0 || $maxValues < 0) {
                 $data[$property] = array_reverse($data[$property]);
             }
-            foreach ($data[$property] as $key => $value) {
+            foreach ($data[$property] ?? [] as $key => $value) {
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null, 'value_resource_id' => null, '@id' => null];
                 if ($checkDataType && !in_array($value['type'], $dataTypes)) {
                     continue;

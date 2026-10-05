@@ -2930,6 +2930,9 @@ class BulkEdit
          */
         $entityManager = $this->services->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
+        // Like the ingester html, the purifier is used when it is enabled.
+        /** @var \Omeka\Stdlib\HtmlPurifier $purifier */
+        $purifier = $this->services->get('Omeka\HtmlPurifier');
         foreach ($resourceIds as $resourceId) {
             $medias = $isMediaIds
                 ? $repository->findBy(['id' => $resourceId, 'ingester' => 'html'])
@@ -2982,7 +2985,10 @@ class BulkEdit
                     continue;
                 }
 
-                // TODO Purify html if set. Reindex full text, etc.
+                // Purify only the updated html, not the unchanged one.
+                $html = trim((string) $purifier->purify($html));
+
+                // TODO Reindex full text, etc.
 
                 $mediaData['html'] = $html;
                 $media->setData($mediaData);

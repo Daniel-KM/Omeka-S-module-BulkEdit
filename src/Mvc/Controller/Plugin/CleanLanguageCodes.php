@@ -67,9 +67,11 @@ class CleanLanguageCodes extends AbstractPlugin
         $bind = [];
         $types = [];
 
-        $quotedFrom = empty($from)
-            ? '"" OR `v`.`lang` IS NULL'
-            : $connection->quote($from);
+        // The condition on the language is enclosed, else the "or" applies the
+        // update to all values without language.
+        $whereFrom = empty($from)
+            ? '(`v`.`lang` = "" OR `v`.`lang` IS NULL)'
+            : '`v`.`lang` = ' . $connection->quote($from);
         $quotedTo = empty($to)
             ? 'NULL'
             : $connection->quote($to);
@@ -79,7 +81,7 @@ class CleanLanguageCodes extends AbstractPlugin
             SET
                 `v`.`lang` = $quotedTo
             WHERE
-                `v`.`lang` = $quotedFrom
+                $whereFrom
             SQL;
 
         if ($resourceIds !== null) {
@@ -99,9 +101,8 @@ class CleanLanguageCodes extends AbstractPlugin
                 $bind['property_ids'] = array_values($propertyIds);
                 $types['property_ids'] = Connection::PARAM_INT_ARRAY;
             } else {
-                $sql .= "\n" . <<<'SQL'
-                    AND 1 = 1
-                    SQL;
+                // No valid property: nothing to update.
+                return 0;
             }
         }
 

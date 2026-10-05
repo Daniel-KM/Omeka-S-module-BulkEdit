@@ -75,9 +75,13 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ->appendFieldsetFillData()
             ->appendFieldsetFillValues()
             ->appendFieldsetRemove()
-            ->appendFieldsetRemoveMedia()
-            ->appendFieldsetThumbnail()
         ;
+
+        if (in_array($resourceType, ['items', 'item'])) {
+            $this->appendFieldsetRemoveMedia();
+        }
+
+        $this->appendFieldsetThumbnail();
 
         switch ($resourceType) {
             case 'items':
@@ -100,16 +104,10 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     ->appendFieldsetMediaVisibility()
                 ;
                 break;
+            // The processes on media do not manage digital objects.
             case 'digital_objects':
             case 'digital-object':
             case 'digitalObject':
-                $this
-                    ->appendFieldsetMediaHtml()
-                    ->appendFieldsetMediaSource()
-                    ->appendFieldsetMediaType()
-                    ->appendFieldsetMediaVisibility()
-                ;
-                break;
             case 'item_sets':
             case 'item-set':
             case 'itemSet':

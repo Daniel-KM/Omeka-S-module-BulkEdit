@@ -1357,7 +1357,7 @@ class BulkEdit
                                 ) {
                                     $this->logger->info(
                                         'For resource #{resource_id}, property "{property}", the value "{uri}" is not a resource url.', // @translate
-                                        ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@value']]
+                                        ['resource_id' => $resource->id(), 'property' => $property, 'uri' => $value['@id']]
                                     );
                                     continue 3;
                                 }
@@ -2394,7 +2394,7 @@ class BulkEdit
                 $toOrder[$mediaId] = [
                     $value,
                     $secondOrder[$mediaId],
-                    $mediaData['mainmediatype'][$mediaId],
+                    $mediaData['mainmediatype'][$mediaId] ?? '',
                     // TODO Use media id to be consistent before php 8.0.
                     // $mediaId,
                 ];

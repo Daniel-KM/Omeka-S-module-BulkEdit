@@ -124,6 +124,9 @@ trait BulkEditTestTrait
                 if (isset($value['o:label'])) {
                     $valueData['o:label'] = $value['o:label'];
                 }
+                if (isset($value['value_resource_id'])) {
+                    $valueData['value_resource_id'] = $value['value_resource_id'];
+                }
                 if (isset($value['is_public'])) {
                     $valueData['is_public'] = $value['is_public'];
                 }
@@ -435,5 +438,8 @@ trait BulkEditTestTrait
             }
         }
         $this->createdResources = [];
+        // Each test has its own application: without closing, a long suite
+        // exhausts the connections of the server (error 1040).
+        $this->getConnection()->close();
     }
 }

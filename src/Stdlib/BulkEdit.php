@@ -2558,12 +2558,6 @@ class BulkEdit
         $api = $this->services->get('Omeka\ApiManager');
         $tempFileFactory = $this->services->get('Omeka\File\TempFileFactory');
 
-        $commandPath = $cli->validateCommand('/usr/bin', 'gs');
-        if (!$commandPath) {
-            $this->logger->err('Ghostscript is not available.'); // @translate
-            return;
-        }
-
         $tmpDir = $this->services->get('Config')['temp_dir'];
         $basePath = $this->services->get('Config')['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
 
@@ -2713,169 +2707,174 @@ class BulkEdit
                     return;
                 }
 
-                $filepath = $basePath . '/original/' . $pdfMedia->filename();
-                $ready = file_exists($filepath) && is_readable($filepath) && filesize($filepath);
-                if (!$ready) {
-                    $this->logger->err(
-                        'Unable to read pdf #{media_id}.', // @translate
-                        ['media_id' => $pdfMedia->id()]
-                    );
-                    continue;
-                }
-
-                /** @see \Omeka\File\TempFile::getStorageId() */
-                $storage = bin2hex(Rand::getBytes(16));
-
-                // Sanitize source name, since it's reused as source for images.
-                $sourceBasename = basename($pdfMedia->source(), '.pdf');
-                $sourceBasename = $this->sanitizeName($sourceBasename);
-                $sourceBasename = $this->convertNameToAscii($sourceBasename);
-
-                $this->logger->info(
-                    'Step 1/2 for item #{item_id}, pdf #{media_id}: Extracting pages as image.', // @translate
-                    ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
-                );
-
-                // Manage windows, that escapes argument differently (quote or
-                // double quote).
-                $tmpPath = escapeshellarg($tmpDirResource . '/' . $storage);
-                $wrap = mb_substr($tmpPath, -1);
-                if ($processor === 'gs') {
-                    $outputFilename = $wrap . mb_substr($tmpPath, 1, -1) . '%04d.jpg' . $wrap;
-                    $command = sprintf(
-                        'gs -dNOTRANSPARENCY -dNOPAUSE -dQUIET -dBATCH -sDEVICE=jpeg -r%1$d -sOutputFile=%2$s %3$s',
-                        (int) $resolution,
-                        $outputFilename,
-                        escapeshellarg($filepath)
-                    );
-                    $result = $cli->execute($command);
-                } elseif ($processor === 'pdftoppm') {
-                    $outputFilenameBase = $wrap . mb_substr($tmpPath, 1, -1) . $wrap;
-                    $command = sprintf(
-                        'pdftoppm -aa yes -aaVector yes -jpeg -jpegopt quality=85 -r %1$d %2$s %3$s',
-                        (int) $resolution,
-                        escapeshellarg($filepath),
-                        $outputFilenameBase
-                    );
-                    $result = $cli->execute($command);
-                }
-                if ($result === false) {
-                    $this->logger->err(
-                        'Unable to extract images from item #{item_id} pdf #{media_id}.', // @translate
-                        ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
-                    );
-                    continue;
-                }
-
-                if ($processor === 'gs') {
-                    $index = 0;
-                    $totalImages = 0;
-                    while (++$index) {
-                        $source = sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index);
-                        if (!file_exists($source)) {
-                            break;
-                        }
-                        ++$totalImages;
-                    }
-                } else {
-                    $command = sprintf(
-                        // https://stackoverflow.com/questions/14644353/get-the-number-of-pages-in-a-pdf-document#answer-74743532
-                        'pdfinfo %1$s | grep Pages | cut -f 2 -d":" | xargs',
-                        escapeshellarg($filepath)
-                    );
-                    $totalImages = $cli->execute($command);
-                }
-
-                if (!$totalImages) {
-                    $this->logger->warn(
-                        'For item #{item_id}, pdf #{media_id} cannot be exploded into images.', // @translate
-                        ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
-                    );
-                    continue;
-                }
-
-                // Create media from files and append them to item.
-                $this->logger->info(
-                    'Step 2/2 for item #{item_id}, pdf #{media_id}: Creating {total} media.', // @translate
-                    ['item_id' => $resourceId, 'media_id' => $pdfMedia->id(), 'total' => $totalImages]
-                );
-
-                $index = 0;
-                // $hasError = false;
-                while (++$index) {
-                    $source = $processor === 'gs'
-                        ? sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index)
-                        : sprintf('%s/%s%0' . strlen((string) $totalImages) . 'd.jpg', $tmpDirResource, $storage, $index);
-                    if (!file_exists($source)) {
-                        break;
-                    }
-
-                    $destination = sprintf('%s/%s.%04d.jpg', $filesTempDirResource, $sourceBasename, $index);
-                    $storageId = basename($source);
-                    $sourceFilename = basename($destination);
-
-                    if ($process === 'skip' && in_array($sourceFilename, $imageJpegSourceNames)) {
-                        ++$currentPosition;
+                // Delete temp files in all cases, even when the pdf is skipped.
+                try {
+                    $filepath = $basePath . '/original/' . $pdfMedia->filename();
+                    $ready = file_exists($filepath) && is_readable($filepath) && filesize($filepath);
+                    if (!$ready) {
+                        $this->logger->err(
+                            'Unable to read pdf #{media_id}.', // @translate
+                            ['media_id' => $pdfMedia->id()]
+                        );
                         continue;
                     }
 
-                    $result = @copy($source, $destination);
-                    if (!$result) {
-                        // $hasError = true;
-                        $this->logger->err(
-                            'File cannot be saved in temporary directory "{dir}" (temp file: "{file}")', // @translate
-                            ['dir' => basename($destination), 'file' => $source]
+                    /** @see \Omeka\File\TempFile::getStorageId() */
+                    $storage = bin2hex(Rand::getBytes(16));
+
+                    // Sanitize source name, since it's reused as source for images.
+                    $sourceBasename = basename($pdfMedia->source(), '.pdf');
+                    $sourceBasename = $this->sanitizeName($sourceBasename);
+                    $sourceBasename = $this->convertNameToAscii($sourceBasename);
+
+                    $this->logger->info(
+                        'Step 1/2 for item #{item_id}, pdf #{media_id}: Extracting pages as image.', // @translate
+                        ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
+                    );
+
+                    // Manage windows, that escapes argument differently (quote or
+                    // double quote).
+                    $tmpPath = escapeshellarg($tmpDirResource . '/' . $storage);
+                    $wrap = mb_substr($tmpPath, -1);
+                    if ($processor === 'gs') {
+                        $outputFilename = $wrap . mb_substr($tmpPath, 1, -1) . '%04d.jpg' . $wrap;
+                        $command = sprintf(
+                            'gs -dNOTRANSPARENCY -dNOPAUSE -dQUIET -dBATCH -sDEVICE=jpeg -r%1$d -sOutputFile=%2$s %3$s',
+                            (int) $resolution,
+                            $outputFilename,
+                            escapeshellarg($filepath)
                         );
-                        break;
+                        $result = $cli->execute($command);
+                    } elseif ($processor === 'pdftoppm') {
+                        $outputFilenameBase = $wrap . mb_substr($tmpPath, 1, -1) . $wrap;
+                        $command = sprintf(
+                            'pdftoppm -aa yes -aaVector yes -jpeg -jpegopt quality=85 -r %1$d %2$s %3$s',
+                            (int) $resolution,
+                            escapeshellarg($filepath),
+                            $outputFilenameBase
+                        );
+                        $result = $cli->execute($command);
+                    }
+                    if ($result === false) {
+                        $this->logger->err(
+                            'Unable to extract images from item #{item_id} pdf #{media_id}.', // @translate
+                            ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
+                        );
+                        continue;
                     }
 
-                    $fileImage = [
-                        'filepath' => $destination,
-                        'filename' => $sourceFilename,
-                        'url' => $baseUri . $baseDestinationResource . '/' . $sourceFilename,
-                        'url_file' => $baseDestinationResource . '/' . $sourceFilename,
-                        'storageId' => $storageId,
-                    ];
+                    if ($processor === 'gs') {
+                        $index = 0;
+                        $totalImages = 0;
+                        while (++$index) {
+                            $source = sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index);
+                            if (!file_exists($source)) {
+                                break;
+                            }
+                            ++$totalImages;
+                        }
+                    } else {
+                        $command = sprintf(
+                            // https://stackoverflow.com/questions/14644353/get-the-number-of-pages-in-a-pdf-document#answer-74743532
+                            'pdfinfo %1$s | grep Pages | cut -f 2 -d":" | xargs',
+                            escapeshellarg($filepath)
+                        );
+                        $totalImages = $cli->execute($command);
+                    }
 
-                    $data = [
-                        'o:ingester' => 'url',
-                        'o:item' => [
-                            'o:id' => $resourceId,
-                        ],
-                        'o:source' => $sourceFilename,
-                        'ingest_url' => $fileImage['url'],
-                        'file_index' => 0,
-                        'values_json' => '{}',
-                        'o:lang' => null,
-                        'position' => ++$currentPosition,
-                    ];
-
-                    // TODO Extract ocr into extracted text. See ExtractOcr.
-                    // TODO Extract Alto.
+                    if (!$totalImages) {
+                        $this->logger->warn(
+                            'For item #{item_id}, pdf #{media_id} cannot be exploded into images.', // @translate
+                            ['item_id' => $resourceId, 'media_id' => $pdfMedia->id()]
+                        );
+                        continue;
+                    }
 
                     // Create media from files and append them to item.
                     $this->logger->info(
-                        'Item #{item_id}: storing file {count}/{total} as media.', // @translate
-                        ['item_id' => $resourceId, 'count' => $index, 'total' => $totalImages]
+                        'Step 2/2 for item #{item_id}, pdf #{media_id}: Creating {total} media.', // @translate
+                        ['item_id' => $resourceId, 'media_id' => $pdfMedia->id(), 'total' => $totalImages]
                     );
 
-                    try {
-                        $media = $api->create('media', $data, [], $createOptions)->getContent();
-                    } catch (\Omeka\Api\Exception\ExceptionInterface $e) {
-                        // Generally a bad or missing pdf file.
-                        // $hasError = true;
-                        $this->logger->err($e->getMessage() ?: $e);
-                        break;
-                    } catch (\Throwable $e) {
-                        // $hasError = true;
-                        $this->logger->err($e);
-                        break;
-                    }
-                }
+                    $index = 0;
+                    // $hasError = false;
+                    while (++$index) {
+                        // Pdftoppm names files "root-01.jpg", with the number of
+                        // digits of the last page.
+                        $source = $processor === 'gs'
+                            ? sprintf('%s/%s%04d.jpg', $tmpDirResource, $storage, $index)
+                            : sprintf('%s/%s-%0' . strlen((string) $totalImages) . 'd.jpg', $tmpDirResource, $storage, $index);
+                        if (!file_exists($source)) {
+                            break;
+                        }
 
-                // Delete temp files in all cases.
-                $this->rmDir($tmpDirResource);
-                $this->rmDir($baseDestinationResource);
+                        $destination = sprintf('%s/%s.%04d.jpg', $filesTempDirResource, $sourceBasename, $index);
+                        $storageId = basename($source);
+                        $sourceFilename = basename($destination);
+
+                        if ($process === 'skip' && in_array($sourceFilename, $imageJpegSourceNames)) {
+                            ++$currentPosition;
+                            continue;
+                        }
+
+                        $result = @copy($source, $destination);
+                        if (!$result) {
+                            // $hasError = true;
+                            $this->logger->err(
+                                'File cannot be saved in temporary directory "{dir}" (temp file: "{file}")', // @translate
+                                ['dir' => basename($destination), 'file' => $source]
+                            );
+                            break;
+                        }
+
+                        $fileImage = [
+                            'filepath' => $destination,
+                            'filename' => $sourceFilename,
+                            'url' => $baseUri . $baseDestinationResource . '/' . $sourceFilename,
+                            'url_file' => $baseDestinationResource . '/' . $sourceFilename,
+                            'storageId' => $storageId,
+                        ];
+
+                        $data = [
+                            'o:ingester' => 'url',
+                            'o:item' => [
+                                'o:id' => $resourceId,
+                            ],
+                            'o:source' => $sourceFilename,
+                            'ingest_url' => $fileImage['url'],
+                            'file_index' => 0,
+                            'values_json' => '{}',
+                            'o:lang' => null,
+                            'position' => ++$currentPosition,
+                        ];
+
+                        // TODO Extract ocr into extracted text. See ExtractOcr.
+                        // TODO Extract Alto.
+
+                        // Create media from files and append them to item.
+                        $this->logger->info(
+                            'Item #{item_id}: storing file {count}/{total} as media.', // @translate
+                            ['item_id' => $resourceId, 'count' => $index, 'total' => $totalImages]
+                        );
+
+                        try {
+                            $media = $api->create('media', $data, [], $createOptions)->getContent();
+                        } catch (\Omeka\Api\Exception\ExceptionInterface $e) {
+                            // Generally a bad or missing pdf file.
+                            // $hasError = true;
+                            $this->logger->err($e->getMessage() ?: $e);
+                            break;
+                        } catch (\Throwable $e) {
+                            // $hasError = true;
+                            $this->logger->err($e);
+                            break;
+                        }
+                    }
+
+                } finally {
+                    $this->rmDir($tmpDirResource);
+                    $this->rmDir($filesTempDirResource);
+                }
 
                 $this->logger->info(
                     'Item #{item_id}: end exploding pdf.', // @translate

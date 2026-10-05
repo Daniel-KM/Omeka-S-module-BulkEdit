@@ -391,10 +391,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Language', // @translate
-                    'info' => 'Optional language code for literal values (ISO 639-1 or 639-2).', // @translate
+                    'info' => 'Optional language code for literal and uri values (ISO 639-1 or 639-2).', // @translate
                 ],
                 'attributes' => [
                     'id' => 'create_values_language',
+                    'class' => 'value-language active',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

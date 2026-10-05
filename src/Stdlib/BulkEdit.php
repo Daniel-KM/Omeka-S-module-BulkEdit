@@ -212,6 +212,11 @@ class BulkEdit
         } elseif ($dataTypeMain === 'uri') {
             $valueData['@id'] = $value;
             $valueData['o:label'] = $uriLabel ?: null;
+            if ($language) {
+                // The data type uri uses "o:lang", Value Suggest "@language".
+                $valueData['o:lang'] = $language;
+                $valueData['@language'] = $language;
+            }
         } else {
             // literal and other types (customvocab, valuesuggest with literal storage, etc.)
             $valueData['@value'] = $value;

@@ -422,8 +422,15 @@ class Module extends AbstractModule
          * @var \Omeka\Api\Request $request
          */
         $adapter = $event->getTarget();
-        $request = $event->getParam('request');
-        $ids = (array) $request->getIds();
+        // Process only the updated resources, not the ones that failed (error
+        // or not allowed), that are skipped with option "continueOnError".
+        $ids = [];
+        foreach ($event->getParam('response')->getContent() ?: [] as $entity) {
+            $ids[] = $entity->getId();
+        }
+        if (!$ids) {
+            return;
+        }
         $this->updateResourcesPost($adapter, $ids, $processes);
     }
 

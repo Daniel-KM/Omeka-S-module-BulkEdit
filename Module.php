@@ -888,7 +888,7 @@ class Module extends AbstractModule
             $processes['explode_pdf'] = [
                 'mode' => $params['mode'],
                 'process' => $params['process'] ?? null,
-                'resolution' => (int) $params['resolution'] ?? null,
+                'resolution' => (int) ($params['resolution'] ?? 0),
                 'processor' => $params['processor'] ?? 'auto',
                 'process_events' => (bool) (int) ($params['process_events'] ?? 0),
             ];

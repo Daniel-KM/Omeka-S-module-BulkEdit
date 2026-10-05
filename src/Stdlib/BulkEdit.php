@@ -289,7 +289,12 @@ class BulkEdit
                         // TODO Add the check of the validity of the regex in the form.
                         $isValidRegex = @preg_match($from, '') !== false;
                         if (!$isValidRegex) {
+                            $this->logger->err(
+                                'The regex "{regex}" is invalid: the replacement is skipped.', // @translate
+                                ['regex' => $from]
+                            );
                             $from = '';
+                            $checkFrom = 0;
                         }
                         break;
                     case 'html':
@@ -368,7 +373,7 @@ class BulkEdit
                 if ($value === null || $value['type'] !== 'literal') {
                     return null;
                 }
-                return trim((string) $value['@value'] ?? '');
+                return trim((string) ($value['@value'] ?? ''));
             };
         } elseif ($valuePart === 'value') {
             // Simple value (not label of uri or resource).
@@ -380,7 +385,7 @@ class BulkEdit
                 ) {
                     return null;
                 }
-                return trim((string) $value['@value'] ?? '');
+                return trim((string) ($value['@value'] ?? ''));
             };
         } elseif ($valuePart === 'uri') {
             // Uri.
@@ -404,12 +409,12 @@ class BulkEdit
                 ) {
                     return null;
                 }
-                return trim((string) $value['o:label'] ?? '');
+                return trim((string) ($value['o:label'] ?? ''));
             };
         }
 
         foreach ($properties as $property) {
-            foreach ($data[$property] as $key => $value) {
+            foreach ($data[$property] ?? [] as $key => $value) {
                 $val = $getVal($value);
                 if ($val === null) {
                     continue;
@@ -432,7 +437,8 @@ class BulkEdit
                         $newValue = $this->normalizeFakeUnicode($val);
                         break;
                     case 'regex':
-                        $newValue = preg_replace($from, $to, $val);
+                        // Without valid regex, the other options are applied.
+                        $newValue = $checkFrom ? preg_replace($from, $to, $val) : $val;
                         if ($newValue === null) {
                             $this->logger->err(
                                 'An error occurred on resource #{resource_id} for property {property} with preg_replace.', // @translate

@@ -2170,8 +2170,10 @@ class BulkEdit
             $settings = [];
             $settings['mode'] = $mode;
             // Use flipped arrays for O(1) lookup with isset() instead of in_array().
-            $settings['mediaTypes'] = array_flip($mediaTypes);
-            $settings['extensions'] = array_flip($extensions);
+            $mediaTypes = array_flip($mediaTypes);
+            $extensions = array_flip($extensions);
+            $settings['mediaTypes'] = $mediaTypes;
+            $settings['extensions'] = $extensions;
             $this->setCachedSettings(__METHOD__, $settings);
         } else {
             /**

@@ -48,7 +48,7 @@ return [
         'Collapse', // @translate
         'The actions are processed in the order of the form. Be careful when mixing them.', // @translate
         'To convert values to/from mapping markers, use module DataTypeGeometry.', // @translate
-        'Processes that manage files and remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".', // @translate
+        'Processes that manage files and remote data are slow, so they are always processed in background.', // @translate
         'Please enter a valid language tag', // @translate
     ],
     'bulkedit' => [

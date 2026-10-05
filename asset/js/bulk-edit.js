@@ -50,7 +50,7 @@ $(document).ready(function() {
     }
 
     $('#fill_values > .collapsible, #explode_item > .collapsible, #explode_pdf > .collapsible')
-        .prepend('<p>' + Omeka.jsTranslate('Processes that manage files and remote data can be slow, so it is recommended to process it in background with "batch edit all", not "batch edit selected".') + '</p>')
+        .prepend('<p>' + Omeka.jsTranslate('Processes that manage files and remote data are slow, so they are always processed in background.') + '</p>')
 
     $('.batch-edit').on('change', '#cleaning_clean_language_codes', function() {
         const fields = $('#cleaning_clean_language_codes_from, #cleaning_clean_language_codes_to, #cleaning_clean_language_codes_properties').closest('.field');
@@ -136,12 +136,6 @@ $(document).ready(function() {
         }
     });
     $('#create_values_datatype').trigger('change');
-
-    $('.batch-edit').on('change', '#mediahtml_remove', function() {
-        const fields = $('#mediahtml_from, #mediahtml_to, #mediahtml_mode, #mediahtml_prepend, #mediahtml_append').closest('.field');
-        this.checked ? fields.hide() : fields.show();
-    });
-    $('#mediahtml_remove').trigger('change');
 
     // From resource-form.js.
     $('input.value-language').on('keyup', function(e) {

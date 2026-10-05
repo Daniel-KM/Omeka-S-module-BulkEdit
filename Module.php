@@ -308,6 +308,13 @@ class Module extends AbstractModule
 
     public function viewBatchEditBefore(Event $event): void
     {
+        // The event is attached to all controllers, but users have no values.
+        $controller = $this->getServiceLocator()->get('Application')->getMvcEvent()
+            ->getRouteMatch()->getParam('controller');
+        if (in_array($controller, ['user', 'Omeka\Controller\Admin\User'])) {
+            return;
+        }
+
         $view = $event->getTarget();
         $assetUrl = $view->plugin('assetUrl');
         $view->headLink()

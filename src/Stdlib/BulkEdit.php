@@ -2455,11 +2455,6 @@ class BulkEdit
         $properties = $this->easyMeta->propertyIds();
         $connection = $this->services->get('Omeka\Connection');
 
-        $sqlMedia = <<<'SQL'
-            UPDATE media SET item_id = %1$d, position = 1 WHERE id = %2$d;
-            UPDATE item SET primary_media_id = %2$d WHERE id = %1$d;
-            SQL;
-
         // Batch load all items at once to avoid N+1 queries.
         // No limit to get all items: "limit" = 0 returns no resource.
         // This is inside batch loop, so normally never more than 100 resources.
@@ -2490,8 +2485,6 @@ class BulkEdit
                 continue;
             }
 
-            $itemsAndMedias = [];
-
             // Keep current data as fully serialized data.
             // All data are copied for new items, included template, class, etc.
             /**
@@ -2504,7 +2497,7 @@ class BulkEdit
              */
             $currentItemData = json_decode(json_encode($item), true);
 
-            $isFirstMedia = true;
+            $itemsData = [];
             foreach ($medias as $media) {
                 $itemData = $currentItemData;
                 switch ($mode) {
@@ -2545,45 +2538,40 @@ class BulkEdit
                         break;
                 }
 
-                // The current item uses the first media.
-                // The media are removed only when all other items are created.
-                if ($isFirstMedia) {
-                    $isFirstMedia = false;
-                    // Store data for first item.
-                    try {
-                        $newItem = $api->update('items', ['id' => $resourceId], $itemData, [], ['isPartial' => true, 'responseContent' => 'resource'])->getContent();
-                    } catch (\Throwable $e) {
-                        $this->logger->err(
-                            'Item #{item_id} cannot be exploded: {message}', // @translate
-                            ['item_id' => $resourceId, 'message' => $e->getMessage()]
-                        );
-                        continue 2;
-                    }
-                    $itemsAndMedias[$newItem->getId()] = $media->id();
-                }
-                // Next ones are new items.
-                else {
-                    try {
-                        $itemData['o:id'] = null;
-                        $newItem = $api->create('items', $itemData, [], ['isPartial' => true, 'responseContent' => 'resource'])->getContent();
-                    } catch (\Throwable $e) {
-                        $this->logger->err(
-                            'Item #{item_id} cannot be exploded: {message}', // @translate
-                            ['item_id' => $resourceId, 'message' => $e->getMessage()]
-                        );
-                        continue 2;
-                    }
-                    $itemsAndMedias[$newItem->getId()] = $media->id();
-                }
+                $itemsData[$media->id()] = $itemData;
             }
 
-            $sqls = '';
-            foreach ($itemsAndMedias as $newItemId => $mediaId) {
-                $sqls .= sprintf($sqlMedia, $newItemId, $mediaId) . PHP_EOL;
+            // The new items are created first and the current item, that uses
+            // the first media, is updated last, so a failure changes nothing.
+            $firstMediaId = array_key_first($itemsData);
+            $itemsAndMedias = [];
+            try {
+                foreach ($itemsData as $mediaId => $itemData) {
+                    if ($mediaId !== $firstMediaId) {
+                        $itemData['o:id'] = null;
+                        $newItem = $api->create('items', $itemData, [], ['isPartial' => true, 'responseContent' => 'resource'])->getContent();
+                        $itemsAndMedias[$newItem->getId()] = $mediaId;
+                    }
+                }
+                $api->update('items', ['id' => $resourceId], $itemsData[$firstMediaId], [], ['isPartial' => true, 'responseContent' => 'resource']);
+            } catch (\Throwable $e) {
+                $this->logger->err(
+                    'Item #{item_id} cannot be exploded: {message}', // @translate
+                    ['item_id' => $resourceId, 'message' => $e->getMessage()]
+                );
+                foreach (array_keys($itemsAndMedias) as $newItemId) {
+                    $api->delete('items', $newItemId);
+                }
+                continue;
             }
-            foreach (array_filter(array_map('trim', explode(";\n", $sqls))) as $sql) {
-                $connection->executeStatement($sql);
-            }
+            $itemsAndMedias[$resourceId] = $firstMediaId;
+
+            $connection->transactional(function ($connection) use ($itemsAndMedias): void {
+                foreach ($itemsAndMedias as $newItemId => $mediaId) {
+                    $connection->executeStatement('UPDATE `media` SET `item_id` = ?, `position` = 1 WHERE `id` = ?', [$newItemId, $mediaId]);
+                    $connection->executeStatement('UPDATE `item` SET `primary_media_id` = ? WHERE `id` = ?', [$mediaId, $newItemId]);
+                }
+            });
         }
     }
 

@@ -129,7 +129,7 @@ $(document).ready(function() {
         if (datatypeMain === 'resource') {
             $('#create_values_value_resource_id').closest('.field').show();
         } else if (datatypeMain === 'uri') {
-            $('#create_values_value, #create_values_uri_label').closest('.field').show();
+            $('#create_values_value, #create_values_uri_label, #create_values_language').closest('.field').show();
         } else {
             // literal and other types
             $('#create_values_value, #create_values_language').closest('.field').show();

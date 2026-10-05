@@ -10,14 +10,19 @@
         margin-bottom: 6px;
     }
     #bulk-edit fieldset > a {
+        align-items: center;
+        display: flex;
         font-size: 16px;
+        text-align: left;
+        width: fit-content;
     }
     #bulk-edit fieldset > a::after {
         margin-left: 12px;
     }
     #bulk-edit fieldset > a > legend {
         font-size: 16px;
-        display: inline-block;
+        margin: 0;
+        width: auto;
     }
     #bulk-edit fieldset > a.collapse + .collapsible {
         overflow: inherit;

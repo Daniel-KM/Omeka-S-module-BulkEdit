@@ -55,25 +55,59 @@
                 margin-top: 6px;
             }
         }
-        & .bulkedit-block {
-            margin-top: 6px;
-            & > a {
-                display: inline-flex;
+        /* Selection of the values, then operations, each one indented. */
+        & .bulkedit-step {
+            border: 1px solid #dfdfdf;
+            border-radius: 3px;
+            margin: 6px 0 12px;
+            padding: 6px 12px 12px;
+            & > h4 {
+                margin: 6px 0 12px;
+            }
+        }
+        & .bulkedit-operation {
+            margin: 6px 0 6px 12px;
+            & > .bulkedit-operation-toggle {
                 align-items: center;
+                cursor: pointer;
+                display: inline-flex;
                 font-weight: bold;
-                &::after {
-                    margin-left: 6px;
-                    order: 2;
+                gap: 6px;
+                & input {
+                    margin: 0;
                 }
             }
-            &.bulkedit-active > a::before {
-                color: #3f8a3f;
-                content: "\f058";
-                font-family: "Font Awesome 5 Free";
-                font-size: 14px;
-                font-weight: 900;
-                margin-left: 8px;
-                order: 1;
+            & > .bulkedit-operation-fields {
+                display: none;
+                border-left: 2px solid #dfdfdf;
+                margin: 6px 0 12px 6px;
+                padding-left: 18px;
+                & .bulkedit-suboption {
+                    margin-left: 24px;
+                    width: auto;
+                }
+                /* One choice by line for the operation. */
+                & .field[id$="_action_field"] .inputs label {
+                    display: block;
+                    line-height: 1.5;
+                    padding: 3px 0;
+                }
+            }
+            &.is-enabled > .bulkedit-operation-fields {
+                display: block;
+            }
+            /* Marked only when its options do something. */
+            &.is-enabled.bulkedit-active {
+                & > .bulkedit-operation-fields {
+                    border-left-color: #3f8a3f;
+                }
+                & > .bulkedit-operation-toggle::after {
+                    color: #3f8a3f;
+                    content: "\f058";
+                    font-family: "Font Awesome 5 Free";
+                    font-size: 14px;
+                    font-weight: 900;
+                }
             }
         }
         & .bulkedit-options {

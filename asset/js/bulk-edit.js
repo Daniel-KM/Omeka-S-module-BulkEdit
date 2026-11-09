@@ -43,18 +43,58 @@ $(document).ready(function() {
         $('<h3 class="bulkedit-group">').text(groupLabel).insertBefore('#bulk-edit > #' + fieldsetName);
     });
 
-    // Gather the elements of the blocks of a fieldset in collapsed blocks.
+    // Display the selection of the values and the operations of a fieldset
+    // with blocks, each operation being enabled with its checkbox.
     Object.entries(bulkeditBlocks).forEach(([fieldsetName, blocks]) => {
         const container = $('#bulk-edit > #' + fieldsetName + ' > .collapsible');
-        Object.entries(blocks).forEach(([blockName, blockLabel]) => {
+        const selection = $('<div class="bulkedit-step">')
+            .append($('<h4>').text(Omeka.jsTranslate('Values to modify')))
+            .append(container.children('.field').filter(function() {
+                return !$(this).find('[data-bulkedit-block]').length;
+            }));
+        const operations = $('<div class="bulkedit-step">')
+            .append($('<h4>').text(Omeka.jsTranslate('Operations, applied in this order')));
+        Object.keys(blocks).forEach((blockName) => {
             const fields = container.find('[data-bulkedit-block=' + blockName + ']').closest('.field');
-            if (fields.length) {
-                $('<div class="bulkedit-block">').attr('data-block', blockName)
-                    .append($('<a href="#" class="expand">').attr('aria-label', Omeka.jsTranslate('Expand')).attr('title', Omeka.jsTranslate('Expand')).text(blockLabel))
-                    .append($('<div class="collapsible">').append(fields))
-                    .appendTo(container);
+            const checkbox = fields.find('input.bulkedit-operation-enabled');
+            if (!checkbox.length) {
+                return;
             }
+            const checkboxField = checkbox.closest('.field');
+            const toggle = $('<label class="bulkedit-operation-toggle">')
+                .append(checkbox)
+                .append($('<span>').text(checkboxField.find('.field-meta label').text()));
+            checkboxField.remove();
+            $('<div class="bulkedit-operation">').attr('data-block', blockName)
+                .append(toggle)
+                .append($('<div class="bulkedit-operation-fields">').append(fields.filter(function() {
+                    return $.contains(document, this);
+                })))
+                .appendTo(operations);
         });
+        container.prepend(selection, operations);
+    });
+
+    $('#bulk-edit').on('change', 'input.bulkedit-operation-enabled', function() {
+        $(this).closest('.bulkedit-operation').toggleClass('is-enabled', this.checked);
+    });
+    $('input.bulkedit-operation-enabled').trigger('change');
+
+    // Display the options according to the choice of the operation.
+    const updateSubOptions = (operation) => {
+        operation.find('[data-bulkedit-show]').closest('.field').each(function() {
+            const field = $(this);
+            const [name, values] = field.find('[data-bulkedit-show]').first().data('bulkedit-show').split('=');
+            const block = operation.data('block');
+            const checked = operation.find('[name="bulkedit[modify][' + block + '][' + name + ']"]:checked').val() || '';
+            field.addClass('bulkedit-suboption').toggle(values.split(' ').includes(checked));
+        });
+    };
+    $('#bulk-edit').on('change', '.bulkedit-operation input[type=radio]', function() {
+        updateSubOptions($(this).closest('.bulkedit-operation'));
+    });
+    $('.bulkedit-operation').each(function() {
+        updateSubOptions($(this));
     });
 
     // Gather the secondary elements in a collapsed block.
@@ -77,7 +117,7 @@ $(document).ready(function() {
     $('#bulk-edit')
         .prepend('<p>' + Omeka.jsTranslate('The actions are processed in the order of the form. Be careful when mixing them.') + '</p>');
     if (!$('input#geometry_convert_literal_to_coordinates').length) {
-        $('#convert_from').closest('.collapsible')
+        $('#convert_from').closest('.bulkedit-operation-fields, .collapsible')
             .append('<p>' + Omeka.jsTranslate('To convert values to/from mapping markers, use module DataTypeGeometry.') + '</p>');
     }
 
@@ -113,7 +153,7 @@ $(document).ready(function() {
         let active = false;
         Object.entries(required.any).forEach(([blockName, blockRequired]) => {
             const isBlockActive = isRequiredFilled(fieldset, blockRequired);
-            fieldset.find('.bulkedit-block[data-block="' + blockName + '"]').toggleClass('bulkedit-active', isBlockActive);
+            fieldset.find('.bulkedit-operation[data-block="' + blockName + '"]').toggleClass('bulkedit-active', isBlockActive);
             active = active || isBlockActive;
         });
         return active;
@@ -124,7 +164,7 @@ $(document).ready(function() {
     });
 
     $('.batch-edit').on('change', '.bulkedit-replace-mode', function() {
-        const fieldset = $(this).closest('.bulkedit-block, fieldset');
+        const fieldset = $(this).closest('fieldset');
         // The mode may be a select or radios.
         const modes = fieldset.find('.bulkedit-replace-mode');
         const mode = modes.is('select') ? modes.val() : (modes.filter(':checked').val() || '');
@@ -156,7 +196,7 @@ $(document).ready(function() {
         const datatypes = $('#convert_from').data('datatypes');
         const datatypeFrom = $('#convert_from').val();
         const datatypeTo = $('#convert_to').val();
-        const block = $('#convert_from').closest('.collapsible');
+        const block = $('#convert_from').closest('.bulkedit-operation-fields, .collapsible');
         block.find('[data-info-datatype]').closest('.field').hide();
         if (!datatypes[datatypeTo]) {
             return;
@@ -241,31 +281,10 @@ $(document).ready(function() {
         'bulkedit[cleaning][clean_language_codes_from]': '',
         'bulkedit[cleaning][clean_language_codes_to]': '',
         'bulkedit[cleaning][deduplicate_values]': '0',
-        'bulkedit[modify][replace][value_part]': 'value',
-        'bulkedit[modify][replace][from]': '',
-        'bulkedit[modify][replace][to]': '',
-        'bulkedit[modify][replace][mode]': 'raw',
-        'bulkedit[modify][replace][remove]': '0',
-        'bulkedit[modify][replace][prepend]': '',
-        'bulkedit[modify][replace][append]': '',
-        'bulkedit[modify][language][language]': '',
-        'bulkedit[modify][language][language_clear]': '0',
         'bulkedit[displace][to]': '',
         'bulkedit[displace][languages]': '',
         'bulkedit[displace][visibility]': '',
         'bulkedit[displace][contains]': '',
-        'bulkedit[modify][explode][separator]': '',
-        'bulkedit[modify][convert][from]': '',
-        'bulkedit[modify][convert][to]': '',
-        'bulkedit[modify][convert][literal_value]': '',
-        'bulkedit[modify][convert][literal_extract_html_text]': '0',
-        'bulkedit[modify][convert][literal_html_only_tagged_string]': '0',
-        'bulkedit[modify][convert][uri_extract_label]': '0',
-        'bulkedit[modify][convert][uri_label]': '',
-        'bulkedit[modify][convert][uri_base_site]': 'api',
-        'bulkedit[modify][order_values][languages]': '',
-        'bulkedit[modify][properties_visibility][visibility]': '',
-        'bulkedit[modify][contains]': '',
         'bulkedit[fill_data][owner]': '',
         'bulkedit[fill_values][datatype]': '',
         'bulkedit[fill_values][language]': '',

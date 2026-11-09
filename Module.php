@@ -868,10 +868,13 @@ class Module extends AbstractModule
                 'language' => trim($params['language'] ?? ''),
                 'language_clear' => !empty($params['language_clear']),
                 'language_all' => !empty($params['language_all']),
+                'language_from' => isset($params['language_from']) ? (string) $params['language_from'] : null,
                 'properties' => $params['properties'],
                 'datatypes' => array_filter($params['datatypes'] ?? []),
                 'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
                 'contains' => (string) ($params['contains'] ?? ''),
+                'match' => (string) ($params['match'] ?? ''),
+                'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
             ];
         }
 
@@ -925,6 +928,7 @@ class Module extends AbstractModule
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                     'datatypes' => array_filter($params['datatypes'] ?? []),
                     'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
+                    'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
                 ];
             }
         }
@@ -958,6 +962,8 @@ class Module extends AbstractModule
                 'contains' => $params['contains'],
                 'datatypes' => array_filter($params['datatypes'] ?? []),
                 'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
+                'match' => (string) ($params['match'] ?? ''),
+                'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
             ];
         }
 
@@ -966,9 +972,17 @@ class Module extends AbstractModule
             $languages = $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []);
             $properties = $params['properties'];
             if ($languages && $properties) {
+                $filters = $params['filters'] ?? [];
                 $processes['order_values'] = [
                     'languages' => $languages,
                     'properties' => $properties,
+                    'filters' => [
+                        'datatypes' => array_filter((array) ($filters['datatypes'] ?? [])),
+                        'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($filters['languages'] ?? [])),
+                        'contains' => (string) ($filters['contains'] ?? ''),
+                        'match' => (string) ($filters['match'] ?? ''),
+                        'is_public' => isset($filters['is_public']) && $filters['is_public'] !== '' ? (int) (bool) $filters['is_public'] : '',
+                    ],
                 ];
             }
         }
@@ -985,6 +999,8 @@ class Module extends AbstractModule
                 'datatypes' => $params['datatypes'] ?: [],
                 'languages' => $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []),
                 'contains' => $params['contains'],
+                'match' => (string) ($params['match'] ?? ''),
+                'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
             ];
         }
 
@@ -1350,8 +1366,9 @@ class Module extends AbstractModule
     /**
      * Dispatch the action "modify" to the processes it groups.
      *
-     * The properties and the filters are common to all the processes. The
-     * processes set directly are kept, for example from the api.
+     * Only the enabled operations are processed. The properties and the filters
+     * are common to all the operations. The processes set directly are kept,
+     * for example from the api.
      */
     protected function expandModify(array $bulkedit): array
     {
@@ -1361,57 +1378,111 @@ class Module extends AbstractModule
             return $bulkedit;
         }
 
+        $operations = [];
+        foreach (['replace', 'language', 'explode', 'convert', 'order_values', 'properties_visibility'] as $name) {
+            if (!empty($modify[$name]['enabled']) && is_array($modify[$name])) {
+                $operations[$name] = $modify[$name];
+                unset($operations[$name]['enabled']);
+            }
+        }
+        if (!$operations) {
+            return $bulkedit;
+        }
+
         $properties = (array) $modify['properties'];
         $filters = [
             'properties' => $properties,
             'datatypes' => array_filter((array) ($modify['datatypes'] ?? [])),
             'languages' => $modify['languages'] ?? [],
             'contains' => (string) ($modify['contains'] ?? ''),
+            'match' => (string) ($modify['match'] ?? ''),
+            'is_public' => $modify['is_public'] ?? '',
         ];
-
-        // The language is managed by the replacement, that requires a mode.
-        $language = $modify['language'] ?? [];
-        $replace = ($modify['replace'] ?? []) + [
-            'value_part' => 'value',
-            'language' => $language['language'] ?? '',
-            'language_clear' => $language['language_clear'] ?? '',
-            // Unlike the replacement, the language is set whatever the part.
-            'language_all' => true,
-        ];
-        if (empty($replace['mode'])
-            && (mb_strlen(trim((string) $replace['language']))
-                || !empty($replace['language_clear'])
-                || mb_strlen(trim((string) ($replace['prepend'] ?? '')))
-                || mb_strlen(trim((string) ($replace['append'] ?? ''))))
-        ) {
-            $replace['mode'] = 'raw';
-            $replace['from'] = '';
-            $replace['to'] = '';
+        if ($filters['match'] !== '' && @preg_match($filters['match'], '') === false) {
+            $this->getServiceLocator()->get('Omeka\Logger')->err(
+                'The regex "{regex}" is invalid: the values are not modified.', // @translate
+                ['regex' => $filters['match']]
+            );
+            return $bulkedit;
         }
 
-        $processes = [
-            'replace' => array_replace($replace, $filters),
-            'explode' => array_replace($modify['explode'] ?? [], $filters),
-            'convert' => array_replace($modify['convert'] ?? [], $filters),
-            // The languages of this process are the ones to order first.
-            'order_values' => array_replace($modify['order_values'] ?? [], ['properties' => $properties]),
-            'properties_visibility' => array_replace($modify['properties_visibility'] ?? [], $filters),
-        ];
-        foreach ($processes as $name => $params) {
-            $bulkedit[$name] ??= $params;
+        // The text and the language are managed by the process "replace".
+        $replace = $this->prepareModifyReplace($operations['replace'] ?? [], $operations['language'] ?? []);
+        unset($operations['replace'], $operations['language']);
+        if ($replace) {
+            $operations = ['replace' => $replace] + $operations;
         }
 
-        // The codes of languages are updated directly in the database.
-        $codeFrom = trim((string) ($language['code_from'] ?? ''));
-        $codeTo = trim((string) ($language['code_to'] ?? ''));
-        if (($codeFrom !== '' || $codeTo !== '') && empty($bulkedit['cleaning']['clean_language_codes'])) {
-            $bulkedit['cleaning']['clean_language_codes'] = '1';
-            $bulkedit['cleaning']['clean_language_codes_from'] = $codeFrom;
-            $bulkedit['cleaning']['clean_language_codes_to'] = $codeTo;
-            $bulkedit['cleaning']['clean_language_codes_properties'] = $properties;
+        foreach ($operations as $name => $params) {
+            // The languages of this process are the ones to order first, so
+            // the filters are separated.
+            $bulkedit[$name] ??= $name === 'order_values'
+                ? array_replace($params, ['properties' => $properties, 'filters' => $filters])
+                : array_replace($params, $filters);
         }
 
         return $bulkedit;
+    }
+
+    /**
+     * Convert the operations on text and language into a replacement.
+     */
+    protected function prepareModifyReplace(array $text, array $language): array
+    {
+        $action = $text['action'] ?? '';
+        $match = $text['match'] ?? 'raw';
+        $modes = [
+            'search' => in_array($match, ['raw', 'raw_i', 'regex', 'html']) ? $match : 'raw',
+            'whole' => 'whole',
+            'filename' => ($text['extension'] ?? 'keep') === 'remove' ? 'filename' : 'basename',
+            'unicode' => 'unicode',
+            'remove' => 'remove',
+        ];
+
+        $replace = [
+            'value_part' => in_array($text['value_part'] ?? '', ['value', 'uri', 'uri_label']) ? $text['value_part'] : 'value',
+            'mode' => $modes[$action] ?? '',
+            'from' => $action === 'search' ? (string) ($text['from'] ?? '') : '',
+            'to' => in_array($action, ['search', 'whole']) ? (string) ($text['to'] ?? '') : '',
+            'prepend' => (string) ($text['prepend'] ?? ''),
+            'append' => (string) ($text['append'] ?? ''),
+            'language' => '',
+            'language_clear' => '',
+            // Unlike the replacement, the language is set whatever the part.
+            'language_all' => true,
+        ];
+
+        switch ($language['action'] ?? '') {
+            case 'set':
+                $replace['language'] = trim((string) ($language['language'] ?? ''));
+                break;
+            case 'remove':
+                $replace['language_clear'] = '1';
+                break;
+            case 'change':
+                $replace['language_from'] = trim((string) ($language['code_from'] ?? ''));
+                $codeTo = trim((string) ($language['code_to'] ?? ''));
+                if ($codeTo === '') {
+                    $replace['language_clear'] = '1';
+                } else {
+                    $replace['language'] = $codeTo;
+                }
+                break;
+        }
+
+        // The language or the added text may be set without replacement.
+        if ($replace['mode'] === '') {
+            if ($replace['language'] === ''
+                && $replace['language_clear'] === ''
+                && trim($replace['prepend']) === ''
+                && trim($replace['append']) === ''
+            ) {
+                return [];
+            }
+            $replace['mode'] = 'raw';
+        }
+
+        return $replace;
     }
 
     protected function arrayTextSeparatorEqualToSpace(array $values): array

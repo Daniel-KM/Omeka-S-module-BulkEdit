@@ -115,7 +115,8 @@ class BulkEdit
     /**
      * Check a value against the common filters of the processes.
      *
-     * The filters are the data types, the languages and a contained string.
+     * The filters are the data types, the languages, a contained string, a
+     * regex and the visibility.
      */
     protected function matchValueFilters(array $value, array $filters): bool
     {
@@ -127,6 +128,16 @@ class BulkEdit
         }
         if (isset($filters['contains']) && mb_strlen((string) $filters['contains'])
             && mb_strpos((string) ($value['@value'] ?? $value['@id'] ?? ''), (string) $filters['contains']) === false
+        ) {
+            return false;
+        }
+        if (isset($filters['match']) && mb_strlen((string) $filters['match'])
+            && @preg_match((string) $filters['match'], (string) ($value['@value'] ?? $value['@id'] ?? '')) !== 1
+        ) {
+            return false;
+        }
+        if (isset($filters['is_public']) && $filters['is_public'] !== ''
+            && (int) (bool) ($value['is_public'] ?? true) !== (int) (bool) $filters['is_public']
         ) {
             return false;
         }
@@ -422,8 +433,10 @@ class BulkEdit
             'datatypes' => array_filter($params['datatypes'] ?? []),
             'languages' => $params['languages'] ?? [],
             'contains' => (string) ($params['contains'] ?? ''),
+            'match' => (string) ($params['match'] ?? ''),
+            'is_public' => $params['is_public'] ?? '',
         ];
-        if ($filters['datatypes'] || $filters['languages'] || mb_strlen($filters['contains'])) {
+        if ($filters['datatypes'] || $filters['languages'] || mb_strlen($filters['contains']) || mb_strlen($filters['match']) || $filters['is_public'] !== '') {
             $getValUnfiltered = $getVal;
             $getVal = fn (?array $value): ?string => $value !== null && $this->matchValueFilters($value, $filters)
                 ? $getValUnfiltered($value)
@@ -495,12 +508,17 @@ class BulkEdit
 
         // The language may be set on all filtered values, whatever the part.
         $languageAll = !empty($params['language_all']);
+        // Only the values with this language may be updated ("" for none).
+        $languageFrom = isset($params['language_from']) ? (string) $params['language_from'] : null;
         if ($languageClear || mb_strlen((string) $language)) {
             foreach ($properties as $property) {
                 foreach ($data[$property] ?? [] as $key => $value) {
                     if ($languageAll) {
                         $dataTypeMain = $this->easyMeta->dataTypeMain($value['type'] ?? '');
-                        if (!in_array($dataTypeMain, ['literal', 'uri']) || !$this->matchValueFilters($value, $filters)) {
+                        if (!in_array($dataTypeMain, ['literal', 'uri'])
+                            || !$this->matchValueFilters($value, $filters)
+                            || ($languageFrom !== null && (string) ($value['@language'] ?? $value['o:lang'] ?? '') !== $languageFrom)
+                        ) {
                             continue;
                         }
                         // The data type uri uses "o:lang", Value Suggest "@language".
@@ -789,6 +807,7 @@ class BulkEdit
         $filters = [
             'datatypes' => array_filter($params['datatypes'] ?? []),
             'languages' => $params['languages'] ?? [],
+            'is_public' => $params['is_public'] ?? '',
         ];
 
         /**
@@ -1204,7 +1223,12 @@ class BulkEdit
             foreach ($data[$property] ?? [] as $key => $value) {
                 if ($value['type'] !== $fromDataType
                     || $value['type'] === $toDataType
-                    || !$this->matchValueFilters($value, ['datatypes' => array_filter($params['datatypes'] ?? []), 'languages' => $params['languages'] ?? []])
+                    || !$this->matchValueFilters($value, [
+                        'datatypes' => array_filter($params['datatypes'] ?? []),
+                        'languages' => $params['languages'] ?? [],
+                        'match' => $params['match'] ?? '',
+                        'is_public' => $params['is_public'] ?? '',
+                    ])
                 ) {
                     continue;
                 }
@@ -1482,21 +1506,30 @@ class BulkEdit
             return;
         }
 
+        // Only the filtered values are sorted, keeping the positions of others.
+        $filters = $params['filters'] ?? [];
+
         foreach ($properties as $property) {
+            $current = array_values($data[$property] ?? []);
+            $positions = [];
             // This two loops process is quicker with many languages.
             $values = $languages;
-            foreach ($data[$property] ?? [] as $value) {
+            foreach ($current as $position => $value) {
+                if (!$this->matchValueFilters($value, $filters)) {
+                    continue;
+                }
+                $positions[] = $position;
                 if ($value['type'] !== 'literal' || empty($value['@language'])) {
                     $values[''][] = $value;
                     continue;
                 }
                 $values[$value['@language']][] = $value;
             }
-            $vals = [];
-            foreach ($values as $vs) {
-                $vals = array_merge($vals, $vs);
+            $sorted = array_merge(...array_values($values));
+            foreach ($positions as $index => $position) {
+                $current[$position] = $sorted[$index];
             }
-            $data[$property] = $vals;
+            $data[$property] = $current;
         }
     }
 
@@ -1573,6 +1606,9 @@ class BulkEdit
                     continue;
                 }
                 if ($checkContains && strpos((string) ($value['@value'] ?? $value['@id'] ?? ''), $contains) === false) {
+                    continue;
+                }
+                if (!$this->matchValueFilters($value, ['match' => $params['match'] ?? '', 'is_public' => $params['is_public'] ?? ''])) {
                     continue;
                 }
                 $data[$property][$key]['is_public'] = $visibility;

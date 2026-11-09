@@ -49,12 +49,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     protected $requiredElements = [
         'create_values' => [['values']],
         'modify' => ['any' => [
-            'replace' => [['properties'], ['replace/mode+replace/from', 'replace/mode=unicode', 'replace/mode=basename', 'replace/mode=filename', 'replace/mode=whole', 'replace/mode=remove', 'replace/prepend', 'replace/append']],
-            'language' => [['properties'], ['language/language', 'language/language_clear', 'language/code_from', 'language/code_to']],
-            'explode' => [['properties'], ['explode/separator']],
-            'convert' => [['properties'], ['convert/from'], ['convert/to']],
-            'order_values' => [['properties'], ['order_values/languages']],
-            'properties_visibility' => [['properties'], ['properties_visibility/visibility']],
+            'replace' => [['properties'], ['replace/enabled'], ['replace/action=search+replace/from', 'replace/action=whole', 'replace/action=filename', 'replace/action=unicode', 'replace/action=remove', 'replace/prepend', 'replace/append']],
+            'language' => [['properties'], ['language/enabled'], ['language/action=set+language/language', 'language/action=remove', 'language/action=change+language/code_from', 'language/action=change+language/code_to']],
+            'explode' => [['properties'], ['explode/enabled'], ['explode/separator']],
+            'convert' => [['properties'], ['convert/enabled'], ['convert/from'], ['convert/to']],
+            'order_values' => [['properties'], ['order_values/enabled'], ['order_values/languages']],
+            'properties_visibility' => [['properties'], ['properties_visibility/enabled'], ['properties_visibility/visibility']],
         ]],
         'copy' => [['from'], ['to']],
         'displace' => [['from'], ['to']],
@@ -78,7 +78,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
      * Elements displayed in a collapsed block "Options".
      */
     protected $secondaryElements = [
-        'modify' => ['datatypes', 'languages', 'contains'],
         'copy' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
         'displace' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
         'fill_values' => ['datatypes', 'datatype', 'language', 'update_language', 'featured_subject'],
@@ -426,8 +425,10 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     /**
      * Group the processes that update the existing values of properties.
      *
-     * The fieldsets of the processes are reused as blocks, with common
-     * properties and filters.
+     * The values to modify are selected first, then each operation is enabled
+     * with a checkbox. The operations are mapped to the processes on save.
+     *
+     * @see \BulkEdit\Module::expandModify()
      */
     protected function appendFieldsetModify(): self
     {
@@ -445,7 +446,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-collection-action' => 'replace',
                 ],
             ])
-            ->appendFieldsetReplace()
             ->appendFieldsetExplode()
             ->appendFieldsetConvert()
             ->appendFieldsetOrderValues()
@@ -453,73 +453,267 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
 
         $modify = $this->get('modify');
 
-        // The common properties and filters are the ones of the visibility.
+        // The values to modify are selected with the elements of the visibility.
         $visibility = $this->get('properties_visibility');
         foreach (['properties', 'datatypes', 'languages', 'contains'] as $name) {
             $element = $visibility->get($name);
             $visibility->remove($name);
             $modify->add($element->setAttribute('id', 'modify_' . $name));
         }
+        $modify->get('datatypes')->setEmptyOption('');
+        $modify->get('datatypes')->setAttribute('data-placeholder', $this->translator->translate('All data types')); // @translate
+        $modify->get('languages')->setAttribute('placeholder', $this->translator->translate('All languages')); // @translate
+        $modify->get('contains')->setAttribute('placeholder', $this->translator->translate('Any value')); // @translate
+        $modify
+            ->add([
+                'name' => 'match',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Regex', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_match',
+                    'placeholder' => '~^value$~i',
+                ],
+            ])
+            ->add([
+                'name' => 'is_public',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Visibility', // @translate
+                    'value_options' => [
+                        '' => 'Any', // @translate
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'modify_is_public',
+                    'value' => '',
+                ],
+            ]);
 
-        // The language is managed by the replacement.
-        $replace = $this->get('replace');
-        $language = new Fieldset('language');
-        foreach (['language', 'language_clear'] as $name) {
-            $element = $replace->get($name);
-            $replace->remove($name);
-            $language->add($element);
-        }
-        $language
+        $text = (new Fieldset('replace'))
+            ->add([
+                'name' => 'value_part',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Part', // @translate
+                    'value_options' => [
+                        'value' => 'Value', // @translate
+                        'uri' => 'Uri', // @translate
+                        'uri_label' => 'Uri label', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_value_part',
+                    'value' => 'value',
+                ],
+            ])
+            ->add([
+                'name' => 'action',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Operation', // @translate
+                    'value_options' => [
+                        '' => 'No operation', // @translate
+                        'whole' => 'Replace the whole value', // @translate
+                        'search' => 'Search and replace', // @translate
+                        'unicode' => 'Fix encoding (Ã© to é)', // @translate
+                        'filename' => 'Keep the file name only', // @translate
+                        'remove' => 'Remove the value', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_action',
+                    'value' => '',
+                ],
+            ])
+            ->add([
+                'name' => 'from',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Search', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_from',
+                    'data-bulkedit-show' => 'action=search',
+                ],
+            ])
+            ->add([
+                'name' => 'match',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Comparison', // @translate
+                    'value_options' => [
+                        'raw' => 'Exact', // @translate
+                        'raw_i' => 'Case insensitive', // @translate
+                        'regex' => 'Regex', // @translate
+                        'html' => 'With html entities', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_match',
+                    'value' => 'raw',
+                    'data-bulkedit-show' => 'action=search',
+                ],
+            ])
+            ->add([
+                'name' => 'to',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Replace by', // @translate
+                    'info' => 'Placeholders, also for prepend and append: {resource_id}, {resource_url}, {resource_url_admin}, {resource_title}, or any term, like {dcterms:identifier}.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_to',
+                    'data-bulkedit-show' => 'action=search whole',
+                ],
+            ])
+            ->add([
+                'name' => 'extension',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Extension', // @translate
+                    'value_options' => [
+                        'keep' => 'Keep', // @translate
+                        'remove' => 'Remove', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_extension',
+                    'value' => 'keep',
+                    'data-bulkedit-show' => 'action=filename',
+                ],
+            ])
+            ->add([
+                'name' => 'prepend',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Prepend', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_prepend',
+                ],
+            ])
+            ->add([
+                'name' => 'append',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Append', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_append',
+                ],
+            ]);
+
+        $language = (new Fieldset('language'))
+            ->add([
+                'name' => 'action',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Operation', // @translate
+                    'value_options' => [
+                        '' => 'No operation', // @translate
+                        'set' => 'Set', // @translate
+                        'remove' => 'Remove', // @translate
+                        'change' => 'Change the code', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'modify_language_action',
+                    'value' => '',
+                ],
+            ])
+            ->add([
+                'name' => 'language',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Language', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_language_language',
+                    'class' => 'value-language active',
+                    'data-bulkedit-show' => 'action=set',
+                ],
+            ])
             ->add([
                 'name' => 'code_from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Change language code from', // @translate
-                    'info' => 'Normalize language codes, for example "fr" to "fra" or vice-versa, or add or remove a code. The filters are not applied.', // @translate
+                    'label' => 'Current code', // @translate
+                    'info' => 'Empty for the values without language.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'modify_language_code_from',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
+                    'data-bulkedit-show' => 'action=change',
                 ],
             ])
             ->add([
                 'name' => 'code_to',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'To', // @translate
+                    'label' => 'New code', // @translate
+                    'info' => 'Empty to remove the language.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'modify_language_code_to',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
+                    'data-bulkedit-show' => 'action=change',
                 ],
             ]);
 
-        $blocks = [
-            'replace' => 'Text', // @translate
-            'language' => 'Language', // @translate
-            'explode' => 'Explode', // @translate
-            'convert' => 'Data type', // @translate
-            'order_values' => 'Sort', // @translate
-            'properties_visibility' => 'Visibility', // @translate
+        // Reuse the fieldsets of the processes, without the common elements.
+        $explode = $this->get('explode');
+        foreach (['properties', 'contains', 'match'] as $name) {
+            $explode->remove($name);
+        }
+        $convert = $this->get('convert');
+        foreach (['properties', 'contains'] as $name) {
+            $convert->remove($name);
+        }
+        $orderValues = $this->get('order_values');
+        $orderValues->remove('properties');
+        $orderValues->get('languages')
+            ->setOption('info', 'Only the filtered values are sorted, the other ones keep their position.'); // @translate
+        $visibility->get('visibility')->setValueOptions([
+            '' => '[No change]', // @translate
+            '1' => 'Public', // @translate
+            '0' => 'Not public', // @translate
+        ]);
+        foreach (['explode', 'convert', 'order_values', 'properties_visibility'] as $name) {
+            $this->remove($name);
+        }
+
+        // The checkbox to enable each operation is its label.
+        $operations = [
+            'replace' => [$text, 'Modify the text'], // @translate
+            'language' => [$language, 'Modify the language'], // @translate
+            'explode' => [$explode, 'Explode the values'], // @translate
+            'convert' => [$convert, 'Convert the data type'], // @translate
+            'order_values' => [$orderValues, 'Sort by language'], // @translate
+            'properties_visibility' => [$visibility, 'Modify the visibility'], // @translate
         ];
-        // The elements replaced by the common properties and filters.
-        $commonElements = [
-            'replace' => ['properties'],
-            'explode' => ['properties', 'contains', 'match', 'max_values'],
-            'convert' => ['properties', 'contains'],
-            'order_values' => ['properties'],
-        ];
-        foreach ($blocks as $name => $label) {
-            $block = $name === 'language' ? $language : $this->get($name);
-            foreach ($commonElements[$name] ?? [] as $element) {
-                $block->remove($element);
+        foreach ($operations as $name => [$operation, $label]) {
+            $elements = $operation->getElements();
+            foreach (array_keys($elements) as $elementName) {
+                $operation->remove($elementName);
             }
-            if ($name !== 'language') {
-                $this->remove($name);
+            $operation->add([
+                'name' => 'enabled',
+                'type' => CommonElement\OptionalCheckbox::class,
+                'options' => [
+                    'label' => $label,
+                    'use_hidden_element' => false,
+                ],
+                'attributes' => [
+                    'id' => 'modify_' . $name . '_enabled',
+                    'class' => 'bulkedit-operation-enabled',
+                ],
+            ]);
+            foreach ($elements as $element) {
+                $operation->add($element);
             }
-            $modify->add($block->setLabel($this->translator->translate($label)));
+            $modify->add($operation->setLabel($this->translator->translate($label)));
         }
 
         return $this;

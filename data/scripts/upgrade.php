@@ -112,3 +112,10 @@ if (version_compare($oldVersion, '3.4.41', '<')) {
     );
     $messenger->addSuccess($message);
 }
+
+if (version_compare($oldVersion, '3.4.42', '<')) {
+    $message = new PsrMessage(
+        'The tab "Advanced" of the batch edit was redesigned: the actions are grouped, the filters are the same for all actions, and a preview shows the changes before saving.' // @translate
+    );
+    $messenger->addSuccess($message);
+}

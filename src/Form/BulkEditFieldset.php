@@ -999,24 +999,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
-                'name' => 'visibility',
-                'type' => CommonElement\OptionalRadio::class,
-                'options' => [
-                    'label' => 'Visibility', // @translate
-                    'value_options' => [
-                        '1' => 'Public', // @translate
-                        '0' => 'Not public', // @translate
-                        '' => 'Any', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'copy_visibility',
-                    'value' => '',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
@@ -1036,6 +1018,24 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'copy_match',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'visibility',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Visibility', // @translate
+                    'value_options' => [
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                        '' => 'Any', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'copy_visibility',
+                    'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -1165,24 +1165,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
-                'name' => 'visibility',
-                'type' => CommonElement\OptionalRadio::class,
-                'options' => [
-                    'label' => 'Visibility', // @translate
-                    'value_options' => [
-                        '1' => 'Public', // @translate
-                        '0' => 'Not public', // @translate
-                        '' => 'Any', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'displace_visibility',
-                    'value' => '',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
@@ -1202,6 +1184,24 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'displace_match',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'visibility',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Visibility', // @translate
+                    'value_options' => [
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                        '' => 'Any', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'displace_visibility',
+                    'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

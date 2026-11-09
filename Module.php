@@ -233,8 +233,6 @@ class Module extends AbstractModule
         unset($values);
 
         // Specifying.
-        /** @var \Omeka\Api\Manager $api */
-        $api = $this->getServiceLocator()->get('Omeka\ApiManager');
         $resourceNameToTypes = [
             'items' => 'resource:item',
             'media' => 'resource:media',
@@ -244,30 +242,41 @@ class Module extends AbstractModule
             'concepts' => 'resource:concept',
             'digital_objects' => 'resource:digitalobject',
         ];
-        foreach ($data as $term => &$values) {
-            // Process properties only.
-            if (empty($values)
-                || !is_array($values)
-                || !$easyMeta->propertyId($term)
-            ) {
-                continue;
-            }
-            $first = reset($values);
-            if (empty($first['property_id'])) {
-                continue;
-            }
-            foreach ($values as &$value) {
-                if (($value['type'] ?? null) === 'resource') {
-                    try {
-                        $linkedResourceName = $api->read('resources', ['id' => $value['value_resource_id']], [], ['initialize' => false, 'finalize' => false])
-                            ->getContent()->getResourceName();
-                        $value['type'] = $resourceNameToTypes[$linkedResourceName] ?? $value['type'];
-                    } catch (\Throwable $e) {
+        // Get the linked resources with a single query, not one by value.
+        $linkedIds = [];
+        foreach ($data as $term => $values) {
+            if (!empty($values) && is_array($values) && $easyMeta->propertyId($term)) {
+                foreach ($values as $value) {
+                    if (is_array($value) && ($value['type'] ?? null) === 'resource' && !empty($value['value_resource_id'])) {
+                        $linkedIds[(int) $value['value_resource_id']] = null;
                     }
                 }
             }
         }
-        unset($values);
+        if ($linkedIds) {
+            /** @var \Omeka\Entity\Resource[] $linkedResources */
+            $linkedResources = $this->getServiceLocator()->get('Omeka\EntityManager')
+                ->getRepository(\Omeka\Entity\Resource::class)
+                ->findBy(['id' => array_keys($linkedIds)]);
+            foreach ($linkedResources as $linkedResource) {
+                $linkedIds[$linkedResource->getId()] = $resourceNameToTypes[$linkedResource->getResourceName()] ?? null;
+            }
+            foreach ($data as $term => &$values) {
+                if (empty($values) || !is_array($values) || !$easyMeta->propertyId($term)) {
+                    continue;
+                }
+                foreach ($values as &$value) {
+                    if (is_array($value)
+                        && ($value['type'] ?? null) === 'resource'
+                        && !empty($linkedIds[(int) ($value['value_resource_id'] ?? 0)])
+                    ) {
+                        $value['type'] = $linkedIds[(int) $value['value_resource_id']];
+                    }
+                }
+                unset($value);
+            }
+            unset($values);
+        }
 
         // Deduplicating.
         if ($deduplicationOnSave) {

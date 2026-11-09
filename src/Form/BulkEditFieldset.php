@@ -933,6 +933,16 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 '0' => 'Not public', // @translate
             ]);
         }
+
+        // Same order of the filters for all actions: data types, languages,
+        // visibility, then the filters on strings.
+        foreach (['visibility', 'is_public', 'equal', 'contains', 'match', 'search_in'] as $name) {
+            if ($fieldset->has($name)) {
+                $element = $fieldset->get($name);
+                $fieldset->remove($name);
+                $fieldset->add($element);
+            }
+        }
         return $this;
     }
 

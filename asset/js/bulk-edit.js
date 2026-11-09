@@ -312,12 +312,12 @@ $(document).ready(function() {
     });
     $('[name="bulkedit[thumbnails][mode]"]').first().trigger('change');
 
-    $('.batch-edit').on('change', '#mediaremove_mode', function() {
-        const mode = $(this).val();
+    $('.batch-edit').on('change', '[name="bulkedit[media_remove][mode]"]', function() {
+        const mode = $('[name="bulkedit[media_remove][mode]"]:checked').val() || '';
         $('#mediaremove_mediatypes').closest('.field').toggle(mode === 'media_type');
         $('#mediaremove_extensions').closest('.field').toggle(mode === 'media_extension');
     });
-    $('#mediaremove_mode').trigger('change');
+    $('[name="bulkedit[media_remove][mode]"]').first().trigger('change');
 
     $('.batch-edit').on('change', '#cleaning_clean_language_codes', function() {
         const fields = $('#cleaning_clean_language_codes_from, #cleaning_clean_language_codes_to, #cleaning_clean_language_codes_properties').closest('.field');

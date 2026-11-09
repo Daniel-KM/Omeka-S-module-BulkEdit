@@ -2333,12 +2333,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Media metadata', // @translate
                     'info' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
-                    'empty_option' => '',
                     'value_options' => [
+                        '' => 'No operation', // @translate
                         'append' => 'Append to item', // @translate
                         'update' => 'Replace item ones when set', // @translate
                         'replace' => 'Replace all item ones', // @translate
@@ -2376,12 +2376,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Pdf', // @translate
                     'info' => 'Create one jpeg by page for iiif viewers. Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
-                    'empty_option' => '',
                     'value_options' => [
+                        '' => 'No operation', // @translate
                         'all' => 'All pdf', // @translate
                         'first' => 'First pdf', // @translate
                         'last' => 'Last pdf', // @translate
@@ -2487,11 +2487,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Media', // @translate
-                    'empty_option' => '',
                     'value_options' => [
+                        '' => 'No operation', // @translate
                         'media_type' => 'By media type', // @translate
                         'media_extension' => 'By extension', // @translate
                         // 'media_query' => 'Limited with query on media below', // @translate
@@ -2691,11 +2691,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Mode', // @translate
-                    'empty_option' => '',
                     'value_options' => [
+                        '' => 'No operation', // @translate
                         'raw' => 'Text', // @translate
                         'raw_i' => 'Text, case insensitive', // @translate
                         'html' => 'Text and html entities', // @translate
@@ -2787,11 +2787,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Mode', // @translate
-                    'empty_option' => '',
                     'value_options' => [
+                        '' => 'No operation', // @translate
                         'raw' => 'Text', // @translate
                         'raw_i' => 'Text, case insensitive', // @translate
                         'regex' => 'Regex', // @translate

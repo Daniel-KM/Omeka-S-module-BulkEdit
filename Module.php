@@ -865,6 +865,9 @@ class Module extends AbstractModule
                 'language' => trim($params['language'] ?? ''),
                 'language_clear' => !empty($params['language_clear']),
                 'properties' => $params['properties'],
+                'datatypes' => array_filter($params['datatypes'] ?? []),
+                'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
+                'contains' => (string) ($params['contains'] ?? ''),
             ];
         }
 
@@ -916,6 +919,8 @@ class Module extends AbstractModule
                     'contains' => $params['contains'] ?? '',
                     'match' => $params['match'] ?? '',
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
+                    'datatypes' => array_filter($params['datatypes'] ?? []),
+                    'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
                 ];
             }
         }
@@ -947,6 +952,8 @@ class Module extends AbstractModule
                 'uri_language' => $params['uri_language'],
                 'uri_base_site' => $params['uri_base_site'],
                 'contains' => $params['contains'],
+                'datatypes' => array_filter($params['datatypes'] ?? []),
+                'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
             ];
         }
 

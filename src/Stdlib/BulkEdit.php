@@ -113,6 +113,27 @@ class BulkEdit
     }
 
     /**
+     * Check a value against the common filters of the processes.
+     *
+     * The filters are the data types, the languages and a contained string.
+     */
+    protected function matchValueFilters(array $value, array $filters): bool
+    {
+        if (!empty($filters['datatypes']) && !in_array($value['type'] ?? null, $filters['datatypes'])) {
+            return false;
+        }
+        if (!empty($filters['languages']) && !in_array($value['@language'] ?? $value['o:lang'] ?? null, $filters['languages'])) {
+            return false;
+        }
+        if (isset($filters['contains']) && mb_strlen((string) $filters['contains'])
+            && mb_strpos((string) ($value['@value'] ?? $value['@id'] ?? ''), (string) $filters['contains']) === false
+        ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Append new values to all resources.
      *
      * Unlike core batch edit that only supports literal, uri and resource, all
@@ -395,6 +416,18 @@ class BulkEdit
                 }
                 return trim((string) ($value['o:label'] ?? ''));
             };
+        }
+
+        $filters = [
+            'datatypes' => array_filter($params['datatypes'] ?? []),
+            'languages' => $params['languages'] ?? [],
+            'contains' => (string) ($params['contains'] ?? ''),
+        ];
+        if ($filters['datatypes'] || $filters['languages'] || mb_strlen($filters['contains'])) {
+            $getValUnfiltered = $getVal;
+            $getVal = fn (?array $value): ?string => $value !== null && $this->matchValueFilters($value, $filters)
+                ? $getValUnfiltered($value)
+                : null;
         }
 
         foreach ($properties as $property) {
@@ -732,10 +765,17 @@ class BulkEdit
         }
 
         // Note: this is the original values.
-        $properties = array_intersect($properties, array_keys($resource->values()));
+        $properties = in_array('all', $properties)
+            ? array_keys($resource->values())
+            : array_intersect($properties, array_keys($resource->values()));
         if (empty($properties)) {
             return;
         }
+
+        $filters = [
+            'datatypes' => array_filter($params['datatypes'] ?? []),
+            'languages' => $params['languages'] ?? [],
+        ];
 
         /**
          * Explode a string into max values, counted from start or end (negative).
@@ -766,7 +806,7 @@ class BulkEdit
             // This variable is used to keep order of original values.
             $values = [];
             foreach ($data[$property] ?? [] as $value) {
-                if ($value['type'] !== 'literal') {
+                if ($value['type'] !== 'literal' || !$this->matchValueFilters($value, $filters)) {
                     $values[] = $value;
                     continue;
                 }
@@ -1150,6 +1190,7 @@ class BulkEdit
             foreach ($data[$property] ?? [] as $key => $value) {
                 if ($value['type'] !== $fromDataType
                     || $value['type'] === $toDataType
+                    || !$this->matchValueFilters($value, ['datatypes' => array_filter($params['datatypes'] ?? []), 'languages' => $params['languages'] ?? []])
                 ) {
                     continue;
                 }

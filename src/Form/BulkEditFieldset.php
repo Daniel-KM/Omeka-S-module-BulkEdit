@@ -48,14 +48,17 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
      */
     protected $requiredElements = [
         'create_values' => [['values']],
-        'replace' => [['mode'], ['properties']],
+        'modify' => ['any' => [
+            'replace' => [['properties'], ['replace/mode+replace/from', 'replace/mode=unicode', 'replace/mode=basename', 'replace/mode=filename', 'replace/mode=whole', 'replace/mode=remove', 'replace/prepend', 'replace/append']],
+            'language' => [['properties'], ['language/language', 'language/language_clear', 'language/code_from', 'language/code_to']],
+            'explode' => [['properties'], ['explode/separator']],
+            'convert' => [['properties'], ['convert/from'], ['convert/to']],
+            'order_values' => [['properties'], ['order_values/languages']],
+            'properties_visibility' => [['properties'], ['properties_visibility/visibility']],
+        ]],
         'copy' => [['from'], ['to']],
         'displace' => [['from'], ['to']],
-        'explode' => [['properties'], ['separator']],
         'merge' => [['properties']],
-        'convert' => [['from'], ['to'], ['properties']],
-        'order_values' => [['languages'], ['properties']],
-        'properties_visibility' => [['visibility'], ['properties']],
         'fill_values' => [['mode'], ['properties']],
         'remove' => [['properties']],
         'cleaning' => [['trim_values', 'specify_datatypes', 'clean_empty_values', 'clean_languages', 'deduplicate_values', 'clean_language_codes+clean_language_codes_properties']],
@@ -75,11 +78,9 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
      * Elements displayed in a collapsed block "Options".
      */
     protected $secondaryElements = [
+        'modify' => ['datatypes', 'languages', 'contains'],
         'copy' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
         'displace' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
-        'explode' => ['contains', 'match', 'max_values'],
-        'convert' => ['contains'],
-        'properties_visibility' => ['datatypes', 'languages', 'contains'],
         'fill_values' => ['datatypes', 'datatype', 'language', 'update_language', 'featured_subject'],
         'remove' => ['datatypes', 'languages', 'visibility', 'equal', 'contains', 'match', 'keep_max_values', 'max_values'],
         'explode_pdf' => ['process', 'resolution', 'processor', 'process_events'],
@@ -129,14 +130,10 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ->setAttribute('data-collection-action', 'replace')
             // The fieldsets are ordered like the processes.
             ->appendFieldsetCreateValues()
-            ->appendFieldsetReplace()
+            ->appendFieldsetModify()
             ->appendFieldsetCopy()
             ->appendFieldsetDisplace()
-            ->appendFieldsetExplode()
             ->appendFieldsetMerge()
-            ->appendFieldsetConvert()
-            ->appendFieldsetOrderValues()
-            ->appendFieldsetPropertiesVisibility()
             ->appendFieldsetFillValues()
             ->appendFieldsetRemove()
             ->appendFieldsetCleaning()
@@ -181,6 +178,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         // managed by js.
         // TODO The element groups are not take in account currently.
         $fieldsets = [];
+        $blocks = [];
         $groups = [];
         $currentGroup = null;
         foreach ($this->getFieldsets() as $fieldset) {
@@ -199,6 +197,13 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     $element->setAttribute('data-bulkedit-option', '1');
                 }
             }
+            foreach ($fieldset->getFieldsets() as $block) {
+                $blocks[$name][$block->getName()] = $block->getLabel();
+                foreach ($block->getElements() as $element) {
+                    $element->setAttribute('data-bulkedit-fieldset', $name);
+                    $element->setAttribute('data-bulkedit-block', $block->getName());
+                }
+            }
         }
         $this
             ->add([
@@ -211,6 +216,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'bulkedit-fieldsets',
                     'data-bulkedit-fieldsets' => json_encode($fieldsets, 320),
                     'data-bulkedit-groups' => json_encode($groups, 320),
+                    'data-bulkedit-blocks' => json_encode($blocks, 320),
                     'data-bulkedit-required' => json_encode(array_intersect_key($this->requiredElements, $fieldsets), 320),
                 ],
             ])
@@ -413,6 +419,108 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-collection-action' => 'replace',
                 ],
             ]);
+
+        return $this;
+    }
+
+    /**
+     * Group the processes that update the existing values of properties.
+     *
+     * The fieldsets of the processes are reused as blocks, with common
+     * properties and filters.
+     */
+    protected function appendFieldsetModify(): self
+    {
+        $this
+            ->add([
+                'name' => 'modify',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => $this->translator->translate('Modify'), // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->appendFieldsetReplace()
+            ->appendFieldsetExplode()
+            ->appendFieldsetConvert()
+            ->appendFieldsetOrderValues()
+            ->appendFieldsetPropertiesVisibility();
+
+        $modify = $this->get('modify');
+
+        // The common properties and filters are the ones of the visibility.
+        $visibility = $this->get('properties_visibility');
+        foreach (['properties', 'datatypes', 'languages', 'contains'] as $name) {
+            $element = $visibility->get($name);
+            $visibility->remove($name);
+            $modify->add($element->setAttribute('id', 'modify_' . $name));
+        }
+
+        // The language is managed by the replacement.
+        $replace = $this->get('replace');
+        $language = new Fieldset('language');
+        foreach (['language', 'language_clear'] as $name) {
+            $element = $replace->get($name);
+            $replace->remove($name);
+            $language->add($element);
+        }
+        $language
+            ->add([
+                'name' => 'code_from',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Change language code from', // @translate
+                    'info' => 'Normalize language codes, for example "fr" to "fra" or vice-versa, or add or remove a code. The filters are not applied.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_language_code_from',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'code_to',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'To', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_language_code_to',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ]);
+
+        $blocks = [
+            'replace' => 'Text', // @translate
+            'language' => 'Language', // @translate
+            'explode' => 'Explode', // @translate
+            'convert' => 'Data type', // @translate
+            'order_values' => 'Sort', // @translate
+            'properties_visibility' => 'Visibility', // @translate
+        ];
+        // The elements replaced by the common properties and filters.
+        $commonElements = [
+            'replace' => ['properties'],
+            'explode' => ['properties', 'contains', 'match', 'max_values'],
+            'convert' => ['properties', 'contains'],
+            'order_values' => ['properties'],
+        ];
+        foreach ($blocks as $name => $label) {
+            $block = $name === 'language' ? $language : $this->get($name);
+            foreach ($commonElements[$name] ?? [] as $element) {
+                $block->remove($element);
+            }
+            if ($name !== 'language') {
+                $this->remove($name);
+            }
+            $modify->add($block->setLabel($this->translator->translate($label)));
+        }
 
         return $this;
     }

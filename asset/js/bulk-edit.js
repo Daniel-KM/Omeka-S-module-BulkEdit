@@ -14,6 +14,7 @@ $(document).ready(function() {
     const bulkeditFieldsets = $('#bulkedit-fieldsets').data('bulkedit-fieldsets') || {};
     const bulkeditGroups = $('#bulkedit-fieldsets').data('bulkedit-groups') || {};
     const bulkeditRequired = $('#bulkedit-fieldsets').data('bulkedit-required') || {};
+    const bulkeditBlocks = $('#bulkedit-fieldsets').data('bulkedit-blocks') || {};
     $('#bulkedit-fieldsets').remove();
     Object.entries(bulkeditFieldsets).forEach(([fieldsetName, fieldsetLabel]) => {
         $('[data-bulkedit-fieldset=' + fieldsetName + ']').closest('.field')
@@ -42,6 +43,20 @@ $(document).ready(function() {
         $('<h3 class="bulkedit-group">').text(groupLabel).insertBefore('#bulk-edit > #' + fieldsetName);
     });
 
+    // Gather the elements of the blocks of a fieldset in collapsed blocks.
+    Object.entries(bulkeditBlocks).forEach(([fieldsetName, blocks]) => {
+        const container = $('#bulk-edit > #' + fieldsetName + ' > .collapsible');
+        Object.entries(blocks).forEach(([blockName, blockLabel]) => {
+            const fields = container.find('[data-bulkedit-block=' + blockName + ']').closest('.field');
+            if (fields.length) {
+                $('<div class="bulkedit-block">').attr('data-block', blockName)
+                    .append($('<a href="#" class="expand">').attr('aria-label', Omeka.jsTranslate('Expand')).attr('title', Omeka.jsTranslate('Expand')).text(blockLabel))
+                    .append($('<div class="collapsible">').append(fields))
+                    .appendTo(container);
+            }
+        });
+    });
+
     // Gather the secondary elements in a collapsed block.
     $('#bulk-edit > fieldset').each(function() {
         const options = $(this).find('[data-bulkedit-option]').closest('.field');
@@ -62,7 +77,7 @@ $(document).ready(function() {
     $('#bulk-edit')
         .prepend('<p>' + Omeka.jsTranslate('The actions are processed in the order of the form. Be careful when mixing them.') + '</p>');
     if (!$('input#geometry_convert_literal_to_coordinates').length) {
-        $('#convert > .collapsible')
+        $('#convert_from').closest('.collapsible')
             .append('<p>' + Omeka.jsTranslate('To convert values to/from mapping markers, use module DataTypeGeometry.') + '</p>');
     }
 
@@ -72,7 +87,8 @@ $(document).ready(function() {
     // Mark the actions that will be processed, with the same required elements
     // than the server.
     const fieldValues = (fieldset, name) => {
-        const fieldName = 'bulkedit[' + fieldset.attr('id') + '][' + name + ']';
+        // A path "block/name" is used for the elements of the blocks.
+        const fieldName = 'bulkedit[' + fieldset.attr('id') + '][' + name.split('/').join('][') + ']';
         return fieldset.find(':input')
             .filter(function() {
                 return (this.name === fieldName || this.name === fieldName + '[]')
@@ -86,15 +102,29 @@ $(document).ready(function() {
         const values = fieldValues(fieldset, name);
         return value === undefined ? values.length > 0 : values.includes(value);
     });
-    const isActive = (fieldset) => (bulkeditRequired[fieldset.attr('id')] || [[]])
+    const isRequiredFilled = (fieldset, required) => required
         .every(group => group.some(token => isFilled(fieldset, token)));
+    // A fieldset with blocks is active when one of its blocks is active.
+    const isActive = (fieldset) => {
+        const required = bulkeditRequired[fieldset.attr('id')] || [[]];
+        if (!required.any) {
+            return isRequiredFilled(fieldset, required);
+        }
+        let active = false;
+        Object.entries(required.any).forEach(([blockName, blockRequired]) => {
+            const isBlockActive = isRequiredFilled(fieldset, blockRequired);
+            fieldset.find('.bulkedit-block[data-block="' + blockName + '"]').toggleClass('bulkedit-active', isBlockActive);
+            active = active || isBlockActive;
+        });
+        return active;
+    };
     $('#bulk-edit').on('change input', ':input', function() {
         const fieldset = $(this).closest('#bulk-edit > fieldset');
         fieldset.toggleClass('bulkedit-active', isActive(fieldset));
     });
 
     $('.batch-edit').on('change', '.bulkedit-replace-mode', function() {
-        const fieldset = $(this).closest('fieldset');
+        const fieldset = $(this).closest('.bulkedit-block, fieldset');
         // The mode may be a select or radios.
         const modes = fieldset.find('.bulkedit-replace-mode');
         const mode = modes.is('select') ? modes.val() : (modes.filter(':checked').val() || '');
@@ -126,11 +156,12 @@ $(document).ready(function() {
         const datatypes = $('#convert_from').data('datatypes');
         const datatypeFrom = $('#convert_from').val();
         const datatypeTo = $('#convert_to').val();
-        $('#bulk-edit #convert [data-info-datatype]').closest('.field').hide();
+        const block = $('#convert_from').closest('.collapsible');
+        block.find('[data-info-datatype]').closest('.field').hide();
         if (!datatypes[datatypeTo]) {
             return;
         }
-        $('#bulk-edit #convert [data-info-datatype=' + datatypes[datatypeTo] + ']').closest('.field').show();
+        block.find('[data-info-datatype=' + datatypes[datatypeTo] + ']').closest('.field').show();
         if (!datatypes[datatypeFrom]) {
             return;
         }
@@ -210,34 +241,31 @@ $(document).ready(function() {
         'bulkedit[cleaning][clean_language_codes_from]': '',
         'bulkedit[cleaning][clean_language_codes_to]': '',
         'bulkedit[cleaning][deduplicate_values]': '0',
-        'bulkedit[replace][value_part]': 'value',
-        'bulkedit[replace][from]': '',
-        'bulkedit[replace][to]': '',
-        'bulkedit[replace][mode]': 'raw',
-        'bulkedit[replace][remove]': '0',
-        'bulkedit[replace][prepend]': '',
-        'bulkedit[replace][append]': '',
-        'bulkedit[replace][language]': '',
-        'bulkedit[replace][language_clear]': '0',
+        'bulkedit[modify][replace][value_part]': 'value',
+        'bulkedit[modify][replace][from]': '',
+        'bulkedit[modify][replace][to]': '',
+        'bulkedit[modify][replace][mode]': 'raw',
+        'bulkedit[modify][replace][remove]': '0',
+        'bulkedit[modify][replace][prepend]': '',
+        'bulkedit[modify][replace][append]': '',
+        'bulkedit[modify][language][language]': '',
+        'bulkedit[modify][language][language_clear]': '0',
         'bulkedit[displace][to]': '',
         'bulkedit[displace][languages]': '',
         'bulkedit[displace][visibility]': '',
         'bulkedit[displace][contains]': '',
-        'bulkedit[explode][separator]': '',
-        'bulkedit[explode][contains]': '',
-        'bulkedit[convert][from]': '',
-        'bulkedit[convert][to]': '',
-        'bulkedit[convert][literal_value]': '',
-        'bulkedit[convert][literal_extract_html_text]': '0',
-        'bulkedit[convert][literal_html_only_tagged_string]': '0',
-        'bulkedit[convert][uri_extract_label]': '0',
-        'bulkedit[convert][uri_label]': '',
-        'bulkedit[convert][uri_base_site]': 'api',
-        'bulkedit[convert][contains]': '',
-        'bulkedit[order_values][languages]': '',
-        'bulkedit[properties_visibility][visibility]': '',
-        'bulkedit[properties_visibility][languages]': '',
-        'bulkedit[properties_visibility][contains]': '',
+        'bulkedit[modify][explode][separator]': '',
+        'bulkedit[modify][convert][from]': '',
+        'bulkedit[modify][convert][to]': '',
+        'bulkedit[modify][convert][literal_value]': '',
+        'bulkedit[modify][convert][literal_extract_html_text]': '0',
+        'bulkedit[modify][convert][literal_html_only_tagged_string]': '0',
+        'bulkedit[modify][convert][uri_extract_label]': '0',
+        'bulkedit[modify][convert][uri_label]': '',
+        'bulkedit[modify][convert][uri_base_site]': 'api',
+        'bulkedit[modify][order_values][languages]': '',
+        'bulkedit[modify][properties_visibility][visibility]': '',
+        'bulkedit[modify][contains]': '',
         'bulkedit[fill_data][owner]': '',
         'bulkedit[fill_values][datatype]': '',
         'bulkedit[fill_values][language]': '',

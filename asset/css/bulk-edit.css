@@ -55,6 +55,27 @@
                 margin-top: 6px;
             }
         }
+        & .bulkedit-block {
+            margin-top: 6px;
+            & > a {
+                display: inline-flex;
+                align-items: center;
+                font-weight: bold;
+                &::after {
+                    margin-left: 6px;
+                    order: 2;
+                }
+            }
+            &.bulkedit-active > a::before {
+                color: #3f8a3f;
+                content: "\f058";
+                font-family: "Font Awesome 5 Free";
+                font-size: 14px;
+                font-weight: 900;
+                margin-left: 8px;
+                order: 1;
+            }
+        }
         & .bulkedit-options {
             margin-top: 6px;
             & > a {

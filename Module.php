@@ -803,16 +803,19 @@ class Module extends AbstractModule
             return [];
         }
 
+        $bulkedit = $this->expandModify($bulkedit);
+
         $processes = [
             'create_values' => null,
+            // Processes of the action "modify".
             'replace' => null,
-            'copy' => null,
-            'displace' => null,
             'explode' => null,
-            'merge' => null,
             'convert' => null,
             'order_values' => null,
             'properties_visibility' => null,
+            'copy' => null,
+            'displace' => null,
+            'merge' => null,
             'fill_data' => null,
             'fill_values' => null,
             'remove' => null,
@@ -864,6 +867,7 @@ class Module extends AbstractModule
                 'append' => rtrim($params['append'] ?? ''),
                 'language' => trim($params['language'] ?? ''),
                 'language_clear' => !empty($params['language_clear']),
+                'language_all' => !empty($params['language_all']),
                 'properties' => $params['properties'],
                 'datatypes' => array_filter($params['datatypes'] ?? []),
                 'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
@@ -911,7 +915,7 @@ class Module extends AbstractModule
         if (!empty($params['properties'])) {
             // Don't use trim for separator, because space can be a separator.
             // The same for contains.
-            $separator = $params['separator'];
+            $separator = (string) ($params['separator'] ?? '');
             if (mb_strlen($separator)) {
                 $processes['explode'] = [
                     'properties' => $params['properties'],
@@ -1343,6 +1347,73 @@ class Module extends AbstractModule
      *
      * @deprecated To be removed in a future version.
      */
+    /**
+     * Dispatch the action "modify" to the processes it groups.
+     *
+     * The properties and the filters are common to all the processes. The
+     * processes set directly are kept, for example from the api.
+     */
+    protected function expandModify(array $bulkedit): array
+    {
+        $modify = $bulkedit['modify'] ?? null;
+        unset($bulkedit['modify']);
+        if (!is_array($modify) || empty($modify['properties'])) {
+            return $bulkedit;
+        }
+
+        $properties = (array) $modify['properties'];
+        $filters = [
+            'properties' => $properties,
+            'datatypes' => array_filter((array) ($modify['datatypes'] ?? [])),
+            'languages' => $modify['languages'] ?? [],
+            'contains' => (string) ($modify['contains'] ?? ''),
+        ];
+
+        // The language is managed by the replacement, that requires a mode.
+        $language = $modify['language'] ?? [];
+        $replace = ($modify['replace'] ?? []) + [
+            'value_part' => 'value',
+            'language' => $language['language'] ?? '',
+            'language_clear' => $language['language_clear'] ?? '',
+            // Unlike the replacement, the language is set whatever the part.
+            'language_all' => true,
+        ];
+        if (empty($replace['mode'])
+            && (mb_strlen(trim((string) $replace['language']))
+                || !empty($replace['language_clear'])
+                || mb_strlen(trim((string) ($replace['prepend'] ?? '')))
+                || mb_strlen(trim((string) ($replace['append'] ?? ''))))
+        ) {
+            $replace['mode'] = 'raw';
+            $replace['from'] = '';
+            $replace['to'] = '';
+        }
+
+        $processes = [
+            'replace' => array_replace($replace, $filters),
+            'explode' => array_replace($modify['explode'] ?? [], $filters),
+            'convert' => array_replace($modify['convert'] ?? [], $filters),
+            // The languages of this process are the ones to order first.
+            'order_values' => array_replace($modify['order_values'] ?? [], ['properties' => $properties]),
+            'properties_visibility' => array_replace($modify['properties_visibility'] ?? [], $filters),
+        ];
+        foreach ($processes as $name => $params) {
+            $bulkedit[$name] ??= $params;
+        }
+
+        // The codes of languages are updated directly in the database.
+        $codeFrom = trim((string) ($language['code_from'] ?? ''));
+        $codeTo = trim((string) ($language['code_to'] ?? ''));
+        if (($codeFrom !== '' || $codeTo !== '') && empty($bulkedit['cleaning']['clean_language_codes'])) {
+            $bulkedit['cleaning']['clean_language_codes'] = '1';
+            $bulkedit['cleaning']['clean_language_codes_from'] = $codeFrom;
+            $bulkedit['cleaning']['clean_language_codes_to'] = $codeTo;
+            $bulkedit['cleaning']['clean_language_codes_properties'] = $properties;
+        }
+
+        return $bulkedit;
+    }
+
     protected function arrayTextSeparatorEqualToSpace(array $values): array
     {
         return array_values(array_unique(array_filter(array_map('trim', explode('=', implode('=', $values))))));

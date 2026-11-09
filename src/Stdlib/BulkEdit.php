@@ -493,9 +493,23 @@ class BulkEdit
             }
         }
 
+        // The language may be set on all filtered values, whatever the part.
+        $languageAll = !empty($params['language_all']);
         if ($languageClear || mb_strlen((string) $language)) {
             foreach ($properties as $property) {
                 foreach ($data[$property] ?? [] as $key => $value) {
+                    if ($languageAll) {
+                        $dataTypeMain = $this->easyMeta->dataTypeMain($value['type'] ?? '');
+                        if (!in_array($dataTypeMain, ['literal', 'uri']) || !$this->matchValueFilters($value, $filters)) {
+                            continue;
+                        }
+                        // The data type uri uses "o:lang", Value Suggest "@language".
+                        if ($dataTypeMain === 'uri') {
+                            $data[$property][$key]['o:lang'] = $language;
+                        }
+                        $data[$property][$key]['@language'] = $language;
+                        continue;
+                    }
                     $val = $getVal($value, true);
                     if ($val === null) {
                         continue;

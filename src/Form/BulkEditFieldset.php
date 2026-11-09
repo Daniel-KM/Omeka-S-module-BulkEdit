@@ -904,6 +904,27 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         if ($fieldset->has('match')) {
             $fieldset->get('match')->setAttribute('placeholder', '~^value$~i');
         }
+        // The parts of the values checked by the filters on strings.
+        if (($fieldset->has('contains') || $fieldset->has('match')) && !$fieldset->has('search_in')) {
+            $fieldset->add([
+                'name' => 'search_in',
+                'type' => CommonElement\OptionalMultiCheckbox::class,
+                'options' => [
+                    'label' => 'Search in', // @translate
+                    'value_options' => [
+                        'text' => 'Text', // @translate
+                        'uri' => 'Uri', // @translate
+                        'label' => 'Uri label', // @translate
+                        'title' => 'Title of the linked resource', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => $fieldset->getName() . '_search_in',
+                    'value' => ['text', 'uri', 'label'],
+                    'class' => 'bulkedit-search-in',
+                ],
+            ]);
+        }
         // The visibility of these processes is a filter.
         if ($fieldset->has('visibility') && in_array($fieldset->getName(), ['copy', 'displace', 'remove'])) {
             $fieldset->get('visibility')->setValueOptions([

@@ -210,10 +210,10 @@ $(document).ready(function() {
     // The filters and the options of some actions are displayed when the
     // properties are selected, like the action "modify".
     const dependentFieldsets = {
-        copy: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility'], ['datatype', 'max_values']],
-        displace: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility'], ['datatype', 'max_values']],
-        fill_values: ['properties', ['datatypes', 'languages', 'contains', 'match', 'is_public'], ['note_uri', 'datatype', 'language', 'update_language', 'featured_subject']],
-        remove: ['properties', ['datatypes', 'languages', 'equal', 'contains', 'match', 'visibility'], ['keep_max_values', 'max_values']],
+        copy: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility', 'search_in'], ['datatype', 'max_values']],
+        displace: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility', 'search_in'], ['datatype', 'max_values']],
+        fill_values: ['properties', ['datatypes', 'languages', 'contains', 'match', 'is_public', 'search_in'], ['note_uri', 'datatype', 'language', 'update_language', 'featured_subject']],
+        remove: ['properties', ['datatypes', 'languages', 'equal', 'contains', 'match', 'visibility', 'search_in'], ['keep_max_values', 'max_values']],
         media_order: ['order', [], ['mediatypes', 'extensions']],
     };
     Object.entries(dependentFieldsets).forEach(([fieldsetName, [trigger, filterNames, optionNames]]) => {
@@ -241,6 +241,16 @@ $(document).ready(function() {
         const value = () => inputs.is('select') ? inputs.val() : (inputs.filter(':checked').val() || '');
         inputs.on('change', () => dependent.toggle(!!(value() || []).length));
         dependent.toggle(!!(value() || []).length);
+    });
+
+    // The parts of the values to search in are useful only with a string.
+    $('#bulk-edit .bulkedit-search-in').closest('.field').each(function() {
+        const field = $(this);
+        const name = field.closest('#bulk-edit > fieldset').attr('id');
+        const strings = $('[name="bulkedit[' + name + '][contains]"], [name="bulkedit[' + name + '][match]"]');
+        const toggle = () => field.toggle(strings.toArray().some(input => input.value !== ''));
+        strings.on('input change', toggle);
+        toggle();
     });
 
     // Gather the secondary elements in a collapsed block.

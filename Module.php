@@ -909,6 +909,7 @@ class Module extends AbstractModule
                 'contains' => (string) ($params['contains'] ?? ''),
                 'match' => (string) ($params['match'] ?? ''),
                 'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
+                'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
             ];
         }
 
@@ -926,6 +927,7 @@ class Module extends AbstractModule
                     'match' => $params['match'] ?? '',
                     'datatype' => $params['datatype'],
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
+                    'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
                 ];
             }
         }
@@ -944,6 +946,7 @@ class Module extends AbstractModule
                     'match' => $params['match'] ?? '',
                     'datatype' => $params['datatype'],
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
+                    'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
                 ];
             }
         }
@@ -998,6 +1001,7 @@ class Module extends AbstractModule
                 'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
                 'match' => (string) ($params['match'] ?? ''),
                 'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
+                'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
             ];
         }
 
@@ -1016,6 +1020,7 @@ class Module extends AbstractModule
                         'contains' => (string) ($filters['contains'] ?? ''),
                         'match' => (string) ($filters['match'] ?? ''),
                         'is_public' => isset($filters['is_public']) && $filters['is_public'] !== '' ? (int) (bool) $filters['is_public'] : '',
+                        'search_in' => array_values(array_filter((array) ($filters['search_in'] ?? []))) ?: null,
                     ],
                 ];
             }
@@ -1035,6 +1040,7 @@ class Module extends AbstractModule
                 'contains' => $params['contains'],
                 'match' => (string) ($params['match'] ?? ''),
                 'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
+                'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
             ];
         }
 
@@ -1062,6 +1068,7 @@ class Module extends AbstractModule
                 'contains' => (string) ($params['contains'] ?? ''),
                 'match' => (string) ($params['match'] ?? ''),
                 'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
+                'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
             ];
             // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
             // $this->preFillValues($processes['fill_values']);
@@ -1079,6 +1086,7 @@ class Module extends AbstractModule
                 'match' => $params['match'],
                 'keep_max_values' => empty($params['keep_max_values']) ? null : (int) $params['keep_max_values'],
                 'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
+                'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
             ];
         }
 
@@ -1546,6 +1554,7 @@ class Module extends AbstractModule
             'contains' => (string) ($modify['contains'] ?? ''),
             'match' => (string) ($modify['match'] ?? ''),
             'is_public' => $modify['is_public'] ?? '',
+            'search_in' => $modify['search_in'] ?? null,
         ];
         if ($filters['match'] !== '' && @preg_match($filters['match'], '') === false) {
             $this->getServiceLocator()->get('Omeka\Logger')->err(

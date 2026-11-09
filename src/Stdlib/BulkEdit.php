@@ -113,6 +113,48 @@ class BulkEdit
     }
 
     /**
+     * Get the strings of a value checked by the filters "contains" and "regex".
+     *
+     * The parts are the text of a literal ("text"), the uri ("uri") and the
+     * label of an uri ("label"), and the title of a linked resource ("title").
+     * By default, the linked resources are not checked.
+     */
+    protected function valueFilterStrings(array $value, ?array $searchIn = null): array
+    {
+        $searchIn = $searchIn ? array_flip($searchIn) : ['text' => 0, 'uri' => 1, 'label' => 2];
+        if (!empty($value['value_resource_id'])) {
+            $strings = isset($searchIn['title']) ? [$value['display_title'] ?? null] : [];
+        } else {
+            $strings = [
+                isset($searchIn['text']) ? $value['@value'] ?? null : null,
+                isset($searchIn['uri']) ? $value['@id'] ?? null : null,
+                isset($searchIn['label']) ? $value['o:label'] ?? null : null,
+            ];
+        }
+        return array_values(array_filter(array_map('strval', array_filter($strings, 'is_scalar')), 'strlen'));
+    }
+
+    protected function valueContains(array $value, string $contains, ?array $searchIn = null): bool
+    {
+        foreach ($this->valueFilterStrings($value, $searchIn) as $string) {
+            if (mb_strpos($string, $contains) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected function valueMatches(array $value, string $regex, ?array $searchIn = null): bool
+    {
+        foreach ($this->valueFilterStrings($value, $searchIn) as $string) {
+            if (@preg_match($regex, $string) === 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check a value against the common filters of the processes.
      *
      * The filters are the data types, the languages, a contained string, a
@@ -127,12 +169,12 @@ class BulkEdit
             return false;
         }
         if (isset($filters['contains']) && mb_strlen((string) $filters['contains'])
-            && mb_strpos((string) ($value['@value'] ?? $value['@id'] ?? ''), (string) $filters['contains']) === false
+            && !$this->valueContains($value, (string) $filters['contains'], $filters['search_in'] ?? null)
         ) {
             return false;
         }
         if (isset($filters['match']) && mb_strlen((string) $filters['match'])
-            && @preg_match((string) $filters['match'], (string) ($value['@value'] ?? $value['@id'] ?? '')) !== 1
+            && !$this->valueMatches($value, (string) $filters['match'], $filters['search_in'] ?? null)
         ) {
             return false;
         }
@@ -435,6 +477,7 @@ class BulkEdit
             'contains' => (string) ($params['contains'] ?? ''),
             'match' => (string) ($params['match'] ?? ''),
             'is_public' => $params['is_public'] ?? '',
+            'search_in' => $params['search_in'] ?? null,
         ];
         if ($filters['datatypes'] || $filters['languages'] || mb_strlen($filters['contains']) || mb_strlen($filters['match']) || $filters['is_public'] !== '') {
             $getValUnfiltered = $getVal;
@@ -682,7 +725,6 @@ class BulkEdit
                 $value += ['@language' => null, 'is_public' => 1, '@value' => null];
                 // The data type uri has a label and the language in "o:lang".
                 $valueLanguage = (string) ($value['@language'] ?? $value['o:lang'] ?? '');
-                $valueString = (string) ($value['@value'] ?? $value['@id'] ?? '');
                 if ($checkDataType && !isset($dataTypesFlipped[$value['type']])) {
                     continue;
                 }
@@ -692,10 +734,10 @@ class BulkEdit
                 if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
                     continue;
                 }
-                if ($checkContains && strpos($valueString, $contains) === false) {
+                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null)) {
                     continue;
                 }
-                if ($checkMatch && !preg_match($match, $valueString)) {
+                if ($checkMatch && !$this->valueMatches($value, $match, $params['search_in'] ?? null)) {
                     continue;
                 }
                 $value['property_id'] = $toId;
@@ -1219,6 +1261,13 @@ class BulkEdit
             return true;
         };
 
+        // The linked resources are converted explicitly, so their title is
+        // always checked.
+        $convertSearchIn = $params['search_in'] ?? null;
+        if ($fromDataTypeMain === 'resource') {
+            $convertSearchIn = array_unique(array_merge($convertSearchIn ?: ['text', 'uri', 'label'], ['title']));
+        }
+
         foreach ($properties as $property) {
             foreach ($data[$property] ?? [] as $key => $value) {
                 if ($value['type'] !== $fromDataType
@@ -1228,15 +1277,13 @@ class BulkEdit
                         'languages' => $params['languages'] ?? [],
                         'match' => $params['match'] ?? '',
                         'is_public' => $params['is_public'] ?? '',
+                        'search_in' => $convertSearchIn,
                     ])
                 ) {
                     continue;
                 }
-                if ($checkContains) {
-                    $valueString = ['literal' => $value['@value'] ?? null, 'uri' => $value['@id'] ?? null, 'resource' => $value['display_title'] ?? null][$fromDataTypeMain] ?? null;
-                    if ($valueString === null || mb_strpos((string) $valueString, $contains) === false) {
-                        continue;
-                    }
+                if ($checkContains && !$this->valueContains($value, $contains, $convertSearchIn)) {
+                    continue;
                 }
                 // The language of the data type uri is stored in "o:lang".
                 $value['@language'] = $value['@language'] ?? $value['o:lang'] ?? null;
@@ -1605,10 +1652,10 @@ class BulkEdit
                 if ($checkLanguage && !in_array($value['@language'] ?? $value['o:lang'] ?? null, $languages)) {
                     continue;
                 }
-                if ($checkContains && strpos((string) ($value['@value'] ?? $value['@id'] ?? ''), $contains) === false) {
+                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null)) {
                     continue;
                 }
-                if (!$this->matchValueFilters($value, ['match' => $params['match'] ?? '', 'is_public' => $params['is_public'] ?? ''])) {
+                if (!$this->matchValueFilters($value, ['match' => $params['match'] ?? '', 'is_public' => $params['is_public'] ?? '', 'search_in' => $params['search_in'] ?? null])) {
                     continue;
                 }
                 $data[$property][$key]['is_public'] = $visibility;
@@ -1834,6 +1881,7 @@ class BulkEdit
             'contains' => (string) ($params['contains'] ?? ''),
             'match' => (string) ($params['match'] ?? ''),
             'is_public' => $params['is_public'] ?? '',
+            'search_in' => $params['search_in'] ?? null,
         ];
 
         if ($mode === 'label_remove') {
@@ -2105,13 +2153,10 @@ class BulkEdit
                         continue;
                     }
                 }
-                // A value without string (a linked resource) cannot match, so
-                // it should not be removed.
-                $valueString = ['literal' => $value['@value'], 'uri' => $value['@id']][$valueMainDataType] ?? null;
-                if ($checkContains && ($valueString === null || strpos((string) $valueString, $contains) === false)) {
+                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null)) {
                     continue;
                 }
-                if ($checkMatch && ($valueString === null || !preg_match($match, (string) $valueString))) {
+                if ($checkMatch && !$this->valueMatches($value, $match, $params['search_in'] ?? null)) {
                     continue;
                 }
                 if ($keepMaxValues && $processed++ < $abskeepMaxValues) {

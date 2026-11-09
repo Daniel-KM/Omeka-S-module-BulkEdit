@@ -3016,12 +3016,16 @@ class BulkEdit
                             $media = $api->create('media', $data, [], ['bulkedit_filepath' => $source] + $createOptions)->getContent();
                         } catch (\Omeka\Api\Exception\ExceptionInterface $e) {
                             // Generally a bad or missing pdf file.
-                            // $hasError = true;
-                            $this->logger->err($e->getMessage() ?: $e);
+                            $this->logger->err(
+                                'Item #{item_id}: the page "{source}" of the pdf cannot be created: {message}', // @translate
+                                ['item_id' => $resourceId, 'source' => $sourceFilename, 'message' => $e->getMessage()]
+                            );
                             break;
                         } catch (\Throwable $e) {
-                            // $hasError = true;
-                            $this->logger->err($e);
+                            $this->logger->err(
+                                'Item #{item_id}: an error occurred when creating the page "{source}" of the pdf: {message}', // @translate
+                                ['item_id' => $resourceId, 'source' => $sourceFilename, 'message' => $e->getMessage()]
+                            );
                             break;
                         }
                     }

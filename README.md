@@ -8,44 +8,34 @@ Bulk Edit (module for Omeka S)
 [Bulk Edit] is a module for [Omeka S] that adds tools to bulk edit resources in
 order to modify or to clean them.
 
-Current processes are:
+The batch edit page of Omeka gets a new tab "Advanced", with these actions:
 
-- Modify language codes
-- Remove duplicate values
-- Remove all trailing white spaces
-- Replace value of a property (directly or via regex)
-- Remove the literal value of a property
-- Prepend or append a string to a value of a property
-- Replace the whole value or uri of a property, with placeholders
-- Set or remove language of a property
-- Order values by language (in particular for the title)
-- Set visibility of a property public or private
-- Displace values from a property to another one
-- Explode a value into multiple ones
-- Merge two values into one
-- Convert a value to another data type
-- Update or remove the owner
-- Update value suggest labels
-- apply visibility for values
-- fill label for Value Suggest values
-- remove specified values
-- remove specified media
-- add or remove a thumbnail
-- update order of media
-- explode item into multiple items by media
-- explode pdf into multiple images (mainly for quick display via iiif)
-- Update the media html via item or media
-- update media source
-- Update the media type (mime-type) of a media
-- update media visibility
+- Values
+  - Create values in multiple properties, with any data type and language
+  - Modify values: replace text, set or change the language, explode values,
+    convert the data type, sort by language and set the visibility
+  - Copy or move values to another property
+  - Merge two values into one uri with a label
+  - Fill labels or uris from remote services (module [Value Suggest])
+  - Remove values
+  - Clean values: trim spaces, remove empty values and duplicates
+- Resource
+  - Set or remove the owner
+  - Attach or remove a thumbnail
+- Media
+  - Modify the html, the source, the media type and the visibility of media
+  - Remove media
+  - Sort media
+  - Explode an item into one item by media, or a pdf into images
+
+A preview shows the values before and after the changes, without saving.
 
 Furthermore, values are automatically trimmed and deduplicated when a resource
 is saved.
 
-The slow processes are never run during a web request. When selected resources
-are edited, they are run in a background job: explode items and pdf, fill values
-from remote services, convert to places or coordinates, remove or order media,
-and update html, source, type or visibility of media from items.
+The slow processes are never run during a web request. They are run in a
+background job: explode items and pdf, fill values from remote services, convert
+to places or coordinates, and the processes on media of items.
 
 
 Installation
@@ -87,213 +77,124 @@ vendor/bin/phpunit -c modules/BulkEdit/phpunit.xml --testdox
 Usage
 -----
 
-The tool is available via the standard bulk process in Admin > Items, Admin > Item Sets,
-and Admin > Media. Simply select specific resources or all, then click Go, then
-select and config the process to do.
+The tool is available via the standard batch edit in Admin > Items, Admin > Item
+Sets and Admin > Media: select some resources or all of them, choose "Edit
+selected" or "Edit all", then open the tab "Advanced".
 
 The resources managed by some modules are supported too: annotations (module
 [Annotate]), concepts (module [Thesaurus]) and digital objects (module
-[Digital Object]). They are automatically trimmed and deduplicated on save like
-the standard resources. For digital objects, the available processes are the
-same as for media: update of the html, the source, the media type and the
-visibility.
+[Digital Object]). For digital objects, the available processes are the same as
+for media.
 
-To improve search of resources, you can use module [Advanced Search], that
-allows to search by creation date, modification date, or by visibility.
+To find the resources to edit, the module [Advanced Search] allows to search by
+creation date, modification date or visibility.
 
-The job is launched directly when specific resources are selected, and in the
-background when all resources are selected.
+### How it works
 
-### Cleaning metadata
+- Each action is a section that can be opened. A green check is displayed when
+  the action will do something.
+- The actions are processed in the order of the page.
+- The filters are the same for all actions: data types, languages, visibility,
+  a string that the value equals or contains, a regex, and the parts of the value
+  to search in (text, uri, label of the uri, title of the linked resource). An
+  empty filter means all values. By default, the linked resources are not
+  checked by the strings.
+- The options of an action are displayed when its main field is filled.
+- The section "Preview" at the end of the page shows the first updated
+  resources, ten by page, with the values before and after.
 
-#### Trim property values
+### Values
 
-Remove leading and trailing whitespaces preventively on any resource creation or
-update, or curatively via the batch edit, so values will be easier to find and
-to compare exactly (see [omeka/omeka-s#1258]). Note that the curative trimming
-uses a regex when possible (with mysql ≥ 8.0.4 or mariadb ≥ 10.0.5). There is no
-difference in most of the cases, except when there are multiple whitespace mixed
-(space, tabulation, new line, end of line, etc.).
+#### Create
 
-#### Specify data type of linked resources
+Add a property, then add values with the same editor than the resource form:
+text, uri, linked resource or any other data type, with a language and a
+visibility. Multiple values can be added in multiple properties.
 
-In some cases, in particular when using resource templates with data type "resource",
-linked resources are saved in the database with the generic data type "resource",
-not with the specific "resourc:item", "resource:media, etc.
-This process is needed to clarify output of the facets with module [Advanced Search],
-lists from the module [Reference], and in some other places.
+#### Modify
 
-#### Clean languages
+Select the properties of the values to modify, filter them if needed, then check
+the operations to apply, in this order:
 
-Sometime, an empty language for a value is an empty string. This option makes it
-null.
+- Modify the text: search and replace (exact, case insensitive, regex or html
+  entities), replace the whole value, keep the file name only, fix the encoding,
+  or remove the value. A string may be prepended or appended too.
+- Modify the language: set it, remove it, or change a code into another one,
+  for example "fr" into "fra".
+- Explode the values with a separator, for example after a csv import.
+- Convert the data type, for example a text into an uri or a linked resource.
+- Sort by language, for example to display the title in a language first.
+- Modify the visibility.
 
-#### Modify language codes
+The whole value, the prepended and the appended strings support placeholders:
+`{resource_id}`, `{resource_url}`, `{resource_url_admin}`, `{resource_title}`,
+`{main_url}`, and any property term, like `{dcterms:identifier}`. So, to set the
+uri of a property to the url of the resource, choose the part "Uri", the
+operation "Replace the whole value" and `{resource_url}`.
 
-This options allows to replace all "fr" or "fre" by "fra", or any other language
-code, or into an empty code. It can be limited to specific properties.
-
-#### Deduplicate property values
-
-Remove exact duplicated values on any new or updated resource preventively.
-Note: preventive deduplication is case sensitive, but curative deduplication is
-case insensitive (it uses a direct query and the Omeka database is case
-insensitive by default).
-
-### Replace values
-
-#### Replace value of a property directly or via regex
-
-Fill fields "Replace" and "By", specify the type of replacement (simple, html or
-regex), then select the properties to update.
-
-The mode "html" means that the original string will be checked as raw string and
-as html encoded string too. For example, string `café` will be checked with
-`café` and `caf&eacute;`). Be careful when simple characters are mixed with
-entities, it may be difficult to replace all strings. The replacement string is
-used unchanged, so it is recommended to use entities for it too.
-
-For Unicode, use the mode "Convert badly formatted characters from Microsoft to Unicode",
-without option from/to.
-
-For regex, use standard patterns. Examples:
+Examples of regex:
 - Convert spaces into "-" for identifiers: pattern = `~\s+~`, replacement = `-`.
-- Convert `D:20220908101423` into a normalized date: pattern = `~^D:(\d{4})(\d{2})(\d{2})~`,
+- Convert `D:20220908101423` into a date: pattern = `~^D:(\d{4})(\d{2})(\d{2})~`,
   replacement = `$1-$2-$3`.
 
-#### Remove the literal value of a property
+#### Copy and displace
 
-Simply check the box "Remove string", then select the properties to update.
-The string will be removed, but it can be prepended or appended with another
-string. In that case, the value is kept, else it is removed.
+Copy or move the values of some properties to another one. The data type may be
+changed at the same time, without conversion.
 
-#### Prepend or append a string
+#### Merge as uri
 
-Fill fields "Prepend" and/or "Append" and select the properties to update.
+The values are merged two by two as an uri with a label. The number of values
+must be even and at least one value of each pair should be an url.
 
-#### Replace the whole value or uri
+#### Value Suggest
 
-Select the mode "Replace whole value": the value, the uri or the label of the
-uri, according to the option "Part of value", is replaced by the content of the
-field "By", without having to write a catch-all regex.
+Fill the missing labels or uris of the values from remote services of the module
+[Value Suggest], or remove the labels. The uri is filled only when the service
+returns a single result.
 
-The fields "By", "String to prepend" and "String to append" support the
-placeholders of the module [Common]: `{resource_id}`, `{resource_url}`,
-`{resource_url_admin}`, `{resource_title}`, `{main_url}`, and any property term,
-like `{dcterms:identifier}`. Unknown placeholders are kept as is. The
-placeholders that need a current site or a current user, like `{site_url}`, are
-replaced by an empty string, because a batch edit may be processed in the
-background.
+#### Remove
 
-So, to rewrite all the uris of a property as the url of the resource itself, use
-"Part of value" = "Uri", mode = "Replace whole value", and "By" = `{resource_url}`
-(default site), or a specific base url, like `https://example.org/item/{resource_id}`
-for other sites.
+Remove the values of the properties, all of them or the filtered ones. A
+number of values to keep or to remove can be set.
 
-#### Set or remove language of a property
+#### Cleaning
 
-Select the properties to set or remove language.
-Note: all values of the selected properties are updated, so be aware of existing
-languages when they are multiple.
+Trim spaces, set the right data type of linked resources, remove the empty
+values and languages, and remove the duplicate values. These cleanings are
+processed after the other actions.
 
-### Remove specified media
+### Resource
 
-You can remove medias of items by media-types or extensions.
+Set or remove the owner, and attach or remove a thumbnail, for example only
+when there is no thumbnail.
 
-### Add or remove a thumbnail
+### Media
 
-Add or remove a thumbnail from resources, with or without existing thumbnail.
+#### Modify media
 
-### Order values
+Select the media by media type, ingester or renderer, then check the operations:
+modify the html, the source (for example to remove the path of imported files),
+the media type, or the visibility.
 
-#### Order values by language
+#### Remove, sort and explode
 
-Sometime, we need that the title and the description to be displayed to be in
-one language, but the value in this language is not always the first in the
-metadata. This is important for the title and the description, that are
-displayed in many places.
-
-So just write the language in the order you want for the properties you want.
-Values with other languages or without language will be kept after.
-
-### Set or unset visibility of a property
-
-Select the properties to set or unset visibility.
-
-### Displace values from a property to another one
-
-Select the source properties and the destination property, then process edit.
-Some filters (datatype, language, string, visibility) allows to move only
-selected values.
-
-### Explode a value into multiple values
-
-This tool is useful for an import of a csv file, where the checkbox for "multivalue"
-was missed. Select the properties and the separator, that may have multiple
-character.
-
-### Merge two values as uri
-
-Select the properties and their values will be merged two by two. This tool can
-only be used when the number of values is even. When a value has already the
-datatype "uri" with a label, it is not changed and all values of the property
-are skipped to avoid merge issues. When two uris follow each other, the property
-is skipped too. At least one value should be an url. When the label and the
-values are different urls, the property is skipped. It’s recommended to check
-order of values first.
-
-### Convert datatype
-
-Select the source datatype and the new datatype. Only some datatype are managed
-currently .
-
-When converting from an url to geographic coordinates (module [Data Type Geometry])
-with a uri to [Geonames], the real coordinates are fetched.
-
-### Fill data
-
-#### Update or remove owner
-
-Simply set the user to use or set "Remove user" in the select.
-
-### Fill labels
-
-Select the source datatype and the new datatype. Only some datatype are managed
-currently .
-
-### Explode pdf into images, mainly for iiif
-
-To explode a pdf, you need either the command `pdftoppm` (poppler) (recommended)
-or `gs` (ghostscript).
-
-### Update media html from item or media
-
-Select the items or medias and update media html, then update it like an item
-value.
-
-### Update media source
-
-Update or clear the media source, for example remove the directory path for
-files imported with the full path. The source may be processed via regex or a
-string may be prepended or appended too. The settings are the same than the ones
-used to replace values above.
-
-### Update media types (mime-types)
-
-Select the items or medias and set the existing and the new media type. They
-should be standard ones and usually the more precise possible, like `application/tei+xml`
-instead of `application/xml`.
-
-### Update media visibility
-
-Update media visibility according to some metadata.
+Remove media by media type or extension, sort the media of items, and explode an
+item into one item by media or a pdf into images (useful for iiif viewers). To
+explode a pdf, the command `pdftoppm` (poppler) or `gs` (ghostscript) is
+required.
 
 
 TODO
 ----
 
 - [x] Add conversion for custom vocab.
+- [ ] Normalize custom vocab values.
+- [ ] Include collection, classes and templates or even full first tab?
 - [ ] Move hard-coded xml xpath into form.
+- [ ] Fill all missing value suggests.
+- [ ] Store common batches via a single checkbox and a simple select in the top next times.
+- [ ] Recommend [History Log].
 
 
 Warning
@@ -346,8 +247,8 @@ Copyright
 
 * Copyright Daniel Berthereau, 2018-2026 (see [Daniel-KM])
 
-First developed for the [Archives Henri Poincaré] of [Université de Lorraine],
-then improved for various projects.
+First developed for the [Archives Henri Poincaré] of [Université de Lorraine].
+Then, improvements was done for the maintenance of various sites.
 
 
 [Bulk Edit]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit
@@ -356,13 +257,11 @@ then improved for various projects.
 [Advanced Search]: https://gitlab.com/Daniel-KM/Omeka-S-module-AdvancedSearch
 [Common]: https://gitlab.com/Daniel-KM/Omeka-S-module-Common
 [BulkEdit.zip]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit/-/releases
-[omeka/omeka-s#1258]: https://github.com/omeka/omeka-s/issues/1258
-[Reference]: https://gitlab.com/Daniel-KM/Omeka-S-module-Reference
 [Annotate]: https://gitlab.com/Daniel-KM/Omeka-S-module-Annotate
 [Thesaurus]: https://gitlab.com/Daniel-KM/Omeka-S-module-Thesaurus
 [Digital Object]: https://gitlab.com/Daniel-KM/Omeka-S-module-DigitalObject
-[Data Type Geometry]: https://gitlab.com/Daniel-KM/Omeka-S-module-DataTypeGeometry
-[Geonames]: https://www.geonames.org/
+[Value Suggest]: https://github.com/omeka-s-modules/ValueSuggest
+[History Log]: https://gitlab.com/Daniel-KM/Omeka-S-module-HistoryLog
 [module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkEdit/-/work_items
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html

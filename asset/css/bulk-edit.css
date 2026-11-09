@@ -117,8 +117,14 @@
             border-left: 2px solid #dfdfdf;
             margin: 12px 0 0 12px;
             padding-left: 18px;
-            & > h5 {
+            & > a {
+                align-items: center;
+                display: inline-flex;
+                font-weight: bold;
                 margin: 0 0 6px;
+                &::after {
+                    margin-left: 6px;
+                }
             }
         }
         & .bulkedit-operation {

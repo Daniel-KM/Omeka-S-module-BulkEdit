@@ -244,7 +244,9 @@ $(document).ready(function() {
                 .append(fields(filterNames))
                 .appendTo(dependent);
         }
+        // The options of Value Suggest are required, so they are open.
         $('<div class="bulkedit-filters">')
+            .toggleClass('bulkedit-filters-open', fieldsetName === 'fill_values')
             .append($('<h5>').text(Omeka.jsTranslate('Options')))
             .append(fields(optionNames))
             .appendTo(dependent);
@@ -263,6 +265,32 @@ $(document).ready(function() {
         const toggle = () => field.toggle(strings.toArray().some(input => input.value !== ''));
         strings.on('input change', toggle);
         toggle();
+    });
+
+    // The filters and the options are collapsed, but open when one is not the
+    // default value.
+    $('#bulk-edit .bulkedit-filters').each(function() {
+        const block = $(this);
+        const heading = block.children('h5');
+        const content = $('<div class="collapsible">').append(block.children().not(heading));
+        const isSet = content.find('input[type=text], input[type=number], textarea, select').toArray()
+            .some(input => {
+                if (input.tagName !== 'SELECT') {
+                    return input.value !== input.defaultValue;
+                }
+                // Without default option, the first one is selected.
+                const options = [...input.options];
+                return options.some(option => option.defaultSelected)
+                    ? options.some(option => option.selected !== option.defaultSelected)
+                    : (input.multiple ? options.some(option => option.selected) : input.selectedIndex > 0);
+            });
+        const isOpen = isSet || block.hasClass('bulkedit-filters-open');
+        $('<a href="#">').addClass(isOpen ? 'collapse' : 'expand')
+            .attr('aria-label', Omeka.jsTranslate(isOpen ? 'Collapse' : 'Expand'))
+            .attr('title', Omeka.jsTranslate(isOpen ? 'Collapse' : 'Expand'))
+            .text(heading.text())
+            .replaceAll(heading);
+        block.append(content);
     });
 
     // Gather the secondary elements in a collapsed block.

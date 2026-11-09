@@ -201,26 +201,32 @@ $(document).ready(function() {
         updateSubOptions($(this));
     });
 
-    // For the copy and the displacement, the filters and the options are
-    // displayed when the source properties are selected.
-    ['copy', 'displace'].forEach(fieldsetName => {
+    // The filters and the options of some actions are displayed when the
+    // properties are selected, like the action "modify".
+    const dependentFieldsets = {
+        copy: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility'], ['datatype', 'max_values']],
+        displace: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility'], ['datatype', 'max_values']],
+        fill_values: ['properties', ['datatypes', 'languages', 'contains', 'match', 'is_public'], ['note_uri', 'datatype', 'language', 'update_language', 'featured_subject']],
+    };
+    Object.entries(dependentFieldsets).forEach(([fieldsetName, [trigger, filterNames, optionNames]]) => {
         const container = $('#bulk-edit > #' + fieldsetName + ' > .collapsible');
         if (!container.length) {
             return;
         }
+        // The notes have no name, so they are selected with their data name.
         const fields = (names) => container.find(names
-            .map(name => '[name="bulkedit[' + fieldsetName + '][' + name + ']"], [name="bulkedit[' + fieldsetName + '][' + name + '][]"]')
+            .map(name => '[name="bulkedit[' + fieldsetName + '][' + name + ']"], [name="bulkedit[' + fieldsetName + '][' + name + '][]"], [id$="_' + name + '"].field')
             .join(', ')).closest('.field');
         const dependent = $('<div class="bulkedit-dependent">')
             .append($('<div class="bulkedit-filters">')
                 .append($('<h5>').text(Omeka.jsTranslate('Filter the values')))
-                .append(fields(['datatypes', 'languages', 'contains', 'match', 'visibility'])))
+                .append(fields(filterNames)))
             .append($('<div class="bulkedit-filters">')
                 .append($('<h5>').text(Omeka.jsTranslate('Options')))
-                .append(fields(['datatype', 'max_values'])))
+                .append(fields(optionNames)))
             .appendTo(container);
-        const from = fields(['from']).find('select');
-        from.on('change', () => dependent.toggle(!!(from.val() || []).length)).trigger('change');
+        const select = fields([trigger]).find('select');
+        select.on('change', () => dependent.toggle(!!(select.val() || []).length)).trigger('change');
     });
 
     // Gather the secondary elements in a collapsed block.

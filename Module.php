@@ -1041,6 +1041,10 @@ class Module extends AbstractModule
                 'language' => $params['language'],
                 'update_language' => $params['update_language'],
                 'featured_subject' => !empty($params['featured_subject']),
+                'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
+                'contains' => (string) ($params['contains'] ?? ''),
+                'match' => (string) ($params['match'] ?? ''),
+                'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
             ];
             // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
             // $this->preFillValues($processes['fill_values']);

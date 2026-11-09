@@ -78,7 +78,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
      * Elements displayed in a collapsed block "Options".
      */
     protected $secondaryElements = [
-        'fill_values' => ['datatypes', 'datatype', 'language', 'update_language', 'featured_subject'],
         'remove' => ['datatypes', 'languages', 'visibility', 'equal', 'contains', 'match', 'keep_max_values', 'max_values'],
         'explode_pdf' => ['process', 'resolution', 'processor', 'process_events'],
         'media_order' => ['mediatypes', 'extensions'],
@@ -1944,19 +1943,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
-                'name' => 'note_uri',
-                'type' => CommonElement\Note::class,
-                'options' => [
-                    'text' => 'The uri can be filled only when the remote endpoint returns a single result.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'fill_note_uri',
-                    'class' => 'field',
-                    'data-fill-mode' => 'uri',
-                    'style' => 'display: none',
-                ],
-            ])
-            ->add([
                 'name' => 'datatypes',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
@@ -1987,6 +1973,66 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
+                'name' => 'languages',
+                'type' => CommonElement\ArrayText::class,
+                'options' => [
+                    'label' => 'Languages', // @translate
+                    'value_separator' => ' ',
+                ],
+                'attributes' => [
+                    'id' => 'fill_languages',
+                ],
+            ])
+            ->add([
+                'name' => 'contains',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Contains', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_contains',
+                ],
+            ])
+            ->add([
+                'name' => 'match',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Regex', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_match',
+                ],
+            ])
+            ->add([
+                'name' => 'is_public',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Visibility', // @translate
+                    'value_options' => [
+                        '' => 'Any', // @translate
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'fill_is_public',
+                    'value' => '',
+                ],
+            ])
+            ->add([
+                'name' => 'note_uri',
+                'type' => CommonElement\Note::class,
+                'options' => [
+                    'text' => 'The uri can be filled only when the remote endpoint returns a single result.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'fill_note_uri',
+                    'class' => 'field',
+                    'data-fill-mode' => 'uri',
+                    'style' => 'display: none',
+                ],
+            ])
+            ->add([
                 'name' => 'datatype',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
@@ -2008,7 +2054,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'language',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Language', // @translate
+                    'label' => 'Language of the search', // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_language',
@@ -2048,6 +2094,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
         ;
+        $this->prepareFilterElements($fieldset);
+
         return $this;
     }
 

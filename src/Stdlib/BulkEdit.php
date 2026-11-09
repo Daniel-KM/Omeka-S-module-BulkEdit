@@ -1829,9 +1829,19 @@ class BulkEdit
             return;
         }
 
+        $filters = [
+            'languages' => $params['languages'] ?? [],
+            'contains' => (string) ($params['contains'] ?? ''),
+            'match' => (string) ($params['match'] ?? ''),
+            'is_public' => $params['is_public'] ?? '',
+        ];
+
         if ($mode === 'label_remove') {
             foreach ($properties as $property) {
                 foreach ($data[$property] ?? [] as $key => $value) {
+                    if (!$this->matchValueFilters($value, $filters)) {
+                        continue;
+                    }
                     if ($value['type'] === 'literal'
                         || !isset($dataTypesFlipped[$value['type']])
                     ) {
@@ -1863,6 +1873,9 @@ class BulkEdit
             $onlyMissing = $mode === 'label_missing';
             foreach ($properties as $property) {
                 foreach ($data[$property] ?? [] as $key => $value) {
+                    if (!$this->matchValueFilters($value, $filters)) {
+                        continue;
+                    }
                     // Manage and store badly formatted id.
                     if (empty($value['@id'])) {
                         $data[$property][$key]['@id'] = $value['@id'] = null;
@@ -1905,6 +1918,9 @@ class BulkEdit
             $onlyMissing = $mode === 'uri_missing';
             foreach ($properties as $property) {
                 foreach ($data[$property] ?? [] as $key => $value) {
+                    if (!$this->matchValueFilters($value, $filters)) {
+                        continue;
+                    }
                     // Manage and store badly formatted id.
                     if (empty($value['@id'])) {
                         $data[$property][$key]['@id'] = $value['@id'] = null;

@@ -49,7 +49,7 @@ trait MatrixTestTrait
                     '@id' => $spec[1],
                     'o:label' => $spec[2] ?? null,
                     'o:lang' => $spec[3] ?? null,
-                ], 'strlen') + ['is_public' => $spec[4] ?? true];
+                ], fn ($v) => $v !== null && $v !== '') + ['is_public' => $spec[4] ?? true];
             case 'link':
                 $linked = $this->createItem(['dcterms:title' => [['@value' => $spec[1]]]]);
                 return [
@@ -65,7 +65,7 @@ trait MatrixTestTrait
                     'property_id' => $propertyId,
                     '@value' => $spec[1],
                     '@language' => $spec[2] ?? null,
-                ], 'strlen') + ['is_public' => $spec[3] ?? true];
+                ], fn ($v) => $v !== null && $v !== '') + ['is_public' => $spec[3] ?? true];
         }
     }
 

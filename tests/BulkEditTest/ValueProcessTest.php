@@ -346,7 +346,8 @@ class ValueProcessTest extends AbstractHttpControllerTestCase
             ->get(\BulkEdit\Form\BulkEditFieldset::class, ['resource_type' => $resourceType]);
 
         $this->assertSame($mediaRemove, $fieldset->has('media_remove'));
-        $this->assertSame($mediaHtml, $fieldset->has('media_html'));
+        $this->assertSame($mediaHtml, $fieldset->has('media_modify') && $fieldset->get('media_modify')->has('media_html'));
+        $this->assertSame($mediaRemove, $fieldset->has('media_explode'));
         $this->assertTrue($fieldset->has('thumbnails'));
     }
 

@@ -54,6 +54,43 @@ class ResourceDataMatrixTest extends AbstractHttpControllerTestCase
         ];
     }
 
+    /**
+     * The values of the resource form, sent as json by the batch edit form.
+     */
+    public function testCreateValuesFromResourceForm(): void
+    {
+        $url = 'https://example.org/a';
+        $linked = $this->createResource(['dcterms:title' => ['Linked']]);
+        $item = $this->createResource(['dcterms:title' => ['Kept']]);
+
+        $this->batch([$item->id()], ['create_values' => [
+            'properties' => '',
+            'values' => json_encode([
+                'dcterms:title' => [
+                    ['type' => 'literal', 'is_public' => '1', '@language' => '', '@value' => ' New title '],
+                ],
+                'dcterms:subject' => [
+                    ['type' => 'literal', 'is_public' => '0', '@language' => 'fr', '@value' => 'Sujet'],
+                    ['type' => 'uri', 'is_public' => '1', 'o:lang' => 'en', '@id' => $url, 'o:label' => 'Label'],
+                    ['type' => 'resource:item', 'is_public' => '1', 'value_resource_id' => (string) $linked->id()],
+                    ['type' => 'literal', 'is_public' => '1', '@value' => '   '],
+                    ['type' => 'foo:bar', 'is_public' => '1', '@value' => 'Unknown data type'],
+                    ['type' => 'literal', 'is_public' => '1', '@value' => 'Annotated', '@annotation' => ['dcterms:description' => [['@value' => 'x']]]],
+                ],
+                'foo:bar' => [
+                    ['type' => 'literal', 'is_public' => '1', '@value' => 'Unknown property'],
+                ],
+            ]),
+        ]]);
+
+        $this->assertSame(['literal:Kept', 'literal:New title'], $this->described($item->id(), 'dcterms:title'));
+        $this->assertSame(
+            ['literal:Sujet@fr!', "uri:$url|Label@en", 'link:Linked', 'literal:Annotated'],
+            $this->described($item->id(), 'dcterms:subject')
+        );
+        $this->assertNull($this->reloaded($item->id())->value('dcterms:subject', ['all' => true])[3]->valueAnnotation());
+    }
+
     public function testCreateLink(): void
     {
         $linked = $this->createResource(['dcterms:title' => ['Linked']]);

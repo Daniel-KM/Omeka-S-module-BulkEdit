@@ -121,8 +121,9 @@ class CleaningMatrixTest extends AbstractHttpControllerTestCase
         $create = ['properties' => 'dcterms:subject', 'datatype' => 'literal', 'value' => 'new', 'uri_label' => '', 'value_resource_id' => null, 'language' => '', 'visibility' => '1'];
         return [
             'replace then copy' => [['replace' => $replace, 'copy' => $copy], ['literal:z,b', 'literal:c@en'], ['literal:z,b', 'literal:c@en']],
-            'copy then explode' => [['copy' => $copy, 'explode' => $explode], ['literal:a', 'literal:b', 'literal:c@en'], ['literal:a,b', 'literal:c@en']],
-            'displace then explode has nothing' => [['displace' => $copy, 'explode' => $explode], [], ['literal:a,b', 'literal:c@en']],
+            // The copy and the displacement are processed after the explode.
+            'explode then copy' => [['copy' => $copy, 'explode' => $explode], ['literal:a', 'literal:b', 'literal:c@en'], ['literal:a', 'literal:b', 'literal:c@en']],
+            'explode then displace' => [['displace' => $copy, 'explode' => $explode], [], ['literal:a', 'literal:b', 'literal:c@en']],
             'explode then remove' => [['explode' => $explode, 'remove' => $remove], ['literal:a', 'literal:c@en'], []],
             'create then replace' => [['create_values' => $create, 'replace' => ['from' => 'new', 'to' => 'newer'] + $replace], ['literal:a,b', 'literal:c@en', 'literal:newer'], []],
             'create then remove all' => [['create_values' => $create, 'remove' => ['equal' => ''] + $remove], [], []],
@@ -130,7 +131,7 @@ class CleaningMatrixTest extends AbstractHttpControllerTestCase
             'replace, explode, copy and remove' => [
                 ['replace' => $replace, 'copy' => $copy, 'explode' => $explode, 'remove' => $remove],
                 ['literal:z', 'literal:c@en'],
-                ['literal:z,b', 'literal:c@en'],
+                ['literal:z', 'literal:b', 'literal:c@en'],
             ],
         ];
     }

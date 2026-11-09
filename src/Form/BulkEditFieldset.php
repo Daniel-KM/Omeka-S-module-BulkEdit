@@ -558,7 +558,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Replace by', // @translate
-                    'info' => 'Placeholders, also for prepend and append: {resource_id}, {resource_url}, {resource_url_admin}, {resource_title}, or any term, like {dcterms:identifier}.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'modify_replace_to',
@@ -599,6 +598,17 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'modify_replace_append',
+                ],
+            ])
+            ->add([
+                'name' => 'note_placeholders',
+                'type' => CommonElement\Note::class,
+                'options' => [
+                    'text' => 'Placeholders for "Replace the whole value", "Prepend" and "Append": {resource_id}, {resource_url}, {resource_url_admin}, {resource_title}, or any term, like {dcterms:identifier}.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'modify_replace_note_placeholders',
+                    'class' => 'field',
                 ],
             ]);
 

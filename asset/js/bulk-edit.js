@@ -52,7 +52,8 @@ $(document).ready(function() {
         const selection = $('<div class="bulkedit-step">')
             .append($('<h4>').text(selectionLabel))
             .append(container.children('.field').filter(function() {
-                return !$(this).find('[data-bulkedit-block]').length;
+                // The notes have no input, so they hold the attribute.
+                return !$(this).is('[data-bulkedit-block]') && !$(this).find('[data-bulkedit-block]').length;
             }));
         // The properties are required, the other elements filter the values.
         const filters = selection.children('.field').filter(function() {

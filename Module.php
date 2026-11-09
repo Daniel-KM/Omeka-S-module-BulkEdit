@@ -1574,7 +1574,7 @@ class Module extends AbstractModule
     }
 
     /**
-     * Dispatch the action "modify media" to the processes it groups.
+     * Dispatch the actions "modify media" and "explode items" to the processes.
      *
      * Only the enabled operations are processed, with the common filters. The
      * processes set directly are kept, for example from the api.
@@ -1594,6 +1594,17 @@ class Module extends AbstractModule
                 $params = $modify[$name];
                 unset($params['enabled']);
                 $bulkedit[$name] ??= array_replace($params, $filters);
+            }
+        }
+
+        // The explosions of items have no filter.
+        $explode = (array) ($bulkedit['media_explode'] ?? []);
+        unset($bulkedit['media_explode']);
+        foreach (['explode_item', 'explode_pdf'] as $name) {
+            if (!empty($explode[$name]['enabled']) && is_array($explode[$name])) {
+                $params = $explode[$name];
+                unset($params['enabled']);
+                $bulkedit[$name] ??= $params;
             }
         }
 

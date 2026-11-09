@@ -193,9 +193,11 @@ $(document).ready(function() {
         operation.find('[data-bulkedit-show]').closest('.field').each(function() {
             const field = $(this);
             const [name, values] = field.find('[data-bulkedit-show]').first().data('bulkedit-show').split('=');
+            const fieldsetName = operation.closest('#bulk-edit > fieldset').attr('id');
             const block = operation.data('block');
-            const checked = operation.find('[name="bulkedit[modify][' + block + '][' + name + ']"]:checked').val() || '';
-            field.addClass('bulkedit-suboption').toggle(values.split(' ').includes(checked));
+            const checked = operation.find('[name="bulkedit[' + fieldsetName + '][' + block + '][' + name + ']"]:checked').val() || '';
+            // The value "*" means any choice.
+            field.addClass('bulkedit-suboption').toggle(values === '*' ? checked !== '' : values.split(' ').includes(checked));
         });
     };
     $('#bulk-edit').on('change', '.bulkedit-operation input[type=radio]', function() {
@@ -212,7 +214,6 @@ $(document).ready(function() {
         displace: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility'], ['datatype', 'max_values']],
         fill_values: ['properties', ['datatypes', 'languages', 'contains', 'match', 'is_public'], ['note_uri', 'datatype', 'language', 'update_language', 'featured_subject']],
         remove: ['properties', ['datatypes', 'languages', 'equal', 'contains', 'match', 'visibility'], ['keep_max_values', 'max_values']],
-        explode_pdf: ['mode', [], ['process', 'resolution', 'processor', 'process_events']],
         media_order: ['order', [], ['mediatypes', 'extensions']],
     };
     Object.entries(dependentFieldsets).forEach(([fieldsetName, [trigger, filterNames, optionNames]]) => {
@@ -266,7 +267,7 @@ $(document).ready(function() {
             .append('<p>' + Omeka.jsTranslate('To convert values to/from mapping markers, use module DataTypeGeometry.') + '</p>');
     }
 
-    $('#fill_values > .collapsible, #explode_item > .collapsible, #explode_pdf > .collapsible')
+    $('#fill_values > .collapsible, #media_explode > .collapsible')
         .prepend('<p>' + Omeka.jsTranslate('Slow process, always run in background.') + '</p>')
 
     // Mark the actions that will be processed, with the same required elements

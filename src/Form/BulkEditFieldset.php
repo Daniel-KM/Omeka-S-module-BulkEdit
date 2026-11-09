@@ -30,8 +30,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     protected $fieldsetGroups = [
         'fill_data' => 'Resource', // @translate
         'thumbnails' => 'Resource',
-        'explode_item' => 'Media', // @translate
-        'explode_pdf' => 'Media',
+        'media_explode' => 'Media', // @translate
         'media_remove' => 'Media',
         'media_order' => 'Media',
         'media_modify' => 'Media',
@@ -61,8 +60,10 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         'cleaning' => [['trim_values', 'specify_datatypes', 'clean_empty_values', 'clean_languages', 'deduplicate_values', 'clean_language_codes+clean_language_codes_properties']],
         'fill_data' => [['owner']],
         'thumbnails' => [['mode']],
-        'explode_item' => [['mode']],
-        'explode_pdf' => [['mode']],
+        'media_explode' => ['any' => [
+            'explode_item' => [['explode_item/enabled'], ['explode_item/mode']],
+            'explode_pdf' => [['explode_pdf/enabled'], ['explode_pdf/mode']],
+        ]],
         'media_remove' => [['mode']],
         'media_order' => [['order']],
         'media_modify' => ['any' => [
@@ -134,8 +135,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             case 'items':
             case 'item':
                 $this
-                    ->appendFieldsetExplodeItem()
-                    ->appendFieldsetExplodePdf()
+                    ->appendFieldsetMediaExplode()
                     ->appendFieldsetRemoveMedia()
                     ->appendFieldsetMediaOrder()
                     ->appendFieldsetMediaModify()
@@ -207,6 +207,10 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                         ],
                         'media_modify' => [
                             $this->translator->translate('Media to modify'), // @translate
+                            $this->translator->translate('Operations, applied in this order'), // @translate
+                        ],
+                        'media_explode' => [
+                            '',
                             $this->translator->translate('Operations, applied in this order'), // @translate
                         ],
                     ], 320),
@@ -2406,6 +2410,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'explode_pdf_process',
+                    'data-bulkedit-show' => 'mode=*',
                     'value' => 'all',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -2420,6 +2425,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'explodepdf_resolution',
+                    'data-bulkedit-show' => 'mode=*',
                     'min' => '0',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -2438,6 +2444,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'explodepdf_processor',
+                    'data-bulkedit-show' => 'mode=*',
                     'value' => 'auto',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -2456,6 +2463,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'explodepdf_process_events',
+                    'data-bulkedit-show' => 'mode=*',
                     'value' => '0',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -2717,6 +2725,36 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     }
 
     /**
+     * Group the slow processes that explode items, like the action "modify".
+     *
+     * @see \BulkEdit\Module::expandModifyMedia()
+     */
+    protected function appendFieldsetMediaExplode(): self
+    {
+        $this
+            ->add([
+                'name' => 'media_explode',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => $this->translator->translate('Explode items'), // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_explode',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->appendFieldsetExplodeItem()
+            ->appendFieldsetExplodePdf();
+
+        return $this->moveFieldsetsAsOperations($this->get('media_explode'), [
+            'explode_item' => 'Explode by media', // @translate
+            'explode_pdf' => 'Explode pdf into images', // @translate
+        ]);
+    }
+
+    /**
      * Move fieldsets of processes as operations enabled with a checkbox.
      */
     protected function moveFieldsetsAsOperations(Fieldset $parent, array $operations): self
@@ -2821,6 +2859,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_prepend',
+                    'data-bulkedit-show' => 'mode=*',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -2833,6 +2872,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_append',
+                    'data-bulkedit-show' => 'mode=*',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -2918,6 +2958,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'media_source_prepend',
+                    'data-bulkedit-show' => 'mode=*',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -2930,6 +2971,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'media_source_append',
+                    'data-bulkedit-show' => 'mode=*',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

@@ -125,7 +125,8 @@
                     width: auto;
                 }
                 /* One choice by line for the operation. */
-                & .field[id$="_action_field"] .inputs label {
+                & .field[id$="_action_field"] .inputs label,
+                & .field[id$="_mode_field"] .inputs label {
                     display: block;
                     line-height: 1.5;
                     padding: 3px 0;

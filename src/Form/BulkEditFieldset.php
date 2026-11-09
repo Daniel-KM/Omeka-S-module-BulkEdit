@@ -34,10 +34,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         'explode_pdf' => 'Media',
         'media_remove' => 'Media',
         'media_order' => 'Media',
-        'media_html' => 'Media',
-        'media_source' => 'Media',
-        'media_type' => 'Media',
-        'media_visibility' => 'Media',
+        'media_modify' => 'Media',
     ];
 
     /**
@@ -68,10 +65,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         'explode_pdf' => [['mode']],
         'media_remove' => [['mode']],
         'media_order' => [['order']],
-        'media_html' => [['mode'], ['from', 'to', 'prepend', 'append', 'mode=unicode', 'mode=remove']],
-        'media_source' => [['mode'], ['from', 'to', 'prepend', 'append', 'mode=basename', 'mode=filename', 'mode=unicode', 'mode=remove']],
-        'media_type' => [['from'], ['to']],
-        'media_visibility' => [['visibility']],
+        'media_modify' => ['any' => [
+            'media_html' => [['media_html/enabled'], ['media_html/mode'], ['media_html/from', 'media_html/to', 'media_html/prepend', 'media_html/append', 'media_html/mode=unicode', 'media_html/mode=remove']],
+            'media_source' => [['media_source/enabled'], ['media_source/mode'], ['media_source/from', 'media_source/to', 'media_source/prepend', 'media_source/append', 'media_source/mode=basename', 'media_source/mode=filename', 'media_source/mode=unicode', 'media_source/mode=remove']],
+            'media_type' => [['media_type/enabled'], ['media_type/from'], ['media_type/to']],
+            'media_visibility' => [['media_visibility/enabled'], ['media_visibility/visibility']],
+        ]],
     ];
 
     /**
@@ -139,18 +138,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     ->appendFieldsetExplodePdf()
                     ->appendFieldsetRemoveMedia()
                     ->appendFieldsetMediaOrder()
-                    ->appendFieldsetMediaHtml()
-                    ->appendFieldsetMediaSource()
-                    ->appendFieldsetMediaType()
-                    ->appendFieldsetMediaVisibility()
+                    ->appendFieldsetMediaModify()
                 ;
                 break;
             case 'media':
                 $this
-                    ->appendFieldsetMediaHtml()
-                    ->appendFieldsetMediaSource()
-                    ->appendFieldsetMediaType()
-                    ->appendFieldsetMediaVisibility()
+                    ->appendFieldsetMediaModify()
                 ;
                 break;
             // The processes on media do not manage digital objects.
@@ -207,6 +200,16 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-bulkedit-fieldsets' => json_encode($fieldsets, 320),
                     'data-bulkedit-groups' => json_encode($groups, 320),
                     'data-bulkedit-blocks' => json_encode($blocks, 320),
+                    'data-bulkedit-steps' => json_encode([
+                        'modify' => [
+                            $this->translator->translate('Values to modify'), // @translate
+                            $this->translator->translate('Operations, applied in this order'), // @translate
+                        ],
+                        'media_modify' => [
+                            $this->translator->translate('Media to modify'), // @translate
+                            $this->translator->translate('Operations, applied in this order'), // @translate
+                        ],
+                    ], 320),
                     'data-bulkedit-required' => json_encode(array_intersect_key($this->requiredElements, $fieldsets), 320),
                 ],
             ])
@@ -2663,6 +2666,85 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ]);
 
+        return $this;
+    }
+
+    /**
+     * Group the processes that update the media, like the action "modify".
+     *
+     * @see \BulkEdit\Module::expandModifyMedia()
+     */
+    protected function appendFieldsetMediaModify(): self
+    {
+        $this
+            ->add([
+                'name' => 'media_modify',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => $this->translator->translate('Modify media'), // @translate
+                ],
+                'attributes' => [
+                    'id' => 'media_modify',
+                    'class' => 'field-container',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->appendFieldsetMediaHtml()
+            ->appendFieldsetMediaSource()
+            ->appendFieldsetMediaType()
+            ->appendFieldsetMediaVisibility();
+
+        $modify = $this->get('media_modify');
+
+        // The media to modify are selected with the filters of the visibility.
+        $visibility = $this->get('media_visibility');
+        foreach (['media_types', 'ingesters', 'renderers'] as $name) {
+            $element = $visibility->get($name);
+            $visibility->remove($name);
+            $modify->add($element->setAttribute('id', 'mediamodify_' . $name));
+        }
+        $modify->get('media_types')->setAttribute('data-placeholder', $this->translator->translate('All media types')); // @translate
+        $modify->get('ingesters')->setAttribute('data-placeholder', $this->translator->translate('All ingesters')); // @translate
+        $modify->get('renderers')->setAttribute('data-placeholder', $this->translator->translate('All renderers')); // @translate
+
+        return $this->moveFieldsetsAsOperations($modify, [
+            'media_html' => 'Modify the html', // @translate
+            'media_source' => 'Modify the source', // @translate
+            'media_type' => 'Modify the media type', // @translate
+            'media_visibility' => 'Modify the visibility', // @translate
+        ]);
+    }
+
+    /**
+     * Move fieldsets of processes as operations enabled with a checkbox.
+     */
+    protected function moveFieldsetsAsOperations(Fieldset $parent, array $operations): self
+    {
+        foreach ($operations as $name => $label) {
+            $operation = $this->get($name);
+            $this->remove($name);
+            $elements = $operation->getElements();
+            foreach (array_keys($elements) as $elementName) {
+                $operation->remove($elementName);
+            }
+            $operation->add([
+                'name' => 'enabled',
+                'type' => CommonElement\OptionalCheckbox::class,
+                'options' => [
+                    'label' => $this->translator->translate($label),
+                    'use_hidden_element' => false,
+                ],
+                'attributes' => [
+                    'id' => $parent->getName() . '_' . $name . '_enabled',
+                    'class' => 'bulkedit-operation-enabled',
+                ],
+            ]);
+            foreach ($elements as $element) {
+                $operation->add($element);
+            }
+            $parent->add($operation->setLabel($this->translator->translate($label)));
+        }
         return $this;
     }
 

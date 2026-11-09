@@ -15,6 +15,7 @@ $(document).ready(function() {
     const bulkeditGroups = $('#bulkedit-fieldsets').data('bulkedit-groups') || {};
     const bulkeditRequired = $('#bulkedit-fieldsets').data('bulkedit-required') || {};
     const bulkeditBlocks = $('#bulkedit-fieldsets').data('bulkedit-blocks') || {};
+    const bulkeditSteps = $('#bulkedit-fieldsets').data('bulkedit-steps') || {};
     $('#bulkedit-fieldsets').remove();
     Object.entries(bulkeditFieldsets).forEach(([fieldsetName, fieldsetLabel]) => {
         $('[data-bulkedit-fieldset=' + fieldsetName + ']').closest('.field')
@@ -47,8 +48,9 @@ $(document).ready(function() {
     // with blocks, each operation being enabled with its checkbox.
     Object.entries(bulkeditBlocks).forEach(([fieldsetName, blocks]) => {
         const container = $('#bulk-edit > #' + fieldsetName + ' > .collapsible');
+        const [selectionLabel, operationsLabel] = bulkeditSteps[fieldsetName] || [Omeka.jsTranslate('Values to modify'), Omeka.jsTranslate('Operations, applied in this order')];
         const selection = $('<div class="bulkedit-step">')
-            .append($('<h4>').text(Omeka.jsTranslate('Values to modify')))
+            .append($('<h4>').text(selectionLabel))
             .append(container.children('.field').filter(function() {
                 return !$(this).find('[data-bulkedit-block]').length;
             }));
@@ -56,12 +58,14 @@ $(document).ready(function() {
         const filters = selection.children('.field').filter(function() {
             return !$(this).find('[name$="[properties][]"], [name$="[properties]"]').length;
         });
-        $('<div class="bulkedit-filters">')
-            .append($('<h5>').text(Omeka.jsTranslate('Filter the values')))
-            .append(filters)
-            .appendTo(selection);
+        if (filters.length < selection.children('.field').length) {
+            $('<div class="bulkedit-filters">')
+                .append($('<h5>').text(Omeka.jsTranslate('Filter the values')))
+                .append(filters)
+                .appendTo(selection);
+        }
         const operations = $('<div class="bulkedit-step">')
-            .append($('<h4>').text(Omeka.jsTranslate('Operations, applied in this order')));
+            .append($('<h4>').text(operationsLabel));
         Object.keys(blocks).forEach((blockName) => {
             const fields = container.find('[data-bulkedit-block=' + blockName + ']').closest('.field');
             const checkbox = fields.find('input.bulkedit-operation-enabled');
@@ -80,7 +84,7 @@ $(document).ready(function() {
                 })))
                 .appendTo(operations);
         });
-        container.prepend(selection, operations);
+        container.prepend(selection.children('.field, .bulkedit-filters').length ? selection : '', operations);
     });
 
     // The preview of all the actions is at the end of the form.
@@ -210,9 +214,6 @@ $(document).ready(function() {
         remove: ['properties', ['datatypes', 'languages', 'equal', 'contains', 'match', 'visibility'], ['keep_max_values', 'max_values']],
         explode_pdf: ['mode', [], ['process', 'resolution', 'processor', 'process_events']],
         media_order: ['order', [], ['mediatypes', 'extensions']],
-        media_html: ['mode', [], ['prepend', 'append']],
-        media_source: ['mode', [], ['prepend', 'append']],
-        media_visibility: ['visibility', [], ['media_types', 'ingesters', 'renderers']],
     };
     Object.entries(dependentFieldsets).forEach(([fieldsetName, [trigger, filterNames, optionNames]]) => {
         const container = $('#bulk-edit > #' + fieldsetName + ' > .collapsible');
@@ -308,7 +309,7 @@ $(document).ready(function() {
     });
 
     $('.batch-edit').on('change', '.bulkedit-replace-mode', function() {
-        const fieldset = $(this).closest('fieldset');
+        const fieldset = $(this).closest('.bulkedit-operation, fieldset');
         // The mode may be a select or radios.
         const modes = fieldset.find('.bulkedit-replace-mode');
         const mode = modes.is('select') ? modes.val() : (modes.filter(':checked').val() || '');

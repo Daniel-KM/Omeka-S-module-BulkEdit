@@ -837,6 +837,7 @@ class Module extends AbstractModule
         }
 
         $bulkedit = $this->expandModify($bulkedit);
+        $bulkedit = $this->expandModifyMedia($bulkedit);
 
         $processes = [
             'create_values' => null,
@@ -1567,6 +1568,33 @@ class Module extends AbstractModule
             $bulkedit[$name] ??= $name === 'order_values'
                 ? array_replace($params, ['properties' => $properties, 'filters' => $filters])
                 : array_replace($params, $filters);
+        }
+
+        return $bulkedit;
+    }
+
+    /**
+     * Dispatch the action "modify media" to the processes it groups.
+     *
+     * Only the enabled operations are processed, with the common filters. The
+     * processes set directly are kept, for example from the api.
+     */
+    protected function expandModifyMedia(array $bulkedit): array
+    {
+        $modify = (array) ($bulkedit['media_modify'] ?? []);
+        unset($bulkedit['media_modify']);
+
+        $filters = [
+            'media_types' => array_filter((array) ($modify['media_types'] ?? [])),
+            'ingesters' => array_filter((array) ($modify['ingesters'] ?? [])),
+            'renderers' => array_filter((array) ($modify['renderers'] ?? [])),
+        ];
+        foreach (['media_html', 'media_source', 'media_type', 'media_visibility'] as $name) {
+            if (!empty($modify[$name]['enabled']) && is_array($modify[$name])) {
+                $params = $modify[$name];
+                unset($params['enabled']);
+                $bulkedit[$name] ??= array_replace($params, $filters);
+            }
         }
 
         return $bulkedit;

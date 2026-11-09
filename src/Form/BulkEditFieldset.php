@@ -134,11 +134,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         switch ($resourceType) {
             case 'items':
             case 'item':
+                // Same order than the processes.
                 $this
-                    ->appendFieldsetMediaExplode()
+                    ->appendFieldsetMediaModify()
                     ->appendFieldsetRemoveMedia()
                     ->appendFieldsetMediaOrder()
-                    ->appendFieldsetMediaModify()
+                    ->appendFieldsetMediaExplode()
                 ;
                 break;
             case 'media':

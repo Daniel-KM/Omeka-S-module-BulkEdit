@@ -1044,8 +1044,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatype',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'New data type', // @translate
-                    'info' => 'This is not a conversion.', // @translate
+                    'label' => 'New data type (without conversion)', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -1210,8 +1209,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatype',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'New data type', // @translate
-                    'info' => 'This is not a conversion.', // @translate
+                    'label' => 'New data type (without conversion)', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [

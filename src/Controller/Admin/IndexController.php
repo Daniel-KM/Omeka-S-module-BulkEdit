@@ -43,17 +43,15 @@ class IndexController extends AbstractActionController
         }
         $bulkedit = $form->getData()['bulkedit'] ?? [];
 
-        // Check only some resources, the first ones of the selection.
-        $maxResources = 100;
-        $ids = array_slice(array_filter(array_map('intval', (array) ($post['resource_ids'] ?? []))), 0, $maxResources);
+        $ids = array_values(array_filter(array_map('intval', (array) ($post['resource_ids'] ?? []))));
         if (!$ids) {
             $query = json_decode((string) ($post['query'] ?? ''), true) ?: [];
-            $ids = $this->api()->search($resourceName, ['limit' => $maxResources] + $query, ['returnScalar' => 'id'])->getContent();
+            $ids = array_map('intval', $this->api()->search($resourceName, $query, ['returnScalar' => 'id'])->getContent());
         }
 
         return new JsonModel([
             'status' => 'success',
-            'data' => $this->module->previewBulkEdit($resourceName, array_map('intval', $ids), $bulkedit),
+            'data' => $this->module->previewBulkEdit($resourceName, $ids, $bulkedit, 10, max(0, (int) ($post['preview_start'] ?? 0))),
         ]);
     }
 

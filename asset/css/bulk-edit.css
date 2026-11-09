@@ -66,6 +66,19 @@
             }
         }
         & .bulkedit-preview {
+            & .bulkedit-preview-pagination {
+                align-items: center;
+                display: flex;
+                gap: 12px;
+                margin: 12px 0;
+                & .button {
+                    margin: 0;
+                }
+                /* The buttons are on the right. */
+                & > span {
+                    margin-right: auto;
+                }
+            }
             & .bulkedit-preview-table {
                 margin-bottom: 12px;
                 width: 100%;

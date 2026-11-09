@@ -91,7 +91,7 @@ $(document).ready(function() {
     $('<div class="bulkedit-preview">')
         .append($('<h3 class="bulkedit-group">').text(Omeka.jsTranslate('Preview')))
         .append($('<p>').text(Omeka.jsTranslate('The actions on the values are processed without saving, except Value Suggest, the cleaning and the processes on media.')))
-        .append($('<button type="button" class="button bulkedit-preview-button">').text(Omeka.jsTranslate('Preview the first updated resources')))
+        .append($('<button type="button" class="button bulkedit-preview-button">').text(Omeka.jsTranslate('Preview the updated resources')))
         .append('<div class="bulkedit-preview-result"></div>')
         .appendTo('#bulk-edit');
 
@@ -141,13 +141,16 @@ $(document).ready(function() {
         values.forEach((value, index) => list.append(previewValue(value, matches[index])));
         return list;
     };
-    $('#bulk-edit').on('click', '.bulkedit-preview-button', function() {
-        const result = $(this).siblings('.bulkedit-preview-result')
+    // The previous starts are stored to paginate backward.
+    let previewStarts = [];
+    const loadPreview = (start) => {
+        const preview = $('.bulkedit-preview');
+        const result = preview.find('.bulkedit-preview-result')
             .empty().append($('<p>').text(Omeka.jsTranslate('Loading…')));
-        const form = $(this).closest('form')[0];
-        const formData = new FormData(form);
+        const formData = new FormData(preview.closest('form')[0]);
         formData.delete('batch_update');
         formData.append('resource_controller', (window.location.pathname.match(/\/admin\/([^\/]+)\/batch-edit/) || [])[1] || 'item');
+        formData.append('preview_start', start);
         fetch($('#bulkedit-templates').data('preview-url'), {method: 'POST', body: formData})
             .then(response => response.json())
             .then(json => {
@@ -156,11 +159,22 @@ $(document).ready(function() {
                     result.append($('<p class="error">').text(json.message || Omeka.jsTranslate('An error occurred.')));
                     return;
                 }
-                if (!json.data.resources.length) {
-                    result.append($('<p>').text(Omeka.jsTranslate('No value is updated in the {count} checked resources.').replace('{count}', json.data.checked)));
-                    return;
+                const data = json.data;
+                const last = data.next === null ? data.total : data.next;
+                const pagination = $('<div class="bulkedit-preview-pagination">')
+                    .append($('<span>').text(Omeka.jsTranslate('Resources {from}-{to} checked on {total}.')
+                        .replace('{from}', data.total ? data.start + 1 : 0).replace('{to}', last).replace('{total}', data.total)));
+                // The buttons are disabled on the first and the last pages.
+                pagination
+                    .append($('<button type="button" class="button bulkedit-preview-previous">').text(Omeka.jsTranslate('Previous'))
+                        .prop('disabled', !previewStarts.length))
+                    .append($('<button type="button" class="button bulkedit-preview-next">').attr('data-next', data.next).text(Omeka.jsTranslate('Next'))
+                        .prop('disabled', data.next === null));
+                result.append(pagination);
+                if (!data.resources.length) {
+                    result.append($('<p>').text(Omeka.jsTranslate('No value is updated in the {count} checked resources.').replace('{count}', data.checked)));
                 }
-                json.data.resources.forEach(resource => {
+                data.resources.forEach(resource => {
                     const table = $('<table class="tablesaw bulkedit-preview-table">')
                         .append($('<thead>').append($('<tr>')
                             .append($('<th>').text(Omeka.jsTranslate('Property')))
@@ -177,11 +191,27 @@ $(document).ready(function() {
                         .append($('<h5>').append($('<a target="_blank">').attr('href', resource.url).text(resource.title)))
                         .append(table);
                 });
+                if (data.resources.length > 2) {
+                    result.append(pagination.clone());
+                }
+                preview.data('start', data.start);
             })
             .catch(() => {
                 result.empty().append($('<p class="error">').text(Omeka.jsTranslate('An error occurred.')));
             });
-    });
+    };
+    $('#bulk-edit')
+        .on('click', '.bulkedit-preview-button', function() {
+            previewStarts = [];
+            loadPreview(0);
+        })
+        .on('click', '.bulkedit-preview-next', function() {
+            previewStarts.push($('.bulkedit-preview').data('start') || 0);
+            loadPreview($(this).data('next'));
+        })
+        .on('click', '.bulkedit-preview-previous', function() {
+            loadPreview(previewStarts.pop() || 0);
+        });
 
     $('#bulk-edit').on('change', 'input.bulkedit-operation-enabled', function() {
         $(this).closest('.bulkedit-operation').toggleClass('is-enabled', this.checked);

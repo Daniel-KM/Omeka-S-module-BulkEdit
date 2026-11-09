@@ -1436,8 +1436,14 @@ class Module extends AbstractModule
      * skipped. Only the resources with updated values are returned, with the
      * values of the updated properties before and after.
      */
-    public function previewBulkEdit(string $resourceName, array $ids, array $bulkedit, int $limit = 3): array
-    {
+    public function previewBulkEdit(
+        string $resourceName,
+        array $ids,
+        array $bulkedit,
+        int $limit = 10,
+        int $start = 0,
+        int $maxChecked = 200
+    ): array {
         $processes = array_intersect_key(
             $this->prepareProcesses($bulkedit),
             array_flip([
@@ -1453,7 +1459,12 @@ class Module extends AbstractModule
                 'remove',
             ])
         );
+        // The next position allows to paginate the updated resources.
+        $ids = array_values($ids);
         $result = [
+            'total' => count($ids),
+            'start' => $start,
+            'next' => null,
             'checked' => 0,
             'resources' => [],
         ];
@@ -1470,7 +1481,10 @@ class Module extends AbstractModule
         $previewValue = fn (array $value): array => $this->previewValue($value)
             + ['type_label' => $dataTypeLabels[$value['type'] ?? ''] ?? (string) ($value['type'] ?? '')];
 
-        foreach ($ids as $id) {
+        $position = $start;
+        $count = count($ids);
+        for (; $position < $count && $result['checked'] < $maxChecked; ++$position) {
+            $id = $ids[$position];
             try {
                 /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
                 $resource = $api->read($resourceName, $id)->getContent();
@@ -1504,10 +1518,12 @@ class Module extends AbstractModule
                     'properties' => $properties,
                 ];
                 if (count($result['resources']) >= $limit) {
+                    ++$position;
                     break;
                 }
             }
         }
+        $result['next'] = $position < $count ? $position : null;
 
         return $result;
     }

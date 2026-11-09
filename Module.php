@@ -910,6 +910,7 @@ class Module extends AbstractModule
                 'match' => (string) ($params['match'] ?? ''),
                 'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
                 'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
+                'contains_exact' => !empty($params['contains_exact']),
             ];
         }
 
@@ -928,6 +929,7 @@ class Module extends AbstractModule
                     'datatype' => $params['datatype'],
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                     'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
+                    'contains_exact' => !empty($params['contains_exact']),
                 ];
             }
         }
@@ -947,6 +949,7 @@ class Module extends AbstractModule
                     'datatype' => $params['datatype'],
                     'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                     'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
+                    'contains_exact' => !empty($params['contains_exact']),
                 ];
             }
         }
@@ -966,6 +969,7 @@ class Module extends AbstractModule
                     'datatypes' => array_filter($params['datatypes'] ?? []),
                     'languages' => $this->arrayTextSeparatorEqualToSpace((array) ($params['languages'] ?? [])),
                     'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
+                    'contains_exact' => !empty($params['contains_exact']),
                 ];
             }
         }
@@ -1002,6 +1006,7 @@ class Module extends AbstractModule
                 'match' => (string) ($params['match'] ?? ''),
                 'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
                 'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
+                'contains_exact' => !empty($params['contains_exact']),
             ];
         }
 
@@ -1021,6 +1026,7 @@ class Module extends AbstractModule
                         'match' => (string) ($filters['match'] ?? ''),
                         'is_public' => isset($filters['is_public']) && $filters['is_public'] !== '' ? (int) (bool) $filters['is_public'] : '',
                         'search_in' => array_values(array_filter((array) ($filters['search_in'] ?? []))) ?: null,
+                        'contains_exact' => !empty($filters['contains_exact']),
                     ],
                 ];
             }
@@ -1041,6 +1047,7 @@ class Module extends AbstractModule
                 'match' => (string) ($params['match'] ?? ''),
                 'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
                 'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
+                'contains_exact' => !empty($params['contains_exact']),
             ];
         }
 
@@ -1069,6 +1076,7 @@ class Module extends AbstractModule
                 'match' => (string) ($params['match'] ?? ''),
                 'is_public' => isset($params['is_public']) && $params['is_public'] !== '' ? (int) (bool) $params['is_public'] : '',
                 'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
+                'contains_exact' => !empty($params['contains_exact']),
             ];
             // TODO Use a job only to avoid to fetch the same values multiple times or prefill values.
             // $this->preFillValues($processes['fill_values']);
@@ -1081,12 +1089,13 @@ class Module extends AbstractModule
                 'datatypes' => $params['datatypes'] ?? [],
                 'languages' => $this->arrayTextSeparatorEqualToSpace($params['languages'] ?: []),
                 'visibility' => $params['visibility'],
-                'equal' => $params['equal'],
+                'equal' => $params['equal'] ?? '',
                 'contains' => $params['contains'],
                 'match' => $params['match'],
                 'keep_max_values' => empty($params['keep_max_values']) ? null : (int) $params['keep_max_values'],
                 'max_values' => empty($params['max_values']) ? null : (int) $params['max_values'],
                 'search_in' => array_values(array_filter((array) ($params['search_in'] ?? []))) ?: null,
+                'contains_exact' => !empty($params['contains_exact']),
             ];
         }
 
@@ -1555,6 +1564,7 @@ class Module extends AbstractModule
             'match' => (string) ($modify['match'] ?? ''),
             'is_public' => $modify['is_public'] ?? '',
             'search_in' => $modify['search_in'] ?? null,
+            'contains_exact' => $modify['contains_exact'] ?? '',
         ];
         if ($filters['match'] !== '' && @preg_match($filters['match'], '') === false) {
             $this->getServiceLocator()->get('Omeka\Logger')->err(

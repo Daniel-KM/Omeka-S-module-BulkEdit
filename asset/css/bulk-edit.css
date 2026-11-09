@@ -95,6 +95,24 @@
                 }
             }
         }
+        & .inputs:has(> .bulkedit-contains-exact-label) {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+            & > input {
+                flex: 1;
+                min-width: 0;
+            }
+        }
+        & .bulkedit-contains-exact-label {
+            align-items: center;
+            display: inline-flex;
+            flex: 0 0 auto;
+            width: auto;
+            gap: 6px;
+            margin: 0;
+            white-space: nowrap;
+        }
         & .bulkedit-filters {
             border-left: 2px solid #dfdfdf;
             margin: 12px 0 0 12px;

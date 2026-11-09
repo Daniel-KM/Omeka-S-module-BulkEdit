@@ -899,7 +899,22 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             $fieldset->get('languages')->setAttribute('placeholder', $this->translator->translate('All languages')); // @translate
         }
         if ($fieldset->has('contains')) {
-            $fieldset->get('contains')->setAttribute('placeholder', $this->translator->translate('Any value')); // @translate
+            $fieldset->get('contains')
+                ->setLabel('Equals or contains') // @translate
+                ->setAttribute('placeholder', $this->translator->translate('Any value')); // @translate
+            // The checkbox is displayed on the right of the string.
+            $fieldset->add([
+                'name' => 'contains_exact',
+                'type' => CommonElement\OptionalCheckbox::class,
+                'options' => [
+                    'label' => 'Exact', // @translate
+                    'use_hidden_element' => false,
+                ],
+                'attributes' => [
+                    'id' => $fieldset->getName() . '_contains_exact',
+                    'class' => 'bulkedit-contains-exact',
+                ],
+            ]);
         }
         if ($fieldset->has('match')) {
             $fieldset->get('match')->setAttribute('placeholder', '~^value$~i');
@@ -936,7 +951,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
 
         // Same order of the filters for all actions: data types, languages,
         // visibility, then the filters on strings.
-        foreach (['visibility', 'is_public', 'equal', 'contains', 'match', 'search_in'] as $name) {
+        foreach (['visibility', 'is_public', 'contains', 'contains_exact', 'match', 'search_in'] as $name) {
             if ($fieldset->has($name)) {
                 $element = $fieldset->get($name);
                 $fieldset->remove($name);
@@ -2196,18 +2211,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'attributes' => [
                     'id' => 'remove_languages',
                     // 'class' => 'value-language active',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'equal',
-                'type' => Element\Text::class,
-                'options' => [
-                    'label' => 'Equals', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'remove_equal',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

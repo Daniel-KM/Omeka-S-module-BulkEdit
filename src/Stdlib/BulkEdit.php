@@ -134,9 +134,21 @@ class BulkEdit
         return array_values(array_filter(array_map('strval', array_filter($strings, 'is_scalar')), 'strlen'));
     }
 
-    protected function valueContains(array $value, string $contains, ?array $searchIn = null): bool
+    /**
+     * Check if a value contains a string, or is equal to it when exact.
+     *
+     * When exact, a linked resource may be checked by its id too.
+     */
+    protected function valueContains(array $value, string $contains, ?array $searchIn = null, bool $exact = false): bool
     {
-        foreach ($this->valueFilterStrings($value, $searchIn) as $string) {
+        $strings = $this->valueFilterStrings($value, $searchIn);
+        if ($exact) {
+            if (!empty($value['value_resource_id']) && $searchIn && in_array('title', $searchIn) && ctype_digit($contains)) {
+                $strings[] = (string) $value['value_resource_id'];
+            }
+            return in_array($contains, $strings, true);
+        }
+        foreach ($strings as $string) {
             if (mb_strpos($string, $contains) !== false) {
                 return true;
             }
@@ -169,7 +181,7 @@ class BulkEdit
             return false;
         }
         if (isset($filters['contains']) && mb_strlen((string) $filters['contains'])
-            && !$this->valueContains($value, (string) $filters['contains'], $filters['search_in'] ?? null)
+            && !$this->valueContains($value, (string) $filters['contains'], $filters['search_in'] ?? null, !empty($filters['contains_exact']))
         ) {
             return false;
         }
@@ -478,6 +490,7 @@ class BulkEdit
             'match' => (string) ($params['match'] ?? ''),
             'is_public' => $params['is_public'] ?? '',
             'search_in' => $params['search_in'] ?? null,
+            'contains_exact' => !empty($params['contains_exact']),
         ];
         if ($filters['datatypes'] || $filters['languages'] || mb_strlen($filters['contains']) || mb_strlen($filters['match']) || $filters['is_public'] !== '') {
             $getValUnfiltered = $getVal;
@@ -734,7 +747,7 @@ class BulkEdit
                 if ($checkVisibility && (int) $value['is_public'] !== $visibility) {
                     continue;
                 }
-                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null)) {
+                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null, !empty($params['contains_exact']))) {
                     continue;
                 }
                 if ($checkMatch && !$this->valueMatches($value, $match, $params['search_in'] ?? null)) {
@@ -851,6 +864,7 @@ class BulkEdit
             'languages' => $params['languages'] ?? [],
             'is_public' => $params['is_public'] ?? '',
         ];
+        $containsExact = !empty($params['contains_exact']) && strlen((string) ($params['contains'] ?? ''));
 
         /**
          * Explode a string into max values, counted from start or end (negative).
@@ -885,7 +899,10 @@ class BulkEdit
                     $values[] = $value;
                     continue;
                 }
-                if (strlen($contains) && strpos($value['@value'], $contains) === false) {
+                if ($containsExact && $value['@value'] !== $contains) {
+                    $values[] = $value;
+                    continue;
+                } elseif (!$containsExact && strlen($contains) && strpos($value['@value'], $contains) === false) {
                     $values[] = $value;
                     continue;
                 } elseif (strlen($match) && !preg_match($match, $value['@value'])) {
@@ -1282,7 +1299,7 @@ class BulkEdit
                 ) {
                     continue;
                 }
-                if ($checkContains && !$this->valueContains($value, $contains, $convertSearchIn)) {
+                if ($checkContains && !$this->valueContains($value, $contains, $convertSearchIn, !empty($params['contains_exact']))) {
                     continue;
                 }
                 // The language of the data type uri is stored in "o:lang".
@@ -1652,7 +1669,7 @@ class BulkEdit
                 if ($checkLanguage && !in_array($value['@language'] ?? $value['o:lang'] ?? null, $languages)) {
                     continue;
                 }
-                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null)) {
+                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null, !empty($params['contains_exact']))) {
                     continue;
                 }
                 if (!$this->matchValueFilters($value, ['match' => $params['match'] ?? '', 'is_public' => $params['is_public'] ?? '', 'search_in' => $params['search_in'] ?? null])) {
@@ -1882,6 +1899,7 @@ class BulkEdit
             'match' => (string) ($params['match'] ?? ''),
             'is_public' => $params['is_public'] ?? '',
             'search_in' => $params['search_in'] ?? null,
+            'contains_exact' => !empty($params['contains_exact']),
         ];
 
         if ($mode === 'label_remove') {
@@ -2153,7 +2171,7 @@ class BulkEdit
                         continue;
                     }
                 }
-                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null)) {
+                if ($checkContains && !$this->valueContains($value, $contains, $params['search_in'] ?? null, !empty($params['contains_exact']))) {
                     continue;
                 }
                 if ($checkMatch && !$this->valueMatches($value, $match, $params['search_in'] ?? null)) {

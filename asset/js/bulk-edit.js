@@ -207,13 +207,25 @@ $(document).ready(function() {
         updateSubOptions($(this));
     });
 
+    // The checkbox "exact" is displayed on the right of the string.
+    $('#bulk-edit input.bulkedit-contains-exact').each(function() {
+        const checkboxField = $(this).closest('.field');
+        const name = checkboxField.closest('#bulk-edit > fieldset').attr('id');
+        const containsInputs = $('[name="bulkedit[' + name + '][contains]"]').closest('.inputs');
+        $('<label class="bulkedit-contains-exact-label">')
+            .append(this)
+            .append($('<span>').text(checkboxField.find('.field-meta label').text()))
+            .appendTo(containsInputs);
+        checkboxField.remove();
+    });
+
     // The filters and the options of some actions are displayed when the
     // properties are selected, like the action "modify".
     const dependentFieldsets = {
         copy: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility', 'search_in'], ['datatype', 'max_values']],
         displace: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility', 'search_in'], ['datatype', 'max_values']],
         fill_values: ['properties', ['datatypes', 'languages', 'contains', 'match', 'is_public', 'search_in'], ['note_uri', 'datatype', 'language', 'update_language', 'featured_subject']],
-        remove: ['properties', ['datatypes', 'languages', 'equal', 'contains', 'match', 'visibility', 'search_in'], ['keep_max_values', 'max_values']],
+        remove: ['properties', ['datatypes', 'languages', 'visibility', 'contains', 'match', 'search_in'], ['keep_max_values', 'max_values']],
         media_order: ['order', [], ['mediatypes', 'extensions']],
     };
     Object.entries(dependentFieldsets).forEach(([fieldsetName, [trigger, filterNames, optionNames]]) => {
@@ -448,7 +460,6 @@ $(document).ready(function() {
         'bulkedit[fill_values][featured_subject]': '0',
         'bulkedit[remove][languages]': '',
         'bulkedit[remove][visibility]': '',
-        'bulkedit[remove][equal]': '',
         'bulkedit[remove][contains]': '',
         'bulkedit[explode_item][mode]': '',
         'bulkedit[explode_pdf][mode]': '',

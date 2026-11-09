@@ -29,6 +29,7 @@ use BulkEdit\Form\BulkEditFieldset;
 use Common\TraitModule;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
+use Laminas\Mvc\MvcEvent;
 use Omeka\Api\Adapter\AbstractResourceEntityAdapter;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Module\AbstractModule;
@@ -59,6 +60,22 @@ class Module extends AbstractModule
             );
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
+    }
+
+    public function onBootstrap(MvcEvent $event): void
+    {
+        parent::onBootstrap($event);
+
+        // The preview reads resources via the api only.
+        $this->getServiceLocator()->get('Omeka\Acl')->allow(
+            [
+                \Omeka\Permissions\Acl::ROLE_AUTHOR,
+                \Omeka\Permissions\Acl::ROLE_REVIEWER,
+                \Omeka\Permissions\Acl::ROLE_EDITOR,
+                \Omeka\Permissions\Acl::ROLE_SITE_ADMIN,
+            ],
+            ['BulkEdit\Controller\Admin\Index']
+        );
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
@@ -350,7 +367,7 @@ class Module extends AbstractModule
                 'class' => 'bulkedit-add-value',
                 'data-placeholder' => $view->translate('Other data type…'), // @translate
             ]);
-        echo '<div id="bulkedit-templates" hidden>'
+        echo '<div id="bulkedit-templates" hidden data-preview-url="' . $view->escapeHtmlAttr($view->url('admin/bulk-edit-preview')) . '">'
             . $view->partial('common/resource-form-templates.phtml')
             . $view->formSelect($dataTypeSelect)
             . '</div>';
@@ -1363,6 +1380,91 @@ class Module extends AbstractModule
      *
      * @deprecated To be removed in a future version.
      */
+    /**
+     * Preview the values updated by the action "modify", without saving.
+     *
+     * Only the resources with updated values are returned, with the values of
+     * the updated properties before and after.
+     */
+    public function previewBulkEdit(string $resourceName, array $ids, array $bulkedit, int $limit = 3): array
+    {
+        $processes = array_intersect_key(
+            $this->prepareProcesses($bulkedit),
+            array_flip(['replace', 'explode', 'convert', 'order_values', 'properties_visibility'])
+        );
+        $result = [
+            'checked' => 0,
+            'resources' => [],
+        ];
+        if (!$processes) {
+            return $result;
+        }
+
+        $services = $this->getServiceLocator();
+        $api = $services->get('Omeka\ApiManager');
+        $adapter = $services->get('Omeka\ApiAdapterManager')->get($resourceName);
+        $easyMeta = $services->get('Common\EasyMeta');
+
+        foreach ($ids as $id) {
+            try {
+                /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
+                $resource = $api->read($resourceName, $id)->getContent();
+            } catch (\Throwable $e) {
+                continue;
+            }
+            ++$result['checked'];
+            $before = json_decode(json_encode($resource), true);
+            $after = $this->updateResourcePre($adapter, $resource, [], $processes);
+            $properties = [];
+            foreach (array_unique(array_merge(array_keys($before), array_keys($after))) as $term) {
+                if (!$easyMeta->propertyId($term)) {
+                    continue;
+                }
+                $valuesBefore = array_map([$this, 'previewValue'], array_values($before[$term] ?? []));
+                $valuesAfter = array_map([$this, 'previewValue'], array_values($after[$term] ?? []));
+                if ($valuesBefore !== $valuesAfter) {
+                    $properties[] = [
+                        'term' => $term,
+                        'label' => $easyMeta->propertyLabel($term),
+                        'before' => $valuesBefore,
+                        'after' => $valuesAfter,
+                    ];
+                }
+            }
+            if ($properties) {
+                $result['resources'][] = [
+                    'id' => $resource->id(),
+                    'title' => $resource->displayTitle(),
+                    'url' => $resource->adminUrl(),
+                    'properties' => $properties,
+                ];
+                if (count($result['resources']) >= $limit) {
+                    break;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get the main data of a value to display it in the preview.
+     */
+    protected function previewValue(array $value): array
+    {
+        $text = $value['@value'] ?? $value['@id'] ?? null;
+        if (!empty($value['value_resource_id'])) {
+            $text = '#' . $value['value_resource_id'] . (isset($value['display_title']) ? ' ' . $value['display_title'] : '');
+        }
+        return [
+            'type' => (string) ($value['type'] ?? ''),
+            'value' => (string) $text,
+            'label' => (string) ($value['o:label'] ?? ''),
+            'language' => (string) ($value['@language'] ?? $value['o:lang'] ?? ''),
+            'is_public' => !isset($value['is_public']) || (bool) $value['is_public'],
+        ];
+    }
+
     /**
      * Dispatch the action "modify" to the processes it groups.
      *

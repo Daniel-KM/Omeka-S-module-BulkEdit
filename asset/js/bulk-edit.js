@@ -80,7 +80,73 @@ $(document).ready(function() {
                 })))
                 .appendTo(operations);
         });
-        container.prepend(selection, operations);
+        const preview = $('<div class="bulkedit-step bulkedit-preview">')
+            .append($('<h4>').text(Omeka.jsTranslate('Preview')))
+            .append($('<button type="button" class="button bulkedit-preview-button">').text(Omeka.jsTranslate('Preview the first updated resources')))
+            .append('<div class="bulkedit-preview-result"></div>');
+        container.prepend(selection, operations, preview);
+    });
+
+    // Preview the values updated by the operations, without saving.
+    const previewValue = (value) => {
+        const item = $('<li>').text(value.value + (value.label ? ' | ' + value.label : ''));
+        if (value.language) {
+            item.append($('<span class="bulkedit-preview-language">').text('@' + value.language));
+        }
+        if (!value.is_public) {
+            item.addClass('bulkedit-preview-private')
+                .append($('<span class="bulkedit-preview-language">').text(Omeka.jsTranslate('Private')));
+        }
+        return item;
+    };
+    const previewValues = (values, others) => {
+        const list = $('<ul class="bulkedit-preview-values">');
+        const othersJson = others.map(value => JSON.stringify(value));
+        values.forEach(value => {
+            list.append(previewValue(value).toggleClass('bulkedit-preview-changed', !othersJson.includes(JSON.stringify(value))));
+        });
+        return list;
+    };
+    $('#bulk-edit').on('click', '.bulkedit-preview-button', function() {
+        const result = $(this).siblings('.bulkedit-preview-result')
+            .empty().append($('<p>').text(Omeka.jsTranslate('Loading…')));
+        const form = $(this).closest('form')[0];
+        const formData = new FormData(form);
+        formData.delete('batch_update');
+        formData.append('resource_controller', (window.location.pathname.match(/\/admin\/([^\/]+)\/batch-edit/) || [])[1] || 'item');
+        fetch($('#bulkedit-templates').data('preview-url'), {method: 'POST', body: formData})
+            .then(response => response.json())
+            .then(json => {
+                result.empty();
+                if (json.status !== 'success') {
+                    result.append($('<p class="error">').text(json.message || Omeka.jsTranslate('An error occurred.')));
+                    return;
+                }
+                if (!json.data.resources.length) {
+                    result.append($('<p>').text(Omeka.jsTranslate('No value is updated in the {count} checked resources.').replace('{count}', json.data.checked)));
+                    return;
+                }
+                json.data.resources.forEach(resource => {
+                    const table = $('<table class="tablesaw bulkedit-preview-table">')
+                        .append($('<thead>').append($('<tr>')
+                            .append($('<th>').text(Omeka.jsTranslate('Property')))
+                            .append($('<th>').text(Omeka.jsTranslate('Before')))
+                            .append($('<th>').text(Omeka.jsTranslate('After')))));
+                    const body = $('<tbody>').appendTo(table);
+                    resource.properties.forEach(property => {
+                        body.append($('<tr>')
+                            .append($('<td>').text(property.label || property.term))
+                            .append($('<td>').append(previewValues(property.before, property.after)))
+                            .append($('<td>').append(previewValues(property.after, property.before))));
+                    });
+                    result
+                        .append($('<h5>').append($('<a target="_blank">').attr('href', resource.url).text(resource.title)))
+                        .append(table);
+                });
+            })
+            .catch(() => {
+                result.empty().append($('<p class="error">').text(Omeka.jsTranslate('An error occurred.')));
+            });
     });
 
     $('#bulk-edit').on('change', 'input.bulkedit-operation-enabled', function() {

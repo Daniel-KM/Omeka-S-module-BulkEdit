@@ -21,6 +21,30 @@ return [
             Form\BulkEditFieldset::class => Service\Form\BulkEditFieldsetFactory::class,
         ],
     ],
+    'controllers' => [
+        'factories' => [
+            'BulkEdit\Controller\Admin\Index' => Service\Controller\Admin\IndexControllerFactory::class,
+        ],
+    ],
+    'router' => [
+        'routes' => [
+            'admin' => [
+                'child_routes' => [
+                    'bulk-edit-preview' => [
+                        'type' => \Laminas\Router\Http\Literal::class,
+                        'options' => [
+                            'route' => '/bulk-edit/preview',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'BulkEdit\Controller\Admin',
+                                'controller' => 'Index',
+                                'action' => 'preview',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
     'controller_plugins' => [
         'factories' => [
             'cleanEmptyValues' => Service\ControllerPlugin\CleanEmptyValuesFactory::class,
@@ -49,6 +73,15 @@ return [
         'Options', // @translate
         'Values to modify', // @translate
         'Filter the values', // @translate
+        'Preview', // @translate
+        'Preview the first updated resources', // @translate
+        'Private', // @translate
+        'Loading…', // @translate
+        'An error occurred.', // @translate
+        'No value is updated in the {count} checked resources.', // @translate
+        'Property', // @translate
+        'Before', // @translate
+        'After', // @translate
         'Operations, applied in this order', // @translate
         'Resource id', // @translate
         'The actions are processed in the order of the form. Be careful when mixing them.', // @translate

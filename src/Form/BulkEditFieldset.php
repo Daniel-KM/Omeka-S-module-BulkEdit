@@ -2247,6 +2247,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
         ;
 
+        $this->prepareFilterElements($fieldset);
+
         return $this;
     }
 
@@ -2456,8 +2458,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-collection-action' => 'replace',
                 ],
             ]);
-
-        $this->prepareFilterElements($fieldset);
 
         return $this;
     }

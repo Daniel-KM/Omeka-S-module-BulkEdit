@@ -113,10 +113,13 @@ class BulkEdit
     }
 
     /**
-     * Create a new value for all resources.
+     * Append new values to all resources.
      *
-     * Unlike core batch edit that only supports literal/uri/resource types,
-     * this method supports all registered data types (CustomVocab, ValueSuggest, etc.).
+     * Unlike core batch edit that only supports literal, uri and resource, all
+     * registered data types are supported (CustomVocab, ValueSuggest, etc.).
+     *
+     * The values are the ones of the resource form, by property term. The
+     * single value of previous versions is still managed.
      */
     public function createValuesForResource(
         AbstractResourceEntityRepresentation $resource,
@@ -124,109 +127,84 @@ class BulkEdit
         array $params
     ): void {
         $this->shouldResetSettingsCache(__METHOD__, $params);
-        $settings = $this->getCachedSettings(__METHOD__);
+        $newValues = $this->getCachedSettings(__METHOD__);
+        if ($newValues === null) {
+            $newValues = $this->prepareNewValues($params);
+            $this->setCachedSettings(__METHOD__, $newValues);
+        }
 
-        if ($settings === null) {
-            $property = $params['properties'] ?? null;
-            $dataType = $params['datatype'] ?? null;
-            $value = trim((string) ($params['value'] ?? ''));
-            $uriLabel = trim((string) ($params['uri_label'] ?? ''));
-            $valueResourceId = $params['value_resource_id'] ?? null;
-            $language = trim((string) ($params['language'] ?? ''));
-            $visibility = isset($params['visibility']) ? (int) (bool) $params['visibility'] : 1;
-
-            // Skip if required fields are missing.
-            if (empty($property) || empty($dataType)) {
-                return;
+        foreach ($newValues as $term => $values) {
+            foreach ($values as $value) {
+                $data[$term][] = $value;
             }
+        }
+    }
 
-            $propertyId = $this->easyMeta->propertyId($property);
+    /**
+     * Check and clean the values to create once for all resources.
+     */
+    protected function prepareNewValues(array $params): array
+    {
+        $values = is_array($params['values'] ?? null) ? $params['values'] : [];
+
+        if (!empty($params['properties']) && !empty($params['datatype'])) {
+            $language = trim((string) ($params['language'] ?? ''));
+            $value = [
+                'type' => $params['datatype'],
+                'is_public' => $params['visibility'] ?? 1,
+            ];
+            $dataTypeMain = $this->easyMeta->dataTypeMain($params['datatype']);
+            if ($dataTypeMain === 'resource') {
+                $value['value_resource_id'] = $params['value_resource_id'] ?? null;
+            } elseif ($dataTypeMain === 'uri') {
+                $value['@id'] = $params['value'] ?? '';
+                $value['o:label'] = $params['uri_label'] ?? '';
+                $value['o:lang'] = $language;
+            } else {
+                $value['@value'] = $params['value'] ?? '';
+                $value['@language'] = $language;
+            }
+            $values[$params['properties']][] = $value;
+        }
+
+        $dataTypeManager = $this->services->get('Omeka\DataTypeManager');
+
+        $newValues = [];
+        foreach ($values as $term => $termValues) {
+            $propertyId = $this->easyMeta->propertyId($term);
             if (!$propertyId) {
                 $this->logger->warn(
                     'Property "{property}" not found for creating value.', // @translate
-                    ['property' => $property]
+                    ['property' => $term]
                 );
-                return;
+                continue;
             }
-
-            // Determine the main type for the data type.
-            $dataTypeMain = $this->easyMeta->dataTypeMain($dataType);
-
-            // Validate that we have the required value for the data type.
-            $hasValue = false;
-            if ($dataTypeMain === 'resource') {
-                $hasValue = !empty($valueResourceId);
-            } elseif ($dataTypeMain === 'uri') {
-                $hasValue = mb_strlen($value) > 0;
-            } else {
-                // literal and other types
-                $hasValue = mb_strlen($value) > 0;
-            }
-
-            if (!$hasValue) {
-                return;
-            }
-
-            $settings = [
-                'property' => $property,
-                'propertyId' => $propertyId,
-                'dataType' => $dataType,
-                'dataTypeMain' => $dataTypeMain,
-                'value' => $value,
-                'uriLabel' => $uriLabel,
-                'valueResourceId' => $valueResourceId,
-                'language' => $language ?: null,
-                'visibility' => $visibility,
-            ];
-
-            $this->setCachedSettings(__METHOD__, $settings);
-        } else {
-            /**
-             * @var string $property
-             * @var int $propertyId
-             * @var string $dataType
-             * @var string $dataTypeMain
-             * @var string $value
-             * @var string $uriLabel
-             * @var int|null $valueResourceId
-             * @var string|null $language
-             * @var int $visibility
-             */
-            extract($settings);
-            /** @phpstan-ignore-line */
-        }
-
-        if (empty($propertyId)) {
-            return;
-        }
-
-        // Build the value array based on data type.
-        $valueData = [
-            'type' => $dataType,
-            'property_id' => $propertyId,
-            'is_public' => $visibility,
-        ];
-
-        if ($dataTypeMain === 'resource') {
-            $valueData['value_resource_id'] = (int) $valueResourceId;
-        } elseif ($dataTypeMain === 'uri') {
-            $valueData['@id'] = $value;
-            $valueData['o:label'] = $uriLabel ?: null;
-            if ($language) {
+            foreach (is_array($termValues) ? $termValues : [] as $value) {
+                $dataType = is_array($value) ? ($value['type'] ?? null) : null;
+                if (!is_string($dataType) || !$dataTypeManager->has($dataType)) {
+                    continue;
+                }
+                // Keep only the filled scalar keys, so no annotation.
+                $value = array_map(fn ($v) => is_string($v) ? trim($v) : $v, array_filter($value, 'is_scalar'));
+                $value = array_filter($value, fn ($v) => $v !== '');
+                $value['type'] = $dataType;
+                $value['property_id'] = $propertyId;
+                $value['is_public'] = (int) (bool) ($value['is_public'] ?? 1);
                 // The data type uri uses "o:lang", Value Suggest "@language".
-                $valueData['o:lang'] = $language;
-                $valueData['@language'] = $language;
-            }
-        } else {
-            // literal and other types (customvocab, valuesuggest with literal storage, etc.)
-            $valueData['@value'] = $value;
-            if ($language) {
-                $valueData['@language'] = $language;
+                if ($this->easyMeta->dataTypeMain($dataType) === 'uri') {
+                    $language = $value['o:lang'] ?? $value['@language'] ?? null;
+                    if ($language) {
+                        $value['o:lang'] = $language;
+                        $value['@language'] = $language;
+                    }
+                }
+                if ($dataTypeManager->get($dataType)->isValid($value)) {
+                    $newValues[$term][] = $value;
+                }
             }
         }
 
-        // Append the new value to the property.
-        $data[$property][] = $valueData;
+        return $newValues;
     }
 
     /**

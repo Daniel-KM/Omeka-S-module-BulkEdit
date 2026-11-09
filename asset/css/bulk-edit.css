@@ -23,6 +23,38 @@
             margin: 24px 0 12px;
             padding-bottom: 6px;
         }
+        & .bulkedit-create-values {
+            /* Like the resource form, that scopes these rules. */
+            & .inputs div.value {
+                display: flex;
+                align-items: stretch;
+            }
+            & .more-actions {
+                & > a.o-icon-more {
+                    display: none;
+                }
+                & ul {
+                    display: block;
+                }
+            }
+            & input[data-value-key="value_resource_id"] {
+                margin: 0;
+                width: 100%;
+            }
+            /* Like NumericDataTypes, that scopes these rules to the resource form. */
+            & .numeric-date-inputs {
+                margin-top: 0;
+            }
+            & div.value[data-data-type*="numeric"] .input-body {
+                padding: .5rem;
+            }
+            & .start-end {
+                line-height: 1;
+            }
+            & .bulkedit-add-value-wrapper {
+                margin-top: 6px;
+            }
+        }
         & .bulkedit-options {
             margin-top: 6px;
             & > a {
@@ -39,6 +71,7 @@
                 display: flex;
                 font-size: 16px;
                 text-align: left;
+                text-align-last: left;
                 width: fit-content;
                 &::after {
                     margin-left: 12px;

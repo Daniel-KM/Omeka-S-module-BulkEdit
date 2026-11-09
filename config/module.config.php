@@ -47,6 +47,7 @@ return [
         'Expand', // @translate
         'Collapse', // @translate
         'Options', // @translate
+        'Resource id', // @translate
         'The actions are processed in the order of the form. Be careful when mixing them.', // @translate
         'To convert values to/from mapping markers, use module DataTypeGeometry.', // @translate
         'Slow process, always run in background.', // @translate

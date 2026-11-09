@@ -329,7 +329,31 @@ class Module extends AbstractModule
         $view->headLink()
             ->appendStylesheet($assetUrl('css/bulk-edit.css', 'BulkEdit'));
         $view->headScript()
-            ->appendFile($assetUrl('js/bulk-edit.js', 'BulkEdit'), 'text/javascript', ['defer' => 'defer']);
+            ->appendFile($assetUrl('js/bulk-edit.js', 'BulkEdit'), 'text/javascript', ['defer' => 'defer'])
+            ->appendFile($assetUrl('js/bulk-edit-create-values.js', 'BulkEdit'), 'text/javascript', ['defer' => 'defer']);
+
+        // The templates of the resource form are used to create values. They
+        // are outside of the form, so they are not submitted.
+        // Value Suggest prepares only the resource forms.
+        if ($this->isModuleActive('ValueSuggest')) {
+            $valueSuggest = $this->getServiceLocator()->get('ModuleManager')->getModule('ValueSuggest');
+            if ($valueSuggest && method_exists($valueSuggest, 'prepareResourceForm')) {
+                $valueSuggest->prepareResourceForm(new Event('view.edit.after', $view));
+            }
+        }
+
+        $dataTypeSelect = $this->getServiceLocator()->get('FormElementManager')
+            ->get(\Common\Form\Element\DataTypeSelect::class)
+            ->setName('bulkedit_add_value')
+            ->setEmptyOption('')
+            ->setAttributes([
+                'class' => 'bulkedit-add-value',
+                'data-placeholder' => $view->translate('Other data type…'), // @translate
+            ]);
+        echo '<div id="bulkedit-templates" hidden>'
+            . $view->partial('common/resource-form-templates.phtml')
+            . $view->formSelect($dataTypeSelect)
+            . '</div>';
     }
 
     /**
@@ -811,10 +835,16 @@ class Module extends AbstractModule
         ];
 
         $params = $bulkedit['create_values'] ?? [];
-        if (!empty($params['properties']) && !empty($params['datatype'])) {
+        $values = $params['values'] ?? [];
+        if (is_string($values)) {
+            $values = json_decode($values, true);
+        }
+        $values = is_array($values) ? $values : [];
+        if ($values || (!empty($params['properties']) && !empty($params['datatype']))) {
             $processes['create_values'] = [
-                'properties' => $params['properties'],
-                'datatype' => $params['datatype'],
+                'values' => $values,
+                'properties' => $params['properties'] ?? null,
+                'datatype' => $params['datatype'] ?? null,
                 'value' => $params['value'] ?? '',
                 'uri_label' => $params['uri_label'] ?? '',
                 'value_resource_id' => $params['value_resource_id'] ?? null,

@@ -207,6 +207,7 @@ $(document).ready(function() {
         copy: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility'], ['datatype', 'max_values']],
         displace: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility'], ['datatype', 'max_values']],
         fill_values: ['properties', ['datatypes', 'languages', 'contains', 'match', 'is_public'], ['note_uri', 'datatype', 'language', 'update_language', 'featured_subject']],
+        remove: ['properties', ['datatypes', 'languages', 'equal', 'contains', 'match', 'visibility'], ['keep_max_values', 'max_values']],
     };
     Object.entries(dependentFieldsets).forEach(([fieldsetName, [trigger, filterNames, optionNames]]) => {
         const container = $('#bulk-edit > #' + fieldsetName + ' > .collapsible');

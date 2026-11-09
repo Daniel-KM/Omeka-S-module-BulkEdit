@@ -78,7 +78,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
      * Elements displayed in a collapsed block "Options".
      */
     protected $secondaryElements = [
-        'remove' => ['datatypes', 'languages', 'visibility', 'equal', 'contains', 'match', 'keep_max_values', 'max_values'],
         'explode_pdf' => ['process', 'resolution', 'processor', 'process_events'],
         'media_order' => ['mediatypes', 'extensions'],
         'media_html' => ['prepend', 'append'],
@@ -903,8 +902,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         if ($fieldset->has('match')) {
             $fieldset->get('match')->setAttribute('placeholder', '~^value$~i');
         }
-        // The visibility of the copy and the displacement is a filter.
-        if ($fieldset->has('visibility') && in_array($fieldset->getName(), ['copy', 'displace'])) {
+        // The visibility of these processes is a filter.
+        if ($fieldset->has('visibility') && in_array($fieldset->getName(), ['copy', 'displace', 'remove'])) {
             $fieldset->get('visibility')->setValueOptions([
                 '' => 'Any', // @translate
                 '1' => 'Public', // @translate
@@ -2169,24 +2168,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
             ->add([
-                'name' => 'visibility',
-                'type' => CommonElement\OptionalRadio::class,
-                'options' => [
-                    'label' => 'Visibility', // @translate
-                    'value_options' => [
-                        '1' => 'Public', // @translate
-                        '0' => 'Not public', // @translate
-                        '' => 'Any', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'remove_visibility',
-                    'value' => '',
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
                 'name' => 'equal',
                 'type' => Element\Text::class,
                 'options' => [
@@ -2218,6 +2199,24 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'remove_match',
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
+                'name' => 'visibility',
+                'type' => CommonElement\OptionalRadio::class,
+                'options' => [
+                    'label' => 'Visibility', // @translate
+                    'value_options' => [
+                        '1' => 'Public', // @translate
+                        '0' => 'Not public', // @translate
+                        '' => 'Any', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'remove_visibility',
+                    'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],
@@ -2462,6 +2461,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-collection-action' => 'replace',
                 ],
             ]);
+
+        $this->prepareFilterElements($fieldset);
 
         return $this;
     }

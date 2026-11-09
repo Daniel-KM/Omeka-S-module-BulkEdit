@@ -545,6 +545,22 @@ class Module extends AbstractModule
         $representation = $adapter->getRepresentation($resource);
         $data = $this->updateResourcePre($adapter, $representation, $data, $bulkedit);
 
+        // The core removes the remaining values of a partial update only when
+        // a value is passed, so the properties emptied by the processes are
+        // cleared explicitly, else the last values of a resource are kept.
+        $emptiedPropertyIds = [];
+        foreach ($representation->values() as $term => $propertyData) {
+            if (empty($data[$term])) {
+                $emptiedPropertyIds[] = $propertyData['property']->id();
+            }
+        }
+        if ($emptiedPropertyIds) {
+            $data['clear_property_values'] = array_values(array_unique(array_merge(
+                (array) ($data['clear_property_values'] ?? []),
+                $emptiedPropertyIds
+            )));
+        }
+
         // Preserve posted fields from other modules (e.g., item-sets-tree-parent-id
         // from ItemSetsTree).
         $data += $originalContent;

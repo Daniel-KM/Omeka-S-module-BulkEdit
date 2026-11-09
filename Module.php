@@ -1149,6 +1149,9 @@ class Module extends AbstractModule
                     'to' => $to,
                     'prepend' => $prepend,
                     'append' => $append,
+                    'media_types' => array_filter((array) ($params['media_types'] ?? [])),
+                    'ingesters' => array_filter((array) ($params['ingesters'] ?? [])),
+                    'renderers' => array_filter((array) ($params['renderers'] ?? [])),
                 ];
             }
         }
@@ -1172,6 +1175,9 @@ class Module extends AbstractModule
                     'mode' => $mode,
                     'prepend' => $prepend,
                     'append' => $append,
+                    'media_types' => array_filter((array) ($params['media_types'] ?? [])),
+                    'ingesters' => array_filter((array) ($params['ingesters'] ?? [])),
+                    'renderers' => array_filter((array) ($params['renderers'] ?? [])),
                 ];
             }
         }
@@ -1186,6 +1192,9 @@ class Module extends AbstractModule
             $processes['media_type'] = [
                 'from' => strtolower(trim($from)),
                 'to' => strtolower(trim($to)),
+                'media_types' => array_filter((array) ($params['media_types'] ?? [])),
+                'ingesters' => array_filter((array) ($params['ingesters'] ?? [])),
+                'renderers' => array_filter((array) ($params['renderers'] ?? [])),
             ];
         }
 
@@ -1196,9 +1205,9 @@ class Module extends AbstractModule
             $visibility = (int) (bool) $params['visibility'];
             $processes['media_visibility'] = [
                 'visibility' => $visibility,
-                'media_types' => $params['media_types'] ?: [],
-                'ingesters' => $params['ingesters'] ?: [],
-                'renderers' => $params['renderers'] ?: [],
+                'media_types' => array_filter((array) ($params['media_types'] ?? [])),
+                'ingesters' => array_filter((array) ($params['ingesters'] ?? [])),
+                'renderers' => array_filter((array) ($params['renderers'] ?? [])),
             ];
         }
 

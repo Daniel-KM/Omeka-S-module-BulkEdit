@@ -2978,6 +2978,19 @@ class BulkEdit
     /**
      * Update the html of a media of type html from items.
      */
+    /**
+     * Get the criteria to filter the media by media types, ingesters and
+     * renderers.
+     */
+    protected function mediaFilterCriteria(array $params): array
+    {
+        return array_filter([
+            'mediaType' => array_values(array_filter($params['media_types'] ?? [])),
+            'ingester' => array_values(array_filter($params['ingesters'] ?? [])),
+            'renderer' => array_values(array_filter($params['renderers'] ?? [])),
+        ]);
+    }
+
     public function updateMediaHtmlForResources(
         AbstractResourceEntityAdapter $adapter,
         array $resourceIds,
@@ -3024,10 +3037,14 @@ class BulkEdit
         // Like the ingester html, the purifier is used when it is enabled.
         /** @var \Omeka\Stdlib\HtmlPurifier $purifier */
         $purifier = $this->services->get('Omeka\HtmlPurifier');
+        // The html is managed only by the ingester html.
+        $criteria = $this->mediaFilterCriteria($params);
+        if (isset($criteria['ingester']) && !in_array('html', $criteria['ingester'])) {
+            return;
+        }
+        $criteria['ingester'] = 'html';
         foreach ($resourceIds as $resourceId) {
-            $medias = $isMediaIds
-                ? $repository->findBy(['id' => $resourceId, 'ingester' => 'html'])
-                : $repository->findBy(['item' => $resourceId, 'ingester' => 'html']);
+            $medias = $repository->findBy([$isMediaIds ? 'id' : 'item' => $resourceId] + $criteria);
             if (!count($medias)) {
                 continue;
             }
@@ -3115,10 +3132,11 @@ class BulkEdit
         $entityManager = $this->services->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
 
+        $criteria = $this->mediaFilterCriteria($params);
         foreach ($resourceIds as $resourceId) {
             $medias = $repository->findBy([
                 $keyResourceId => $resourceId,
-            ], [
+            ] + $criteria, [
                 'position' => 'ASC',
                 'id' => 'ASC',
             ]);
@@ -3202,11 +3220,16 @@ class BulkEdit
         $entityManager = $this->services->get('Omeka\EntityManager');
         $repository = $entityManager->getRepository(\Omeka\Entity\Media::class);
 
+        // The media type to replace should be one of the filtered ones.
+        $criteria = $this->mediaFilterCriteria($params);
+        if (isset($criteria['mediaType']) && !in_array($from, $criteria['mediaType'])) {
+            return;
+        }
+        $criteria['mediaType'] = $from;
         foreach ($resourceIds as $resourceId) {
             $medias = $repository->findBy([
                 $keyResourceId => $resourceId,
-                'mediaType' => $from,
-            ], [
+            ] + $criteria, [
                 'position' => 'ASC',
                 'id' => 'ASC',
             ]);
@@ -3229,25 +3252,12 @@ class BulkEdit
     ): void {
         // Already checked.
         $visibility = !empty($params['visibility']);
-        $mediaTypes = $params['media_types'] ?? [];
-        $ingesters = array_filter($params['ingesters'] ?? []);
-        $renderers = array_filter($params['renderers'] ?? []);
-
         $isMediaIds = $adapter instanceof MediaAdapter;
 
         $keyResourceId = $isMediaIds ? 'id' : 'item';
         $defaultArgs = [
             $keyResourceId => null,
-        ];
-        if ($mediaTypes) {
-            $defaultArgs['mediaType'] = $mediaTypes;
-        }
-        if ($ingesters) {
-            $defaultArgs['ingester'] = $ingesters;
-        }
-        if ($renderers) {
-            $defaultArgs['renderer'] = $renderers;
-        }
+        ] + $this->mediaFilterCriteria($params);
 
         /**
          * @var \Doctrine\ORM\EntityManager $entityManager

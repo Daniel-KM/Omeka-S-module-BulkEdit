@@ -92,23 +92,49 @@ $(document).ready(function() {
         .appendTo('#bulk-edit');
 
     // Preview the values updated by the operations, without saving.
-    const previewValue = (value) => {
-        const item = $('<li>').text(value.value + (value.label ? ' | ' + value.label : ''));
-        if (value.language) {
-            item.append($('<span class="bulkedit-preview-language">').text('@' + value.language));
+    // Each value is compared with its matching value on the other side, so the
+    // updated text, data type, language or visibility is highlighted.
+    const previewValue = (value, other) => {
+        const badge = (text, isChanged) => $('<span class="bulkedit-preview-badge">').text(text)
+            .toggleClass('bulkedit-preview-changed', isChanged);
+        const item = $('<li>')
+            .append($('<span>').text(value.value + (value.label ? ' | ' + value.label : ''))
+                .toggleClass('bulkedit-preview-changed', !other || other.value !== value.value || other.label !== value.label))
+            .append(badge(value.type_label, !!other && other.type !== value.type));
+        if (value.language || (other && other.language)) {
+            item.append(badge(value.language ? '@' + value.language : '@–', !!other && other.language !== value.language));
         }
-        if (!value.is_public) {
-            item.addClass('bulkedit-preview-private')
-                .append($('<span class="bulkedit-preview-language">').text(Omeka.jsTranslate('Private')));
-        }
+        item.append(badge(Omeka.jsTranslate(value.is_public ? 'Public' : 'Private'), !!other && other.is_public !== value.is_public));
         return item;
+    };
+    // The values are matched by content, so the values added, removed or moved
+    // do not shift the comparison: same value first, then same text, then
+    // same position for the updated texts.
+    const matchValues = (values, others) => {
+        const matches = new Array(values.length).fill(null);
+        const used = new Set();
+        const text = (value) => value.value + '|' + value.label;
+        const passes = [
+            (value, other) => JSON.stringify(value) === JSON.stringify(other),
+            (value, other) => text(value) === text(other),
+            (value, other, index, otherIndex) => index === otherIndex,
+        ];
+        passes.forEach(isMatch => values.forEach((value, index) => {
+            if (matches[index] !== null) {
+                return;
+            }
+            const otherIndex = others.findIndex((other, i) => !used.has(i) && isMatch(value, other, index, i));
+            if (otherIndex !== -1) {
+                matches[index] = others[otherIndex];
+                used.add(otherIndex);
+            }
+        }));
+        return matches;
     };
     const previewValues = (values, others) => {
         const list = $('<ul class="bulkedit-preview-values">');
-        const othersJson = others.map(value => JSON.stringify(value));
-        values.forEach(value => {
-            list.append(previewValue(value).toggleClass('bulkedit-preview-changed', !othersJson.includes(JSON.stringify(value))));
-        });
+        const matches = matchValues(values, others);
+        values.forEach((value, index) => list.append(previewValue(value, matches[index])));
         return list;
     };
     $('#bulk-edit').on('click', '.bulkedit-preview-button', function() {

@@ -82,14 +82,17 @@
                 }
             }
             & .bulkedit-preview-changed {
-                background-color: #fff3c4;
+                background-color: #ffe27a;
             }
-            & .bulkedit-preview-language {
+            & .bulkedit-preview-badge {
                 background-color: rgba(0, 0, 0, .06);
                 border-radius: 2px;
                 font-size: 12px;
                 margin-left: 6px;
                 padding: 0 4px;
+                &.bulkedit-preview-changed {
+                    background-color: #ffe27a;
+                }
             }
         }
         & .bulkedit-filters {

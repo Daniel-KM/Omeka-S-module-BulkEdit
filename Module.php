@@ -1418,6 +1418,9 @@ class Module extends AbstractModule
         $adapter = $services->get('Omeka\ApiAdapterManager')->get($resourceName);
         $easyMeta = $services->get('Common\EasyMeta');
         $translator = $services->get('MvcTranslator');
+        $dataTypeLabels = array_map([$translator, 'translate'], $easyMeta->dataTypeLabels());
+        $previewValue = fn (array $value): array => $this->previewValue($value)
+            + ['type_label' => $dataTypeLabels[$value['type'] ?? ''] ?? (string) ($value['type'] ?? '')];
 
         foreach ($ids as $id) {
             try {
@@ -1434,8 +1437,8 @@ class Module extends AbstractModule
                 if (!$easyMeta->propertyId($term)) {
                     continue;
                 }
-                $valuesBefore = array_map([$this, 'previewValue'], array_values($before[$term] ?? []));
-                $valuesAfter = array_map([$this, 'previewValue'], array_values($after[$term] ?? []));
+                $valuesBefore = array_map($previewValue, array_values($before[$term] ?? []));
+                $valuesAfter = array_map($previewValue, array_values($after[$term] ?? []));
                 if ($valuesBefore !== $valuesAfter) {
                     $properties[] = [
                         'term' => $term,

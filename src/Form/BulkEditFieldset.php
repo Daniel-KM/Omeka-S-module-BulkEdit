@@ -78,8 +78,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
      * Elements displayed in a collapsed block "Options".
      */
     protected $secondaryElements = [
-        'copy' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
-        'displace' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
         'fill_values' => ['datatypes', 'datatype', 'language', 'update_language', 'featured_subject'],
         'remove' => ['datatypes', 'languages', 'visibility', 'equal', 'contains', 'match', 'keep_max_values', 'max_values'],
         'explode_pdf' => ['process', 'resolution', 'processor', 'process_events'],
@@ -460,10 +458,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             $visibility->remove($name);
             $modify->add($element->setAttribute('id', 'modify_' . $name));
         }
-        $modify->get('datatypes')->setEmptyOption('');
-        $modify->get('datatypes')->setAttribute('data-placeholder', $this->translator->translate('All data types')); // @translate
-        $modify->get('languages')->setAttribute('placeholder', $this->translator->translate('All languages')); // @translate
-        $modify->get('contains')->setAttribute('placeholder', $this->translator->translate('Any value')); // @translate
         $modify
             ->add([
                 'name' => 'match',
@@ -473,7 +467,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
                 'attributes' => [
                     'id' => 'modify_match',
-                    'placeholder' => '~^value$~i',
                 ],
             ])
             ->add([
@@ -492,6 +485,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'value' => '',
                 ],
             ]);
+        $this->prepareFilterElements($modify);
 
         $text = (new Fieldset('replace'))
             ->add([
@@ -889,6 +883,38 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     /**
      * Copy is the same than displace, except it does not remove source.
      */
+    /**
+     * Display the filters of a fieldset in the same way for all actions.
+     *
+     * An empty filter means all values.
+     */
+    protected function prepareFilterElements(Fieldset $fieldset): self
+    {
+        if ($fieldset->has('datatypes')) {
+            $fieldset->get('datatypes')
+                ->setEmptyOption('')
+                ->setAttribute('data-placeholder', $this->translator->translate('All data types')); // @translate
+        }
+        if ($fieldset->has('languages')) {
+            $fieldset->get('languages')->setAttribute('placeholder', $this->translator->translate('All languages')); // @translate
+        }
+        if ($fieldset->has('contains')) {
+            $fieldset->get('contains')->setAttribute('placeholder', $this->translator->translate('Any value')); // @translate
+        }
+        if ($fieldset->has('match')) {
+            $fieldset->get('match')->setAttribute('placeholder', '~^value$~i');
+        }
+        // The visibility of the copy and the displacement is a filter.
+        if ($fieldset->has('visibility') && in_array($fieldset->getName(), ['copy', 'displace'])) {
+            $fieldset->get('visibility')->setValueOptions([
+                '' => 'Any', // @translate
+                '1' => 'Public', // @translate
+                '0' => 'Not public', // @translate
+            ]);
+        }
+        return $this;
+    }
+
     protected function appendFieldsetCopy(): self
     {
         $this
@@ -1046,6 +1072,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
         ;
+
+        $this->prepareFilterElements($fieldset);
 
         return $this;
     }
@@ -1210,6 +1238,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 ],
             ])
         ;
+
+        $this->prepareFilterElements($fieldset);
 
         return $this;
     }

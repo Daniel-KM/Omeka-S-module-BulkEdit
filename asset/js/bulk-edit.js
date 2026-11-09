@@ -201,6 +201,28 @@ $(document).ready(function() {
         updateSubOptions($(this));
     });
 
+    // For the copy and the displacement, the filters and the options are
+    // displayed when the source properties are selected.
+    ['copy', 'displace'].forEach(fieldsetName => {
+        const container = $('#bulk-edit > #' + fieldsetName + ' > .collapsible');
+        if (!container.length) {
+            return;
+        }
+        const fields = (names) => container.find(names
+            .map(name => '[name="bulkedit[' + fieldsetName + '][' + name + ']"], [name="bulkedit[' + fieldsetName + '][' + name + '][]"]')
+            .join(', ')).closest('.field');
+        const dependent = $('<div class="bulkedit-dependent">')
+            .append($('<div class="bulkedit-filters">')
+                .append($('<h5>').text(Omeka.jsTranslate('Filter the values')))
+                .append(fields(['datatypes', 'languages', 'contains', 'match', 'visibility'])))
+            .append($('<div class="bulkedit-filters">')
+                .append($('<h5>').text(Omeka.jsTranslate('Options')))
+                .append(fields(['datatype', 'max_values'])))
+            .appendTo(container);
+        const from = fields(['from']).find('select');
+        from.on('change', () => dependent.toggle(!!(from.val() || []).length)).trigger('change');
+    });
+
     // Gather the secondary elements in a collapsed block.
     $('#bulk-edit > fieldset').each(function() {
         const options = $(this).find('[data-bulkedit-option]').closest('.field');

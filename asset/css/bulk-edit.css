@@ -65,6 +65,14 @@
                 margin: 6px 0 12px;
             }
         }
+        & .bulkedit-filters {
+            border-left: 2px solid #dfdfdf;
+            margin: 12px 0 0 12px;
+            padding-left: 18px;
+            & > h5 {
+                margin: 0 0 6px;
+            }
+        }
         & .bulkedit-operation {
             margin: 6px 0 6px 12px;
             & > .bulkedit-operation-toggle {

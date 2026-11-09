@@ -48,6 +48,7 @@ return [
         'Collapse', // @translate
         'Options', // @translate
         'Values to modify', // @translate
+        'Filter the values', // @translate
         'Operations, applied in this order', // @translate
         'Resource id', // @translate
         'The actions are processed in the order of the form. Be careful when mixing them.', // @translate

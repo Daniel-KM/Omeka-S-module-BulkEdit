@@ -52,6 +52,14 @@ $(document).ready(function() {
             .append(container.children('.field').filter(function() {
                 return !$(this).find('[data-bulkedit-block]').length;
             }));
+        // The properties are required, the other elements filter the values.
+        const filters = selection.children('.field').filter(function() {
+            return !$(this).find('[name$="[properties][]"], [name$="[properties]"]').length;
+        });
+        $('<div class="bulkedit-filters">')
+            .append($('<h5>').text(Omeka.jsTranslate('Filter the values')))
+            .append(filters)
+            .appendTo(selection);
         const operations = $('<div class="bulkedit-step">')
             .append($('<h4>').text(Omeka.jsTranslate('Operations, applied in this order')));
         Object.keys(blocks).forEach((blockName) => {

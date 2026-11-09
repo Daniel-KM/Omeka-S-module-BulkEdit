@@ -80,12 +80,16 @@ $(document).ready(function() {
                 })))
                 .appendTo(operations);
         });
-        const preview = $('<div class="bulkedit-step bulkedit-preview">')
-            .append($('<h4>').text(Omeka.jsTranslate('Preview')))
-            .append($('<button type="button" class="button bulkedit-preview-button">').text(Omeka.jsTranslate('Preview the first updated resources')))
-            .append('<div class="bulkedit-preview-result"></div>');
-        container.prepend(selection, operations, preview);
+        container.prepend(selection, operations);
     });
+
+    // The preview of all the actions is at the end of the form.
+    $('<div class="bulkedit-preview">')
+        .append($('<h3 class="bulkedit-group">').text(Omeka.jsTranslate('Preview')))
+        .append($('<p>').text(Omeka.jsTranslate('The actions on the values are processed without saving, except Value Suggest, the cleaning and the processes on media.')))
+        .append($('<button type="button" class="button bulkedit-preview-button">').text(Omeka.jsTranslate('Preview the first updated resources')))
+        .append('<div class="bulkedit-preview-result"></div>')
+        .appendTo('#bulk-edit');
 
     // Preview the values updated by the operations, without saving.
     const previewValue = (value) => {

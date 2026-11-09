@@ -1381,16 +1381,29 @@ class Module extends AbstractModule
      * @deprecated To be removed in a future version.
      */
     /**
-     * Preview the values updated by the action "modify", without saving.
+     * Preview the values updated by the batch edit, without saving.
      *
-     * Only the resources with updated values are returned, with the values of
-     * the updated properties before and after.
+     * The processes on the values of each resource are run in the real order.
+     * The slow or remote processes, the cleaning and the processes on media are
+     * skipped. Only the resources with updated values are returned, with the
+     * values of the updated properties before and after.
      */
     public function previewBulkEdit(string $resourceName, array $ids, array $bulkedit, int $limit = 3): array
     {
         $processes = array_intersect_key(
             $this->prepareProcesses($bulkedit),
-            array_flip(['replace', 'explode', 'convert', 'order_values', 'properties_visibility'])
+            array_flip([
+                'create_values',
+                'replace',
+                'explode',
+                'convert',
+                'order_values',
+                'properties_visibility',
+                'copy',
+                'displace',
+                'merge',
+                'remove',
+            ])
         );
         $result = [
             'checked' => 0,
@@ -1404,6 +1417,7 @@ class Module extends AbstractModule
         $api = $services->get('Omeka\ApiManager');
         $adapter = $services->get('Omeka\ApiAdapterManager')->get($resourceName);
         $easyMeta = $services->get('Common\EasyMeta');
+        $translator = $services->get('MvcTranslator');
 
         foreach ($ids as $id) {
             try {
@@ -1425,7 +1439,7 @@ class Module extends AbstractModule
                 if ($valuesBefore !== $valuesAfter) {
                     $properties[] = [
                         'term' => $term,
-                        'label' => $easyMeta->propertyLabel($term),
+                        'label' => $translator->translate((string) $easyMeta->propertyLabel($term)),
                         'before' => $valuesBefore,
                         'after' => $valuesAfter,
                     ];

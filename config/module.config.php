@@ -75,6 +75,7 @@ return [
         'Filter the values', // @translate
         'Preview', // @translate
         'Preview the first updated resources', // @translate
+        'The actions on the values are processed without saving, except Value Suggest, the cleaning and the processes on media.', // @translate
         'Private', // @translate
         'Loading…', // @translate
         'An error occurred.', // @translate

@@ -42,7 +42,6 @@ class IndexController extends AbstractActionController
             return $this->jsonError('The form is invalid.'); // @translate
         }
         $bulkedit = $form->getData()['bulkedit'] ?? [];
-        $bulkedit = array_intersect_key($bulkedit, ['modify' => null]);
 
         // Check only some resources, the first ones of the selection.
         $maxResources = 100;

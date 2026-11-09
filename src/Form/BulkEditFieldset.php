@@ -78,11 +78,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
      * Elements displayed in a collapsed block "Options".
      */
     protected $secondaryElements = [
-        'explode_pdf' => ['process', 'resolution', 'processor', 'process_events'],
-        'media_order' => ['mediatypes', 'extensions'],
-        'media_html' => ['prepend', 'append'],
-        'media_source' => ['prepend', 'append'],
-        'media_visibility' => ['media_types', 'ingesters', 'renderers'],
     ];
 
     /**

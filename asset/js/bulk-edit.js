@@ -208,6 +208,11 @@ $(document).ready(function() {
         displace: ['from', ['datatypes', 'languages', 'contains', 'match', 'visibility'], ['datatype', 'max_values']],
         fill_values: ['properties', ['datatypes', 'languages', 'contains', 'match', 'is_public'], ['note_uri', 'datatype', 'language', 'update_language', 'featured_subject']],
         remove: ['properties', ['datatypes', 'languages', 'equal', 'contains', 'match', 'visibility'], ['keep_max_values', 'max_values']],
+        explode_pdf: ['mode', [], ['process', 'resolution', 'processor', 'process_events']],
+        media_order: ['order', [], ['mediatypes', 'extensions']],
+        media_html: ['mode', [], ['prepend', 'append']],
+        media_source: ['mode', [], ['prepend', 'append']],
+        media_visibility: ['visibility', [], ['media_types', 'ingesters', 'renderers']],
     };
     Object.entries(dependentFieldsets).forEach(([fieldsetName, [trigger, filterNames, optionNames]]) => {
         const container = $('#bulk-edit > #' + fieldsetName + ' > .collapsible');
@@ -218,16 +223,22 @@ $(document).ready(function() {
         const fields = (names) => container.find(names
             .map(name => '[name="bulkedit[' + fieldsetName + '][' + name + ']"], [name="bulkedit[' + fieldsetName + '][' + name + '][]"], [id$="_' + name + '"].field')
             .join(', ')).closest('.field');
-        const dependent = $('<div class="bulkedit-dependent">')
-            .append($('<div class="bulkedit-filters">')
+        const dependent = $('<div class="bulkedit-dependent">').appendTo(container);
+        if (filterNames.length) {
+            $('<div class="bulkedit-filters">')
                 .append($('<h5>').text(Omeka.jsTranslate('Filter the values')))
-                .append(fields(filterNames)))
-            .append($('<div class="bulkedit-filters">')
-                .append($('<h5>').text(Omeka.jsTranslate('Options')))
-                .append(fields(optionNames)))
-            .appendTo(container);
-        const select = fields([trigger]).find('select');
-        select.on('change', () => dependent.toggle(!!(select.val() || []).length)).trigger('change');
+                .append(fields(filterNames))
+                .appendTo(dependent);
+        }
+        $('<div class="bulkedit-filters">')
+            .append($('<h5>').text(Omeka.jsTranslate('Options')))
+            .append(fields(optionNames))
+            .appendTo(dependent);
+        // The trigger may be a select, a multiple select or radios.
+        const inputs = fields([trigger]).find('select, input[type=radio]');
+        const value = () => inputs.is('select') ? inputs.val() : (inputs.filter(':checked').val() || '');
+        inputs.on('change', () => dependent.toggle(!!(value() || []).length));
+        dependent.toggle(!!(value() || []).length);
     });
 
     // Gather the secondary elements in a collapsed block.

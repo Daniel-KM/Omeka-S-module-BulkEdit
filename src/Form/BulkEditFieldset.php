@@ -2875,12 +2875,15 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'from',
-                'type' => Element\Text::class,
+                'type' => CommonElement\MediaTypeSelect::class,
                 'options' => [
                     'label' => 'From', // @translate
+                    'empty_option' => '',
                 ],
                 'attributes' => [
                     'id' => 'mediatype_from',
+                    'class' => 'chosen-select',
+                    'data-placeholder' => 'Select a media type…', // @translate
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
                 ],

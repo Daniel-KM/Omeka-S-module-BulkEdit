@@ -12,6 +12,7 @@ $(document).ready(function() {
 
     // Recreate missing bulk edit fieldsets.
     const bulkeditFieldsets = $('#bulkedit-fieldsets').data('bulkedit-fieldsets') || {};
+    const bulkeditGroups = $('#bulkedit-fieldsets').data('bulkedit-groups') || {};
     $('#bulkedit-fieldsets').remove();
     Object.entries(bulkeditFieldsets).forEach(([fieldsetName, fieldsetLabel]) => {
         $('[data-bulkedit-fieldset=' + fieldsetName + ']').closest('.field')
@@ -36,6 +37,21 @@ $(document).ready(function() {
         })
         .wrapAll('<fieldset id="bulk-edit" class="section">');
 
+    Object.entries(bulkeditGroups).forEach(([fieldsetName, groupLabel]) => {
+        $('<h3 class="bulkedit-group">').text(groupLabel).insertBefore('#bulk-edit > #' + fieldsetName);
+    });
+
+    // Gather the secondary elements in a collapsed block.
+    $('#bulk-edit > fieldset').each(function() {
+        const options = $(this).find('[data-bulkedit-option]').closest('.field');
+        if (options.length) {
+            $('<div class="bulkedit-options">')
+                .append('<a href="#" class="expand" aria-label="' + Omeka.jsTranslate('Expand') + '" title="' + Omeka.jsTranslate('Expand') + '">' + Omeka.jsTranslate('Options') + '</a>')
+                .append($('<div class="collapsible">').append(options))
+                .appendTo($(this).children('.collapsible'));
+        }
+    });
+
     // Hidden inputs that should not be after the inputs.
     $('.batch-edit #content > form:first-of-type input[type=hidden][name=set_value_visibility]').insertAfter($('.batch-edit #content > form:first-of-type input[name=csrf]'));
     $('.batch-edit #content > form:first-of-type input[type=hidden][name=value]').insertAfter($('.batch-edit #content > form:first-of-type input[name=csrf]'));
@@ -45,12 +61,33 @@ $(document).ready(function() {
     $('#bulk-edit')
         .prepend('<p>' + Omeka.jsTranslate('The actions are processed in the order of the form. Be careful when mixing them.') + '</p>');
     if (!$('input#geometry_convert_literal_to_coordinates').length) {
-        $('#bulk-edit')
+        $('#convert > .collapsible')
             .append('<p>' + Omeka.jsTranslate('To convert values to/from mapping markers, use module DataTypeGeometry.') + '</p>');
     }
 
     $('#fill_values > .collapsible, #explode_item > .collapsible, #explode_pdf > .collapsible')
-        .prepend('<p>' + Omeka.jsTranslate('Processes that manage files and remote data are slow, so they are always processed in background.') + '</p>')
+        .prepend('<p>' + Omeka.jsTranslate('Slow process, always run in background.') + '</p>')
+
+    $('.batch-edit').on('change', '.bulkedit-replace-mode', function() {
+        const fieldset = $(this).closest('fieldset');
+        const mode = $(this).val();
+        fieldset.find('[name$="[from]"]').closest('.field').toggle(['raw', 'raw_i', 'html', 'regex'].includes(mode));
+        fieldset.find('[name$="[to]"]').closest('.field').toggle(['raw', 'raw_i', 'html', 'regex', 'whole'].includes(mode));
+    });
+    $('.bulkedit-replace-mode').trigger('change');
+
+    $('.batch-edit').on('change', '[name="bulkedit[thumbnails][mode]"]', function() {
+        const mode = $('[name="bulkedit[thumbnails][mode]"]:checked').val() || '';
+        $('#thumbnails_asset').closest('.field').toggle(!['', 'remove_primary', 'delete'].includes(mode));
+    });
+    $('[name="bulkedit[thumbnails][mode]"]').first().trigger('change');
+
+    $('.batch-edit').on('change', '#mediaremove_mode', function() {
+        const mode = $(this).val();
+        $('#mediaremove_mediatypes').closest('.field').toggle(mode === 'media_type');
+        $('#mediaremove_extensions').closest('.field').toggle(mode === 'media_extension');
+    });
+    $('#mediaremove_mode').trigger('change');
 
     $('.batch-edit').on('change', '#cleaning_clean_language_codes', function() {
         const fields = $('#cleaning_clean_language_codes_from, #cleaning_clean_language_codes_to, #cleaning_clean_language_codes_properties').closest('.field');

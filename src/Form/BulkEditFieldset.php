@@ -25,6 +25,41 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     ];
 
     /**
+     * Groups of fieldsets, the default one being "Values".
+     */
+    protected $fieldsetGroups = [
+        'fill_data' => 'Resource', // @translate
+        'thumbnails' => 'Resource',
+        'explode_item' => 'Media', // @translate
+        'explode_pdf' => 'Media',
+        'media_remove' => 'Media',
+        'media_order' => 'Media',
+        'media_html' => 'Media',
+        'media_source' => 'Media',
+        'media_type' => 'Media',
+        'media_visibility' => 'Media',
+    ];
+
+    /**
+     * Elements displayed in a collapsed block "Options".
+     */
+    protected $secondaryElements = [
+        'replace' => ['prepend', 'append', 'language', 'language_clear'],
+        'copy' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
+        'displace' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
+        'explode' => ['contains', 'match', 'max_values'],
+        'convert' => ['contains'],
+        'properties_visibility' => ['datatypes', 'languages', 'contains'],
+        'fill_values' => ['datatypes', 'datatype', 'language', 'update_language', 'featured_subject'],
+        'remove' => ['datatypes', 'languages', 'visibility', 'equal', 'contains', 'match', 'keep_max_values', 'max_values'],
+        'explode_pdf' => ['process', 'resolution', 'processor', 'process_events'],
+        'media_order' => ['mediatypes', 'extensions'],
+        'media_html' => ['prepend', 'append'],
+        'media_source' => ['prepend', 'append'],
+        'media_visibility' => ['media_types', 'ingesters', 'renderers'],
+    ];
+
+    /**
      * @var array
      */
     protected $dataTypesMain = [];
@@ -62,7 +97,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ->setOption('element_groups', $this->elementGroups)
             // TODO Remove all the attributes for each field. May still be used in previous versions (< 2.0).
             ->setAttribute('data-collection-action', 'replace')
-            ->appendFieldsetCleaning()
+            // The fieldsets are ordered like the processes.
             ->appendFieldsetCreateValues()
             ->appendFieldsetReplace()
             ->appendFieldsetCopy()
@@ -72,16 +107,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ->appendFieldsetConvert()
             ->appendFieldsetOrderValues()
             ->appendFieldsetPropertiesVisibility()
-            ->appendFieldsetFillData()
             ->appendFieldsetFillValues()
             ->appendFieldsetRemove()
+            ->appendFieldsetCleaning()
+            ->appendFieldsetFillData()
+            ->appendFieldsetThumbnail()
         ;
-
-        if (in_array($resourceType, ['items', 'item'])) {
-            $this->appendFieldsetRemoveMedia();
-        }
-
-        $this->appendFieldsetThumbnail();
 
         switch ($resourceType) {
             case 'items':
@@ -89,6 +120,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 $this
                     ->appendFieldsetExplodeItem()
                     ->appendFieldsetExplodePdf()
+                    ->appendFieldsetRemoveMedia()
                     ->appendFieldsetMediaOrder()
                     ->appendFieldsetMediaHtml()
                     ->appendFieldsetMediaSource()
@@ -119,13 +151,23 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         // managed by js.
         // TODO The element groups are not take in account currently.
         $fieldsets = [];
+        $groups = [];
+        $currentGroup = null;
         foreach ($this->getFieldsets() as $fieldset) {
             $name = $fieldset->getName();
             $fieldsets[$name] = $fieldset->getLabel();
+            $group = $this->fieldsetGroups[$name] ?? 'Values'; // @translate
+            if ($group !== $currentGroup) {
+                $groups[$name] = $this->translator->translate($group);
+                $currentGroup = $group;
+            }
+            $secondaryElements = $this->secondaryElements[$name] ?? [];
             $fieldset->setOption('element_group', 'advanced');
             foreach ($fieldset->getElements() as $element) {
                 $element->setAttribute('data-bulkedit-fieldset', $name);
-                $fieldset->setOption('element_group', 'advanced');
+                if (in_array($element->getName(), $secondaryElements)) {
+                    $element->setAttribute('data-bulkedit-option', '1');
+                }
             }
         }
         $this
@@ -138,6 +180,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'attributes' => [
                     'id' => 'bulkedit-fieldsets',
                     'data-bulkedit-fieldsets' => json_encode($fieldsets, 320),
+                    'data-bulkedit-groups' => json_encode($groups, 320),
                 ],
             ])
         ;
@@ -164,7 +207,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'trim_values',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Trim property values', // @translate
+                    'label' => 'Trim values', // @translate
                     'info' => 'Remove initial and trailing whitespace of all values of all properties', // @translate
                     'use_hidden_element' => false,
                 ],
@@ -178,7 +221,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'specify_datatypes',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Specify data type "resource" for linked resources', // @translate
+                    'label' => 'Specify linked resource types', // @translate
                     'info' => 'In some cases, linked resources are saved in the database with the generic data type "resource", not with the specific "resource:item", "resource:media, etc.', // @translate
                     'use_hidden_element' => false,
                 ],
@@ -192,7 +235,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'clean_empty_values',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Set null for empty values or uris', // @translate
+                    'label' => 'Empty values to null', // @translate
                     'use_hidden_element' => false,
                 ],
                 'attributes' => [
@@ -205,7 +248,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'clean_languages',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Clean languages (set null when language is empty)', // @translate
+                    'label' => 'Empty languages to null', // @translate
                     'use_hidden_element' => false,
                 ],
                 'attributes' => [
@@ -218,7 +261,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'clean_language_codes',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Normalize or modify language codes', // @translate
+                    'label' => 'Change language codes', // @translate
                     'info' => 'Normalize language codes from a code to another one, for example "fr" to "fra" or vice-versa. It allows to add or remove a code too.', // @translate
                     'use_hidden_element' => false,
                 ],
@@ -232,7 +275,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'clean_language_codes_from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'From code', // @translate
+                    'label' => 'From', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleaning_clean_language_codes_from',
@@ -245,7 +288,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'clean_language_codes_to',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'To code', // @translate
+                    'label' => 'To', // @translate
                 ],
                 'attributes' => [
                     'id' => 'cleaning_clean_language_codes_to',
@@ -258,7 +301,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'clean_language_codes_properties',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'For properties', // @translate
+                    'label' => 'Properties', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
@@ -280,7 +323,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'deduplicate_values',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Deduplicate property values case insensitively', // @translate
+                    'label' => 'Deduplicate values', // @translate
                     'info' => 'Deduplicate values of all properties, case INsensitively. Trimming values before is recommended, because values are checked strictly.', // @translate
                     'use_hidden_element' => false,
                 ],
@@ -301,7 +344,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'create_values',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Create values'), // @translate
+                    'label' => $this->translator->translate('Add'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'create_values',
@@ -351,7 +394,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => Element\Textarea::class,
                 'options' => [
                     'label' => 'Value', // @translate
-                    'info' => 'For literal and uri data types. For uri, the label can be set separately below.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'create_values_value',
@@ -365,7 +407,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Uri label', // @translate
-                    'info' => 'Optional label for uri data types.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'create_values_uri_label',
@@ -378,7 +419,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [
                     'label' => 'Resource id', // @translate
-                    'info' => 'For resource data types (resource:item, resource:media, etc.).', // @translate
                 ],
                 'attributes' => [
                     'id' => 'create_values_value_resource_id',
@@ -391,7 +431,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'Language', // @translate
-                    'info' => 'Optional language code for literal and uri values (ISO 639-1 or 639-2).', // @translate
                 ],
                 'attributes' => [
                     'id' => 'create_values_language',
@@ -428,7 +467,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'replace',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Replace values or uris'), // @translate
+                    'label' => $this->translator->translate('Replace'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace',
@@ -440,15 +479,36 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset = $this->get('replace');
         $fieldset
             ->add([
+                'name' => 'properties',
+                'type' => CommonElement\OptionalPropertySelect::class,
+                'options' => [
+                    'label' => 'Properties', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => '[All properties]', // @translate
+                    ],
+                    'empty_option' => '',
+                    'used_terms' => true,
+                ],
+                'attributes' => [
+                    'id' => 'replace_properties',
+                    'class' => 'chosen-select',
+                    'multiple' => true,
+                    'data-placeholder' => 'Select properties…', // @translate
+                    // This attribute is required to make "batch edit all" working.
+                    'data-collection-action' => 'replace',
+                ],
+            ])
+            ->add([
                 'name' => 'value_part',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Part of value', // @translate
+                    'label' => 'Part', // @translate
                     'value_options' => [
                         'value' => 'Value', // @translate
                         'uri' => 'Uri', // @translate
                         'uri_label' => 'Uri label', // @translate
-                        'literal' => 'Data type "literal"', // @translate
+                        'literal' => 'Literal', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -460,26 +520,28 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Replacement mode', // @translate
+                    'label' => 'Mode', // @translate
+                    'empty_option' => '',
                     'value_options' => [
-                        '' => 'No process', // @translate
-                        'raw' => 'Simple', // @translate
-                        'raw_i' => 'Simple (case insensitive)', // @translate
-                        'html' => 'Simple and html entities', // @translate
-                        'unicode' => 'Convert badly formatted characters from Microsoft to Unicode ("Ã©" to "é")', // @translate
-                        'regex' => 'Regex (full pattern)', // @translate
-                        'basename' => 'Base name (last part of a file path or url)', // @translate
+                        'raw' => 'Text', // @translate
+                        'raw_i' => 'Text, case insensitive', // @translate
+                        'html' => 'Text and html entities', // @translate
+                        'regex' => 'Regex', // @translate
+                        'unicode' => 'Fix encoding (Ã© to é)', // @translate
+                        'basename' => 'Base name', // @translate
                         'filename' => 'Base name without extension', // @translate
-                        'whole' => 'Replace whole value', // @translate
-                        'remove' => 'Remove whole value', // @translate
+                        'whole' => 'Whole value', // @translate
+                        'remove' => 'Remove value', // @translate
                     ],
                 ],
                 'attributes' => [
                     'id' => 'replace_mode',
+                    'class' => 'bulkedit-replace-mode',
                     'value' => '',
-                    // This attribute is required to make "batch edit all" working.
+                    // This attribute is required to make "batch edit all"
+                    // working.
                     'data-collection-action' => 'replace',
                 ],
             ])
@@ -487,11 +549,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to replace', // @translate
+                    'label' => 'Search', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_from',
-                    // This attribute is required to make "batch edit all" working.
+                    // This attribute is required to make "batch edit all"
+                    // working.
                     'data-collection-action' => 'replace',
                 ],
             ])
@@ -500,10 +563,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => Element\Text::class,
                 'options' => [
                     'label' => 'By', // @translate
+                    'info' => 'Placeholders, also for prepend and append: {resource_id}, {resource_url}, {resource_url_admin}, {resource_title}, or any term, like {dcterms:identifier}.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_to',
-                    // This attribute is required to make "batch edit all" working.
+                    // This attribute is required to make "batch edit all"
+                    // working.
                     'data-collection-action' => 'replace',
                 ],
             ])
@@ -511,11 +576,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'prepend',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to prepend', // @translate
+                    'label' => 'Prepend', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_prepend',
-                    // This attribute is required to make "batch edit all" working.
+                    // This attribute is required to make "batch edit all"
+                    // working.
                     'data-collection-action' => 'replace',
                 ],
             ])
@@ -523,11 +589,12 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'append',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to append', // @translate
+                    'label' => 'Append', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_append',
-                    // This attribute is required to make "batch edit all" working.
+                    // This attribute is required to make "batch edit all"
+                    // working.
                     'data-collection-action' => 'replace',
                 ],
             ])
@@ -535,7 +602,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'language',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Set a language', // @translate
+                    'label' => 'Language', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_language',
@@ -557,38 +624,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'data-collection-action' => 'replace',
                 ],
             ])
-            ->add([
-                'name' => 'properties',
-                'type' => CommonElement\OptionalPropertySelect::class,
-                'options' => [
-                    'label' => 'For properties', // @translate
-                    'term_as_value' => true,
-                    'prepend_value_options' => [
-                        'all' => '[All properties]', // @translate
-                    ],
-                    'empty_option' => '',
-                    'used_terms' => true,
-                ],
-                'attributes' => [
-                    'id' => 'replace_properties',
-                    'class' => 'chosen-select',
-                    'multiple' => true,
-                    'data-placeholder' => 'Select properties…', // @translate
-                    // This attribute is required to make "batch edit all" working.
-                    'data-collection-action' => 'replace',
-                ],
-            ])
-            ->add([
-                'name' => 'note_placeholders',
-                'type' => CommonElement\Note::class,
-                'options' => [
-                    'text' => 'The fields "By", "String to prepend" and "String to append" support placeholders of the resource: {resource_id}, {resource_url}, {resource_url_admin}, {resource_title}, and any property term, like {dcterms:identifier}. So, to replace an uri by the url of the resource, use the mode "Replace whole value" with "By" = {resource_url}, or with a specific base url, like https://example.org/item/{resource_id}.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'replace_note_placeholders',
-                    'class' => 'field',
-                ],
-            ])
         ;
         return $this;
     }
@@ -603,7 +638,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'copy',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Copy values'), // @translate
+                    'label' => $this->translator->translate('Copy'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'copy',
@@ -618,7 +653,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'from',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'From properties', // @translate
+                    'label' => 'From', // @translate
                     'term_as_value' => true,
                     'empty_option' => '',
                     'used_terms' => true,
@@ -636,7 +671,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'to',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'To property', // @translate
+                    'label' => 'To', // @translate
                     'term_as_value' => true,
                     'empty_option' => '',
                 ],
@@ -653,7 +688,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatypes',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Only data types', // @translate
+                    'label' => 'Data types', // @translate
                     'empty_option' => '[All data types]', // @translate
                 ],
                 'attributes' => [
@@ -669,7 +704,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'languages',
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
-                    'label' => 'Only languages', // @translate
+                    'label' => 'Languages', // @translate
                     'value_separator' => ' ',
                 ],
                 'attributes' => [
@@ -683,7 +718,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'visibility',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Only visibility', // @translate
+                    'label' => 'Visibility', // @translate
                     'value_options' => [
                         '1' => 'Public', // @translate
                         '0' => 'Not public', // @translate
@@ -701,7 +736,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only containing', // @translate
+                    'label' => 'Contains', // @translate
                 ],
                 'attributes' => [
                     'id' => 'copy_contains',
@@ -713,7 +748,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'match',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only matching regex', // @translate
+                    'label' => 'Regex', // @translate
                 ],
                 'attributes' => [
                     'id' => 'copy_match',
@@ -725,7 +760,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatype',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Change data type in new property (warning: this is not a conversion)', // @translate
+                    'label' => 'New data type', // @translate
+                    'info' => 'This is not a conversion.', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -741,7 +777,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'max_values',
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [
-                    'label' => 'Copy only max number of values', // @translate
+                    'label' => 'Max values', // @translate
                 ],
                 'attributes' => [
                     'id' => 'copy_max_values',
@@ -766,7 +802,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'displace',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Displace values'), // @translate
+                    'label' => $this->translator->translate('Displace'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'displace',
@@ -781,7 +817,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'from',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'From properties', // @translate
+                    'label' => 'From', // @translate
                     'term_as_value' => true,
                     'empty_option' => '',
                     'used_terms' => true,
@@ -799,7 +835,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'to',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'To property', // @translate
+                    'label' => 'To', // @translate
                     'term_as_value' => true,
                     'empty_option' => '',
                 ],
@@ -816,7 +852,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatypes',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Only data types', // @translate
+                    'label' => 'Data types', // @translate
                     'empty_option' => '[All data types]', // @translate
                 ],
                 'attributes' => [
@@ -832,7 +868,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'languages',
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
-                    'label' => 'Only languages', // @translate
+                    'label' => 'Languages', // @translate
                     'value_separator' => ' ',
                 ],
                 'attributes' => [
@@ -846,7 +882,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'visibility',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Only visibility', // @translate
+                    'label' => 'Visibility', // @translate
                     'value_options' => [
                         '1' => 'Public', // @translate
                         '0' => 'Not public', // @translate
@@ -864,7 +900,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only containing', // @translate
+                    'label' => 'Contains', // @translate
                 ],
                 'attributes' => [
                     'id' => 'displace_contains',
@@ -876,7 +912,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'match',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only matching regex', // @translate
+                    'label' => 'Regex', // @translate
                 ],
                 'attributes' => [
                     'id' => 'displace_match',
@@ -888,7 +924,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatype',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Change data type in new property (warning: this is not a conversion)', // @translate
+                    'label' => 'New data type', // @translate
+                    'info' => 'This is not a conversion.', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -904,7 +941,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'max_values',
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [
-                    'label' => 'Displace only max number of values', // @translate
+                    'label' => 'Max values', // @translate
                 ],
                 'attributes' => [
                     'id' => 'displace_max_values',
@@ -926,7 +963,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'explode',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Explode values'), // @translate
+                    'label' => $this->translator->translate('Explode'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode',
@@ -972,7 +1009,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only containing', // @translate
+                    'label' => 'Contains', // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_contains',
@@ -984,7 +1021,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'match',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only matching regex', // @translate
+                    'label' => 'Regex', // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_match',
@@ -996,7 +1033,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'max_values',
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [
-                    'label' => 'Max number of values, from start or end (negative number)', // @translate
+                    'label' => 'Max values', // @translate
+                    'info' => 'From start, or from end with a negative number.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_max_values',
@@ -1017,8 +1055,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'merge',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Merge values as uri and label'), // @translate
-                    'info' => 'The values are merged two by two, whatever order and initial data type. The number of values must be even and clean.', // @translate
+                    'label' => $this->translator->translate('Merge as uri'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'merge',
@@ -1034,6 +1071,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'label' => 'Properties', // @translate
+                    'info' => 'The values are merged two by two, whatever order and initial data type. The number of values must be even and clean.', // @translate
                     'term_as_value' => true,
                     'empty_option' => '',
                     'used_terms' => true,
@@ -1058,7 +1096,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'convert',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Convert data type'), // @translate
+                    'label' => $this->translator->translate('Convert'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'convert',
@@ -1073,7 +1111,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'from',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'From data type', // @translate
+                    'label' => 'From', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -1090,7 +1128,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'to',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'To data type', // @translate
+                    'label' => 'To', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -1106,7 +1144,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'properties',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'For properties', // @translate
+                    'label' => 'Properties', // @translate
                     'term_as_value' => true,
                     'empty_option' => '',
                     'used_terms' => true,
@@ -1127,11 +1165,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'literal_value',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Convert to literal: Content', // @translate
+                    'label' => 'Content', // @translate
                     'value_options' => [
                         'label_uri' => 'Label and uri', // @translate
                         'uri_label' => 'Uri and label', // @translate
-                        'label_or_uri' => 'Label if present, else uri', // @translate
+                        'label_or_uri' => 'Label or uri', // @translate
                         'label' => 'Label only', // @translate
                         'uri' => 'Uri only', // @translate
                         'coordinates' => 'Geonames to coordinates', // @translate
@@ -1152,7 +1190,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'literal_extract_html_text',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Convert to literal: keep only text from html/xml', // @translate
+                    'label' => 'Text only', // @translate
                     'use_hidden_element' => false,
                 ],
                 'attributes' => [
@@ -1166,7 +1204,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'literal_html_only_tagged_string',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Convert to html/xml: only html/xml-looking strings', // @translate
+                    'label' => 'Only html/xml strings', // @translate
                     'use_hidden_element' => false,
                 ],
                 'attributes' => [
@@ -1180,11 +1218,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'resource_value_preprocess',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Convert to linked resource: Preprocess value', // @translate
+                    'label' => 'Identifier', // @translate
                     'value_options' => [
-                        'full' => 'Use full value as identifier', // @translate
-                        'basename' => 'Use basename as identifier', // @translate
-                        'filename' => 'Use basename without extension', // @translate
+                        'full' => 'Whole value', // @translate
+                        'basename' => 'Base name', // @translate
+                        'filename' => 'Base name without extension', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -1199,7 +1237,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'resource_properties',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'Convert to linked resource: Properties where to search the identifier', // @translate
+                    'label' => 'Identifier properties', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'o:id' => 'Omeka internal id', // @translate
@@ -1221,7 +1259,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'uri_extract_label',
                 'type' => CommonElement\OptionalCheckbox::class,
                 'options' => [
-                    'label' => 'Convert to uri: extract label after uri', // @translate
+                    'label' => 'Extract label after uri', // @translate
                     'use_hidden_element' => false,
                 ],
                 'attributes' => [
@@ -1235,7 +1273,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'uri_label',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Convert to uri: Label of uri', // @translate
+                    'label' => 'Label', // @translate
                 ],
                 'attributes' => [
                     'id' => 'convert_uri_label',
@@ -1248,7 +1286,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'uri_language',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Convert to place: Language', // @translate
+                    'label' => 'Language', // @translate
                     'value_options' => [
                         'eng' => 'English', // @translate
                         'fra' => 'French', // @translate
@@ -1265,7 +1303,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'uri_base_site',
                 'type' => CommonElement\OptionalSiteSelect::class,
                 'options' => [
-                    'label' => 'Convert to uri: Site to use as base url', // @translate
+                    'label' => 'Base url', // @translate
                     // 'disable_group_by_owner' => true,
                     'prepend_value_options' => [
                         'api' => 'Api url', // @translate
@@ -1285,7 +1323,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only containing', // @translate
+                    'label' => 'Contains', // @translate
                 ],
                 'attributes' => [
                     'id' => 'convert_contains',
@@ -1304,7 +1342,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'order_values',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Values order'), // @translate
+                    'label' => $this->translator->translate('Sort'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'order_values',
@@ -1319,7 +1357,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'languages',
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
-                    'label' => 'Order by language', // @translate
+                    'label' => 'Languages first', // @translate
                     'info' => 'List the language you want to order before other values.', // @translate
                     'value_separator' => ' ',
                 ],
@@ -1333,7 +1371,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'properties',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'Properties to order', // @translate
+                    'label' => 'Properties', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
@@ -1361,7 +1399,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'properties_visibility',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Visibility of values'), // @translate
+                    'label' => $this->translator->translate('Visibility'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'properties_visibility',
@@ -1376,7 +1414,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'visibility',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Set visibility', // @translate
+                    'label' => 'Visibility', // @translate
                     'value_options' => [
                         '1' => 'Public', // @translate
                         '0' => 'Not public', // @translate
@@ -1394,7 +1432,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'properties',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'For properties', // @translate
+                    'label' => 'Properties', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
@@ -1415,7 +1453,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatypes',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Only data types', // @translate
+                    'label' => 'Data types', // @translate
                     'empty_option' => '[All data types]', // @translate
                 ],
                 'attributes' => [
@@ -1431,7 +1469,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'languages',
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
-                    'label' => 'Only languages', // @translate
+                    'label' => 'Languages', // @translate
                     'value_separator' => ' ',
                 ],
                 'attributes' => [
@@ -1445,7 +1483,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only containing', // @translate
+                    'label' => 'Contains', // @translate
                 ],
                 'attributes' => [
                     'id' => 'propvis_contains',
@@ -1464,7 +1502,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'fill_data',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Fill and update metadata'), // @translate
+                    'label' => $this->translator->translate('Owner'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_data',
@@ -1479,7 +1517,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'owner',
                 'type' => CommonElement\OptionalUserSelect::class,
                 'options' => [
-                    'label' => 'Append or remove owner', // @translate
+                    'label' => 'Owner', // @translate
                     'empty_option' => '',
                     'prepend_value_options' => [
                         '0' => 'Remove owner', // @translate
@@ -1540,7 +1578,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'fill_values',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Fill labels or uris for Value Suggest'), // @translate
+                    'label' => $this->translator->translate('Value Suggest'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_values',
@@ -1555,39 +1593,39 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'mode',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Fill mode', // @translate
+                    'label' => 'Mode', // @translate
                     'value_options' => [
                         [
                             'value' => 'label_missing',
-                            'label' => 'Fill missing labels of uris', // @translate
+                            'label' => 'Fill missing labels', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'label',
                             ],
                         ],
                         [
                             'value' => 'label_all',
-                            'label' => 'Reset and fill all labels of uris', // @translate
+                            'label' => 'Refill all labels', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'label',
                             ],
                         ],
                         [
                             'value' => 'label_remove',
-                            'label' => 'Remove labels of uris', // @translate
+                            'label' => 'Remove labels', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'label',
                             ],
                         ],
                         [
                             'value' => 'uri_missing',
-                            'label' => 'Fill missing uri from labels', // @translate
+                            'label' => 'Fill missing uris', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'uri',
                             ],
                         ],
                         [
                             'value' => 'uri_all',
-                            'label' => 'Reset and fill missing uri from labels', // @translate
+                            'label' => 'Refill all uris', // @translate
                             'attributes' => [
                                 'data-fill-main' => 'uri',
                             ],
@@ -1605,7 +1643,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'properties',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'For properties', // @translate
+                    'label' => 'Properties', // @translate
                     'term_as_value' => true,
                     'used_terms' => true,
                     'empty_option' => '',
@@ -1636,7 +1674,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatypes',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Data types to process', // @translate
+                    'label' => 'Data types', // @translate
                     'value_options' => array_merge([
                         [
                             'value' => 'all',
@@ -1666,7 +1704,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatype',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Data type to use when the value is literal or uri', // @translate
+                    'label' => 'Data type', // @translate
+                    'info' => 'For literal or uri values.', // @translate
                     'empty_option' => '',
                     'value_options' => $datatypesVSAttrs,
                 ],
@@ -1683,7 +1722,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'language',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Language code for querying and filling', // @translate
+                    'label' => 'Language', // @translate
                 ],
                 'attributes' => [
                     'id' => 'fill_language',
@@ -1695,7 +1734,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'update_language',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Update language in value', // @translate
+                    'label' => 'Value language', // @translate
                     'value_options' => [
                         'keep' => 'Keep', // @translate
                         'update' => 'Update', // @translate
@@ -1733,7 +1772,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'remove',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Remove values, linked resources, or uris from a property'), // @translate
+                    'label' => $this->translator->translate('Remove'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove',
@@ -1748,7 +1787,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'properties',
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
-                    'label' => 'For properties', // @translate
+                    'label' => 'Properties', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'all' => '[All properties]', // @translate
@@ -1769,7 +1808,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'datatypes',
                 'type' => CommonElement\DataTypeSelect::class,
                 'options' => [
-                    'label' => 'Only data types', // @translate
+                    'label' => 'Data types', // @translate
                     'empty_option' => '[All data types]', // @translate
                 ],
                 'attributes' => [
@@ -1785,7 +1824,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'languages',
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
-                    'label' => 'Only languages', // @translate
+                    'label' => 'Languages', // @translate
                     'value_separator' => ' ',
                 ],
                 'attributes' => [
@@ -1799,7 +1838,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'visibility',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Only visibility', // @translate
+                    'label' => 'Visibility', // @translate
                     'value_options' => [
                         '1' => 'Public', // @translate
                         '0' => 'Not public', // @translate
@@ -1817,7 +1856,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'equal',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only equal to', // @translate
+                    'label' => 'Equals', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove_equal',
@@ -1829,7 +1868,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'contains',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only containing string (text or uri)', // @translate
+                    'label' => 'Contains', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove_contains',
@@ -1841,7 +1880,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'match',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Only matching regex', // @translate
+                    'label' => 'Regex', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove_match',
@@ -1853,7 +1892,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'keep_max_values',
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [
-                    'label' => 'Keep a number of values and remove first or next ones (positive or negative number)', // @translate
+                    'label' => 'Values to keep', // @translate
+                    'info' => 'From start, or from end with a negative number.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove_keep_max_values',
@@ -1867,7 +1907,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'max_values',
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [
-                    'label' => 'Remove first or last values (positive or negative number)', // @translate
+                    'label' => 'Values to remove', // @translate
+                    'info' => 'From start, or from end with a negative number.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'remove_max_values',
@@ -1888,7 +1929,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'thumbnails',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Thumbnails'), // @translate
+                    'label' => $this->translator->translate('Thumbnail'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'thumbnails',
@@ -1903,20 +1944,16 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'mode',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'What to do with media metadata', // @translate
-                    'label_attributes' => [
-                        'style' => 'display: block;',
-                    ],
+                    'label' => 'Mode', // @translate
                     'value_options' => [
-                        '' => 'No process', // @translate
-                        'fill' => 'Attach the thumbnail to all resources', // @translate
-                        'append' => 'Attach the thumbnail only if the resource has no thumbnail', // @translate
-                        'append_no_primary' => 'Attach the thumbnail only if the resource has no primary media', // @translate
-                        'append_no_primary_no_thumbnail' => 'Attach the thumbnail only if the resource has no thumbnail and no primary media', // @translate
-                        'replace' => 'Attach the thumbnail only if the resource has already a thumbnail', // @translate
-                        'remove' => 'Remove the specified thumbnail only if the resource has it', // @translate
-                        'remove_primary' => 'Remove any thumbnail if the resource has a primary media', // @translate
-                        'delete' => 'Remove any thumbnail from all resources', // @translate
+                        'fill' => 'Attach to all', // @translate
+                        'append' => 'Attach when no thumbnail', // @translate
+                        'append_no_primary' => 'Attach when no primary media', // @translate
+                        'append_no_primary_no_thumbnail' => 'Attach when no thumbnail nor primary media', // @translate
+                        'replace' => 'Replace existing thumbnail', // @translate
+                        'remove' => 'Remove this thumbnail', // @translate
+                        'remove_primary' => 'Remove when primary media', // @translate
+                        'delete' => 'Remove all', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -1930,7 +1967,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'asset',
                 'type' => OmekaElement\Asset::class,
                 'options' => [
-                    'label' => 'Asset to attach as thumbnail', // @translate
+                    'label' => 'Asset', // @translate
                 ],
                 'attributes' => [
                     'id' => 'thumbnails_asset',
@@ -1950,7 +1987,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'explode_item',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Explode item by media'), // @translate
+                    'label' => $this->translator->translate('Explode by media'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_item',
@@ -1962,31 +1999,17 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset = $this->get('explode_item');
         $fieldset
             ->add([
-                'name' => 'note_process',
-                'type' => CommonElement\Note::class,
-                'options' => [
-                    'text' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'explode_item_note_process',
-                    'class' => 'field',
-                    'style' => 'display_block',
-                ],
-            ])
-            ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'What to do with media metadata', // @translate
-                    'label_attributes' => [
-                        'style' => 'display: block;',
-                    ],
+                    'label' => 'Media metadata', // @translate
+                    'info' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
+                    'empty_option' => '',
                     'value_options' => [
-                        '' => 'No process', // @translate
-                        'append' => 'Append media metadata to item metadata', // @translate
-                        'update' => 'Replace item metadata by media metadata when set', // @translate
-                        'replace' => 'Remove all item metadata and replace them by media ones', // @translate
-                        'none' => 'Do not copy media metadata and keep them in media', // @translate
+                        'append' => 'Append to item', // @translate
+                        'update' => 'Replace item ones when set', // @translate
+                        'replace' => 'Replace all item ones', // @translate
+                        'none' => 'Keep in media', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -2007,7 +2030,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'explode_pdf',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Explode pdf into jpeg for iiif viewers'), // @translate
+                    'label' => $this->translator->translate('Explode pdf'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'explode_pdf',
@@ -2019,27 +2042,16 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset = $this->get('explode_pdf');
         $fieldset
             ->add([
-                'name' => 'note_process',
-                'type' => CommonElement\Note::class,
-                'options' => [
-                    'text' => 'Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'explodepdf_note_process',
-                    'class' => 'field',
-                    'style' => 'display_block',
-                ],
-            ])
-            ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Process mode', // @translate
+                    'label' => 'Pdf', // @translate
+                    'info' => 'Create one jpeg by page for iiif viewers. Check first in jobs and logs that there is no background process working on medias, for example data extraction or indexation.', // @translate
+                    'empty_option' => '',
                     'value_options' => [
-                        '' => 'No process', // @translate
-                        'all' => 'All pdf of each item', // @translate
-                        'first' => 'First pdf only', // @translate
-                        'last' => 'Last pdf only', // @translate
+                        'all' => 'All pdf', // @translate
+                        'first' => 'First pdf', // @translate
+                        'last' => 'Last pdf', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -2053,10 +2065,10 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'process',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Creation process', // @translate
+                    'label' => 'Pages', // @translate
                     'value_options' => [
                         'all' => 'All pages', // @translate
-                        'skip' => 'Skip existing pages (same created file name)', // @translate
+                        'skip' => 'Missing pages', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -2070,7 +2082,8 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'resolution',
                 'type' => CommonElement\OptionalNumber::class,
                 'options' => [
-                    'label' => 'Resolution, generally 72, 96, 150, 300, 400 (default), 600 or more', // @translate
+                    'label' => 'Resolution', // @translate
+                    'info' => 'Generally 72, 96, 150, 300, 400 (default), 600 or more.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'explodepdf_resolution',
@@ -2101,10 +2114,11 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'process_events',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Process events (derivative, extraction, indexation…)', // @translate
+                    'label' => 'Process events', // @translate
+                    'info' => 'Derivatives, extraction, indexation… Disabled by default to avoid memory and speed issues.', // @translate
                     'value_options' => [
-                        '0' => 'No (avoid memory and speed issues)', // @translate
-                        '1' => 'Yes (avoid to run tasks manually)', // @translate
+                        '0' => 'No', // @translate
+                        '1' => 'Yes', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -2125,7 +2139,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'media_remove',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Remove media'), // @translate
+                    'label' => $this->translator->translate('Remove'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_remove',
@@ -2138,15 +2152,15 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Select media', // @translate
+                    'label' => 'Media', // @translate
+                    'empty_option' => '',
                     'value_options' => [
-                        '' => 'None', // @translate
-                        'media_type' => 'Limited with media types below', // @translate
-                        'media_extension' => 'Limited with media extensions below', // @translate
+                        'media_type' => 'By media type', // @translate
+                        'media_extension' => 'By extension', // @translate
                         // 'media_query' => 'Limited with query on media below', // @translate
-                        'all' => 'All medias', // @translate
+                        'all' => 'All', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -2160,7 +2174,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'mediatypes',
                 'type' => CommonElement\MediaTypeSelect::class,
                 'options' => [
-                    'label' => 'List of media types to remove', // @translate
+                    'label' => 'Media types', // @translate
                     'empty_option' => '',
                 ],
                 'attributes' => [
@@ -2176,7 +2190,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'extensions',
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
-                    'label' => 'List of extensions to remove', // @translate
+                    'label' => 'Extensions', // @translate
                     'value_separator' => ' ',
                 ],
                 'attributes' => [
@@ -2214,7 +2228,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'media_order',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Media order'), // @translate
+                    'label' => $this->translator->translate('Sort'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_order',
@@ -2229,48 +2243,48 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'order',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Media order', // @translate
+                    'label' => 'Sort by', // @translate
                     'value_options' => [
                         'simple' => [
-                            'label' => 'Simple',
+                            'label' => 'Simple', // @translate
                             'options' => [
-                                'title' => 'By title', // @translate
-                                'source' => 'By original source full name', // @translate
-                                'basename' => 'By original source basename', // @translate
-                                'mediatype' => 'By media type', // @translate
-                                'extension' => 'By extension', // @translate
+                                'title' => 'Title', // @translate
+                                'source' => 'Source', // @translate
+                                'basename' => 'Source base name', // @translate
+                                'mediatype' => 'Media type', // @translate
+                                'extension' => 'Extension', // @translate
                             ],
                         ],
                         'mediatype_first' => [
-                            'label' => 'Sort by media type first',
+                            'label' => 'Media type first', // @translate
                             'options' => [
-                                'mediatype/title' => 'By media type then title', // @translate
-                                'mediatype/source' => 'By media type then source', // @translate
-                                'mediatype/basename' => 'By media type then source basename', // @translate
+                                'mediatype/title' => 'Media type, title', // @translate
+                                'mediatype/source' => 'Media type, source', // @translate
+                                'mediatype/basename' => 'Media type, source base name', // @translate
                             ],
                         ],
                         'mediatype_after' => [
-                            'label' => 'Sort by media type last',
+                            'label' => 'Media type last', // @translate
                             'options' => [
-                                'title/mediatype' => 'By title then media type', // @translate
-                                'source/mediatype' => 'By source then media type', // @translate
-                                'basename/mediatype' => 'By source basename then media type', // @translate
+                                'title/mediatype' => 'Title, media type', // @translate
+                                'source/mediatype' => 'Source, media type', // @translate
+                                'basename/mediatype' => 'Source base name, media type', // @translate
                             ],
                         ],
                         'extension_first' => [
-                            'label' => 'Sort by extension first',
+                            'label' => 'Extension first', // @translate
                             'options' => [
-                                'extension/title' => 'By extension then title', // @translate
-                                'extension/source' => 'By extension then source', // @translate
-                                'extension/basename' => 'By extension then source basename', // @translate
+                                'extension/title' => 'Extension, title', // @translate
+                                'extension/source' => 'Extension, source', // @translate
+                                'extension/basename' => 'Extension, source base name', // @translate
                             ],
                         ],
                         'extension_after' => [
-                            'label' => 'Sort by extension last',
+                            'label' => 'Extension last', // @translate
                             'options' => [
-                                'title/extension' => 'By title then extension', // @translate
-                                'source/extension' => 'By source then extension', // @translate
-                                'basename/extension' => 'By source basename then extension', // @translate
+                                'title/extension' => 'Title, extension', // @translate
+                                'source/extension' => 'Source, extension', // @translate
+                                'basename/extension' => 'Source base name, extension', // @translate
                             ],
                         ],
                     ],
@@ -2290,7 +2304,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'mediatypes',
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
-                    'label' => 'List of media types to order first', // @translate
+                    'label' => 'Media types first', // @translate
                     'value_separator' => ' ',
                 ],
                 'attributes' => [
@@ -2309,7 +2323,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'extensions',
                 'type' => CommonElement\ArrayText::class,
                 'options' => [
-                    'label' => 'List of extensions to order first', // @translate
+                    'label' => 'Extensions first', // @translate
                     'value_separator' => ' ',
                 ],
                 'attributes' => [
@@ -2329,7 +2343,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'media_html',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Media HTML'), // @translate
+                    'label' => $this->translator->translate('HTML'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_html',
@@ -2342,21 +2356,22 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Replacement mode', // @translate
+                    'label' => 'Mode', // @translate
+                    'empty_option' => '',
                     'value_options' => [
-                        '' => 'No process', // @translate
-                        'raw' => 'Simple', // @translate
-                        'raw_i' => 'Simple (case insensitive)', // @translate
-                        'unicode' => 'Convert badly formatted characters from Microsoft to Unicode ("Ã©" to "é")', // @translate
-                        'html' => 'Simple and html entities', // @translate
-                        'regex' => 'Regex (full pattern)', // @translate
-                        'remove' => 'Remove whole html', // @translate
+                        'raw' => 'Text', // @translate
+                        'raw_i' => 'Text, case insensitive', // @translate
+                        'html' => 'Text and html entities', // @translate
+                        'regex' => 'Regex', // @translate
+                        'unicode' => 'Fix encoding (Ã© to é)', // @translate
+                        'remove' => 'Remove html', // @translate
                     ],
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_mode',
+                    'class' => 'bulkedit-replace-mode',
                     'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -2366,7 +2381,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to replace', // @translate
+                    'label' => 'Search', // @translate
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_from',
@@ -2390,7 +2405,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'prepend',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to prepend', // @translate
+                    'label' => 'Prepend', // @translate
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_prepend',
@@ -2402,7 +2417,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'append',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to append', // @translate
+                    'label' => 'Append', // @translate
                 ],
                 'attributes' => [
                     'id' => 'mediahtml_append',
@@ -2424,7 +2439,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'media_source',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Media source'), // @translate
+                    'label' => $this->translator->translate('Source'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_source',
@@ -2437,22 +2452,23 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
         $fieldset
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalRadio::class,
+                'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Replacement mode', // @translate
+                    'label' => 'Mode', // @translate
+                    'empty_option' => '',
                     'value_options' => [
-                        '' => 'No process', // @translate
-                        'basename' => 'Base name (last part of a file path or url)', // @translate
+                        'raw' => 'Text', // @translate
+                        'raw_i' => 'Text, case insensitive', // @translate
+                        'regex' => 'Regex', // @translate
+                        'unicode' => 'Fix encoding (Ã© to é)', // @translate
+                        'basename' => 'Base name', // @translate
                         'filename' => 'Base name without extension', // @translate
-                        'raw' => 'Simple', // @translate
-                        'raw_i' => 'Simple (case insensitive)', // @translate
-                        'unicode' => 'Convert badly formatted characters from Microsoft to Unicode ("Ã©" to "é")', // @translate
-                        'regex' => 'Regex (full pattern)', // @translate
-                        'remove' => 'Remove whole source', // @translate
+                        'remove' => 'Remove source', // @translate
                     ],
                 ],
                 'attributes' => [
                     'id' => 'media_source_mode',
+                    'class' => 'bulkedit-replace-mode',
                     'value' => '',
                     // This attribute is required to make "batch edit all" working.
                     'data-collection-action' => 'replace',
@@ -2462,7 +2478,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to replace', // @translate
+                    'label' => 'Search', // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_source_from',
@@ -2486,7 +2502,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'prepend',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to prepend', // @translate
+                    'label' => 'Prepend', // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_source_prepend',
@@ -2498,7 +2514,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'append',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'String to append', // @translate
+                    'label' => 'Append', // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_source_append',
@@ -2516,7 +2532,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'media_type',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Media type (mime-type)'), // @translate
+                    'label' => $this->translator->translate('Media type'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_type',
@@ -2531,7 +2547,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'from',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Media type to replace', // @translate
+                    'label' => 'From', // @translate
                 ],
                 'attributes' => [
                     'id' => 'mediatype_from',
@@ -2543,7 +2559,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'to',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'By a valid media-type', // @translate
+                    'label' => 'To', // @translate
                 ],
                 'attributes' => [
                     'id' => 'mediatype_to',
@@ -2562,7 +2578,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'media_visibility',
                 'type' => Fieldset::class,
                 'options' => [
-                    'label' => $this->translator->translate('Visibility of medias'), // @translate
+                    'label' => $this->translator->translate('Visibility'), // @translate
                 ],
                 'attributes' => [
                     'id' => 'media_visibility',
@@ -2577,7 +2593,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'visibility',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Set visibility', // @translate
+                    'label' => 'Visibility', // @translate
                     'value_options' => [
                         '1' => 'Public', // @translate
                         '0' => 'Not public', // @translate
@@ -2595,7 +2611,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'media_types',
                 'type' => CommonElement\MediaTypeSelect::class,
                 'options' => [
-                    'label' => 'Limit to media types', // @translate
+                    'label' => 'Media types', // @translate
                     'empty_option' => 'All media types', // @translate
                 ],
                 'attributes' => [
@@ -2612,7 +2628,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'ingesters',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Limit to ingesters', // @translate
+                    'label' => 'Ingesters', // @translate
                     'empty_option' => 'All ingesters', // @translate
                     'value_options' => $this->ingesters,
                 ],
@@ -2630,7 +2646,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'renderers',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Limit to renderers', // @translate
+                    'label' => 'Renderers', // @translate
                     'empty_option' => 'All renderers', // @translate
                     'value_options' => $this->renderers,
                 ],

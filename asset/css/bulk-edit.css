@@ -3,28 +3,47 @@
         background-color: #fff;
         padding: 6px;
     }
-    #bulk-edit > legend {
-        position: inherit;
-    }
-    #bulk-edit > fieldset {
-        margin-bottom: 6px;
-    }
-    #bulk-edit fieldset > a {
-        align-items: center;
-        display: flex;
-        font-size: 16px;
-        text-align: left;
-        width: fit-content;
-    }
-    #bulk-edit fieldset > a::after {
-        margin-left: 12px;
-    }
-    #bulk-edit fieldset > a > legend {
-        font-size: 16px;
-        margin: 0;
-        width: auto;
-    }
-    #bulk-edit fieldset > a.collapse + .collapsible {
-        overflow: inherit;
+    #bulk-edit {
+        & > legend {
+            position: inherit;
+        }
+        & > fieldset {
+            margin-bottom: 6px;
+        }
+        & > .bulkedit-group {
+            border-bottom: 1px solid #dfdfdf;
+            margin: 24px 0 12px;
+            padding-bottom: 6px;
+        }
+        & .bulkedit-options {
+            margin-top: 6px;
+            & > a {
+                display: inline-flex;
+                align-items: center;
+                &::after {
+                    margin-left: 6px;
+                }
+            }
+        }
+        & fieldset {
+            & > a {
+                align-items: center;
+                display: flex;
+                font-size: 16px;
+                text-align: left;
+                width: fit-content;
+                &::after {
+                    margin-left: 12px;
+                }
+                & > legend {
+                    font-size: 16px;
+                    margin: 0;
+                    width: auto;
+                }
+                &.collapse + .collapsible {
+                    overflow: inherit;
+                }
+            }
+        }
     }
 }

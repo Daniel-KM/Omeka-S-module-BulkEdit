@@ -13,6 +13,7 @@ $(document).ready(function() {
     // Recreate missing bulk edit fieldsets.
     const bulkeditFieldsets = $('#bulkedit-fieldsets').data('bulkedit-fieldsets') || {};
     const bulkeditGroups = $('#bulkedit-fieldsets').data('bulkedit-groups') || {};
+    const bulkeditRequired = $('#bulkedit-fieldsets').data('bulkedit-required') || {};
     $('#bulkedit-fieldsets').remove();
     Object.entries(bulkeditFieldsets).forEach(([fieldsetName, fieldsetLabel]) => {
         $('[data-bulkedit-fieldset=' + fieldsetName + ']').closest('.field')
@@ -67,6 +68,30 @@ $(document).ready(function() {
 
     $('#fill_values > .collapsible, #explode_item > .collapsible, #explode_pdf > .collapsible')
         .prepend('<p>' + Omeka.jsTranslate('Slow process, always run in background.') + '</p>')
+
+    // Mark the actions that will be processed, with the same required elements
+    // than the server.
+    const fieldValues = (fieldset, name) => {
+        const fieldName = 'bulkedit[' + fieldset.attr('id') + '][' + name + ']';
+        return fieldset.find(':input')
+            .filter(function() {
+                return (this.name === fieldName || this.name === fieldName + '[]')
+                    && (!['checkbox', 'radio'].includes(this.type) || this.checked);
+            })
+            .map(function() { return $(this).val(); }).get()
+            .flat().filter(value => value !== null && value !== '');
+    };
+    const isFilled = (fieldset, token) => token.split('+').every(part => {
+        const [name, value] = part.split('=');
+        const values = fieldValues(fieldset, name);
+        return value === undefined ? values.length > 0 : values.includes(value);
+    });
+    const isActive = (fieldset) => (bulkeditRequired[fieldset.attr('id')] || [[]])
+        .every(group => group.some(token => isFilled(fieldset, token)));
+    $('#bulk-edit').on('change input', ':input', function() {
+        const fieldset = $(this).closest('#bulk-edit > fieldset');
+        fieldset.toggleClass('bulkedit-active', isActive(fieldset));
+    });
 
     $('.batch-edit').on('change', '.bulkedit-replace-mode', function() {
         const fieldset = $(this).closest('fieldset');

@@ -41,6 +41,37 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
     ];
 
     /**
+     * Elements required to process an action, according to prepareProcesses().
+     *
+     * Each group requires one filled element, or a value ("name=value"), or all
+     * filled elements ("name+name").
+     */
+    protected $requiredElements = [
+        'create_values' => [['properties'], ['datatype']],
+        'replace' => [['mode'], ['properties']],
+        'copy' => [['from'], ['to']],
+        'displace' => [['from'], ['to']],
+        'explode' => [['properties'], ['separator']],
+        'merge' => [['properties']],
+        'convert' => [['from'], ['to'], ['properties']],
+        'order_values' => [['languages'], ['properties']],
+        'properties_visibility' => [['visibility'], ['properties']],
+        'fill_values' => [['mode'], ['properties']],
+        'remove' => [['properties']],
+        'cleaning' => [['trim_values', 'specify_datatypes', 'clean_empty_values', 'clean_languages', 'deduplicate_values', 'clean_language_codes+clean_language_codes_properties']],
+        'fill_data' => [['owner']],
+        'thumbnails' => [['mode']],
+        'explode_item' => [['mode']],
+        'explode_pdf' => [['mode']],
+        'media_remove' => [['mode']],
+        'media_order' => [['order']],
+        'media_html' => [['mode'], ['from', 'to', 'prepend', 'append', 'mode=unicode', 'mode=remove']],
+        'media_source' => [['mode'], ['from', 'to', 'prepend', 'append', 'mode=basename', 'mode=filename', 'mode=unicode', 'mode=remove']],
+        'media_type' => [['from'], ['to']],
+        'media_visibility' => [['visibility']],
+    ];
+
+    /**
      * Elements displayed in a collapsed block "Options".
      */
     protected $secondaryElements = [
@@ -181,6 +212,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                     'id' => 'bulkedit-fieldsets',
                     'data-bulkedit-fieldsets' => json_encode($fieldsets, 320),
                     'data-bulkedit-groups' => json_encode($groups, 320),
+                    'data-bulkedit-required' => json_encode(array_intersect_key($this->requiredElements, $fieldsets), 320),
                 ],
             ])
         ;

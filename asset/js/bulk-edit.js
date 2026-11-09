@@ -95,7 +95,9 @@ $(document).ready(function() {
 
     $('.batch-edit').on('change', '.bulkedit-replace-mode', function() {
         const fieldset = $(this).closest('fieldset');
-        const mode = $(this).val();
+        // The mode may be a select or radios.
+        const modes = fieldset.find('.bulkedit-replace-mode');
+        const mode = modes.is('select') ? modes.val() : (modes.filter(':checked').val() || '');
         fieldset.find('[name$="[from]"]').closest('.field').toggle(['raw', 'raw_i', 'html', 'regex'].includes(mode));
         fieldset.find('[name$="[to]"]').closest('.field').toggle(['raw', 'raw_i', 'html', 'regex', 'whole'].includes(mode));
     });

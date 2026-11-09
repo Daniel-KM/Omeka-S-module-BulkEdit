@@ -75,7 +75,6 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
      * Elements displayed in a collapsed block "Options".
      */
     protected $secondaryElements = [
-        'replace' => ['prepend', 'append', 'language', 'language_clear'],
         'copy' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
         'displace' => ['datatypes', 'languages', 'visibility', 'contains', 'match', 'datatype', 'max_values'],
         'explode' => ['contains', 'match', 'max_values'],
@@ -478,10 +477,9 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
             ])
             ->add([
                 'name' => 'mode',
-                'type' => CommonElement\OptionalSelect::class,
+                'type' => CommonElement\OptionalRadio::class,
                 'options' => [
                     'label' => 'Mode', // @translate
-                    'empty_option' => '',
                     'value_options' => [
                         'raw' => 'Text', // @translate
                         'raw_i' => 'Text, case insensitive', // @translate
@@ -560,7 +558,7 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'name' => 'language',
                 'type' => Element\Text::class,
                 'options' => [
-                    'label' => 'Language', // @translate
+                    'label' => 'Add the language', // @translate
                 ],
                 'attributes' => [
                     'id' => 'replace_language',

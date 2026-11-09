@@ -2928,9 +2928,9 @@ class BulkEditFieldset extends Fieldset implements TranslatorAwareInterface
                 'options' => [
                     'label' => 'Visibility', // @translate
                     'value_options' => [
+                        '' => '[No change]', // @translate
                         '1' => 'Public', // @translate
                         '0' => 'Not public', // @translate
-                        '' => '[No change]', // @translate
                     ],
                 ],
                 'attributes' => [
